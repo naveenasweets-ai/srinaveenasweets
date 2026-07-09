@@ -12,6 +12,7 @@ import AuthApi from '../../api/auth';
 import { FiChevronDown, FiLogOut } from 'react-icons/fi';
 import { slugify } from '../../utils/utils';
 import type { CategoryConfig } from '../../types/contextTypes';
+import { FaChevronRight } from 'react-icons/fa';
 
 const Header = () => {
   const { user, siteContent, setSelectedCategory } = useStore();
@@ -26,11 +27,16 @@ const Header = () => {
   const closeMenu = () => setIsMenuOpen(false);
   const toggleMobileNav = () => setIsMobileNavOpen((prev) => !prev);
   const closeMobileNav = () => setIsMobileNavOpen(false);
+
+  const [mobileOpenCategory, setMobileOpenCategory] = useState<string | null>(
+    null,
+  );
   const menuItems = user.role === 'admin' ? adminMenuItems : customerMenuItems;
 
   const handleNav = (name: string, slug: string = 'all') => {
     setSelectedCategory(name);
     navigate(`/category/${slug}`);
+    closeMobileNav();
     setIsMenuOpen(false);
   };
 
@@ -65,7 +71,7 @@ const Header = () => {
         )}
 
         <div className="flex-col justify-center pb-4 lg:flex hidden">
-          <nav className="hidden lg:flex justify-center gap-8 xl:gap-12 pb-2.5 pt-2.5 bg-gradient-to-r from-transparent via-maroon-50/20 to-transparent">
+          <nav className="hidden lg:flex justify-center gap-8 xl:gap-12 pb-2.5 pt-2.5 bg-linear-to-r from-transparent via-maroon-50/20 to-transparent">
             {siteContent?.categories
               ?.filter((cat: CategoryConfig) => cat.type !== 'subcategory')
               ?.map((cat: CategoryConfig) => ({
@@ -204,16 +210,68 @@ const Header = () => {
 
             {isMobileNavOpen && (
               <div className="flex flex-col gap-1 rounded-xl border border-(--color-accent-light) bg-white p-2 shadow-sm">
-                {siteContent?.categories.map((item, index) => (
-                  <Link
-                    key={index}
-                    to={item.slug ? `/category/${item.slug}` : '/category/all'}
-                    onClick={closeMobileNav}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-(--color-text) transition hover:bg-(--color-accent-light)"
-                  >
-                    <span>{item.name}</span>
-                  </Link>
-                ))}
+                {(siteContent?.categories ?? [])
+                  .filter((cat: any) => cat.type !== 'subcategory')
+                  .map((cat: any) => {
+                    const subcategories = (
+                      siteContent?.categories ?? []
+                    ).filter(
+                      (item: any) =>
+                        item.type === 'subcategory' &&
+                        item.parentId === cat._id,
+                    );
+                    const isOpen = mobileOpenCategory === cat._id;
+
+                    return (
+                      <div key={cat._id}>
+                        <div className="flex items-center justify-between">
+                          <button
+                            onClick={() =>
+                              handleNav(cat.name, slugify(cat.slug || cat.name))
+                            }
+                            className="flex-1 text-left py-2 text-maroon-800 text-xs tracking-wider cursor-pointer"
+                          >
+                            {cat.name}
+                          </button>
+                          {subcategories.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setMobileOpenCategory(isOpen ? null : cat._id);
+                              }}
+                              className="p-2 text-gold-500"
+                              aria-label={`Toggle ${cat.name} subcategories`}
+                            >
+                              <FaChevronRight
+                                className={`h-3.5 w-3.5 transition-transform ${
+                                  isOpen ? 'rotate-90' : ''
+                                }`}
+                              />
+                            </button>
+                          )}
+                        </div>
+                        {isOpen && subcategories.length > 0 && (
+                          <div className="pb-2 pl-3 space-y-1">
+                            {subcategories.map((subcat: any) => (
+                              <button
+                                key={subcat._id}
+                                onClick={() =>
+                                  handleNav(
+                                    subcat.name,
+                                    slugify(subcat.slug || subcat.name),
+                                  )
+                                }
+                                className="block w-full rounded-md px-2 py-1.5 text-left text-[11px] text-maroon-700 hover:bg-gold-50 transition-colors cursor-pointer"
+                              >
+                                {subcat.name}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
               </div>
             )}
           </div>
