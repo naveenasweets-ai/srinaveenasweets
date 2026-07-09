@@ -1,5 +1,4 @@
 import { Autocomplete, Box, InputAdornment, TextField } from '@mui/material';
-import React from 'react';
 
 import { Link } from 'react-router-dom';
 
@@ -10,7 +9,7 @@ const Search = () => {
 
   return (
     <div className="flex items-center justify-end">
-      <div className="relative w-full max-w-[360px]">
+      <div className="relative w-full max-w-90">
         <Autocomplete
           id="grouped-demo"
           options={[...Items].sort(
@@ -75,7 +74,7 @@ const Search = () => {
                 }}
                 {...props}
               >
-                <span className="text-[var(--color-primary)]">✦</span>
+                <span className="text-(--color-primary)">✦</span>
                 <span>{option.name}</span>
               </Box>
             </Link>
@@ -91,7 +90,7 @@ const Search = () => {
                 ...params.InputProps,
                 startAdornment: (
                   <InputAdornment position="start">
-                    <FaSearch className="text-[var(--color-primary)]" />
+                    <FaSearch className="text-(--color-primary)" />
                   </InputAdornment>
                 ),
               }}

@@ -4,7 +4,7 @@ import {
   MdCelebration,
   MdOutlineFestival,
 } from 'react-icons/md';
-import { FiShoppingCart, FiLogOut } from 'react-icons/fi';
+import { FiShoppingCart } from 'react-icons/fi';
 import { FaRegUser } from 'react-icons/fa';
 import { GrFavorite } from 'react-icons/gr';
 import { FaBirthdayCake, FaHotdog, FaCookieBite } from 'react-icons/fa';

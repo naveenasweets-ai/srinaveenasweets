@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Link } from 'react-router-dom';
 
 import { FiShoppingCart } from 'react-icons/fi';
@@ -11,8 +9,8 @@ import NavbarItems from './NavbarItems';
 
 const Appbar = () => {
   return (
-    <div className="flex justify-center fixed bottom-0 w-full lg:hidden z-[999] ">
-      <div className="bg-[color:var(--primary-bg)] flex w-full items-center text-white py-1">
+    <div className="flex justify-center fixed bottom-0 w-full lg:hidden z-999 ">
+      <div className="bg-(--primary-bg) flex w-full items-center text-white py-1">
         <div className="w-[40%] flex justify-evenly">
           <NavbarItems />
 
@@ -27,9 +25,9 @@ const Appbar = () => {
         <div className="w-[20%] flex justify-center">
           <Link
             to="/"
-            className="absolute bottom-0 bg-white border-4 border-[color:var(--primary-bg)] rounded-[50%] p-4"
+            className="absolute bottom-0 bg-white border-4 border-(--primary-bg) rounded-[50%] p-4"
           >
-            <IoHomeOutline className="text-[2rem] text-[color:var(--buttons-bg)]" />
+            <IoHomeOutline className="text-[2rem] text-(--buttons-bg)" />
           </Link>
         </div>
 
