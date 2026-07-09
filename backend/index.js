@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 
-import SiteConfig from './routes/SiteConfig.js';
+import SiteConfig from './routes/siteConfig.js';
 import authRouter from './routes/auth.js';
 import adminRouter from './routes/admin.js';
 
