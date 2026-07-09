@@ -1,44 +1,48 @@
 import { Link } from 'react-router-dom';
 import logo from '../../assets/Logo.png';
-import LeftDrawer from './Drawer';
 import { useStore } from '../../context/StoreContext';
 import Location from './Location';
 import Search from './Search';
-import Appbar from './Appbar';
 import { FcGoogle } from 'react-icons/fc';
 import { useRef, useState, useEffect } from 'react';
 import { CgProfile } from 'react-icons/cg';
 import { allNavItems, menuItems } from '../../utils/constants';
 import AuthApi from '../../api/auth';
-import { FiLogOut } from 'react-icons/fi';
+import { FiChevronDown, FiLogOut } from 'react-icons/fi';
 
 const Header = () => {
   const { user } = useStore();
   const { loginWithGoogle, logout } = AuthApi();
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
+  const mobileNavRef = useRef<HTMLDivElement | null>(null);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
   const closeMenu = () => setIsMenuOpen(false);
+  const toggleMobileNav = () => setIsMobileNavOpen((prev) => !prev);
+  const closeMobileNav = () => setIsMobileNavOpen(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        wrapperRef.current &&
-        !wrapperRef.current.contains(event.target as Node)
-      ) {
+      const target = event.target as Node;
+      const clickedInsideProfileMenu = profileMenuRef.current?.contains(target);
+      const clickedInsideMobileNav = mobileNavRef.current?.contains(target);
+
+      if (!clickedInsideProfileMenu && !clickedInsideMobileNav) {
         setIsMenuOpen(false);
+        setIsMobileNavOpen(false);
       }
     };
 
-    if (isMenuOpen) {
+    if (isMenuOpen || isMobileNavOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isMenuOpen]);
+  }, [isMenuOpen, isMobileNavOpen]);
 
   return (
     <div className="w-full z-999 py-4 flex flex-col items-center gap-4 border-b border-(--color-accent-light) bg-(--color-surface) shadow-sm">
@@ -53,19 +57,15 @@ const Header = () => {
           <nav className="lg:flex lg:items-center">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                {window.innerWidth > 768 ? (
-                  allNavItems.map((item, index) => (
-                    <Link
-                      to={item.linkTo}
-                      key={index}
-                      className="cursor-pointer text-(--color-text) hover:font-semibold hover:text-(--color-primary) whitespace-nowrap font-googleNunito tracking-[1px] flex justify-center px-2 py-1"
-                    >
-                      {item.title}
-                    </Link>
-                  ))
-                ) : (
-                  <LeftDrawer visibleNavItems={allNavItems} />
-                )}
+                {allNavItems.map((item, index) => (
+                  <Link
+                    to={item.linkTo}
+                    key={index}
+                    className="cursor-pointer text-(--color-text) hover:font-semibold hover:text-(--color-primary) whitespace-nowrap font-googleNunito tracking-[1px] flex justify-center px-2 py-1"
+                  >
+                    {item.title}
+                  </Link>
+                ))}
               </div>
             </div>
           </nav>
@@ -82,10 +82,10 @@ const Header = () => {
                 />
               </Link>
             )}
-            <div className="flex gap-1 items-center justify-between font-normal ">
+            <div className="flex flex-col lg:gap-1 lg:justify-between items-end justify-end font-normal ">
               <Location />
               {user.loggedIn ? (
-                <div ref={wrapperRef} className="relative flex text-center">
+                <div ref={profileMenuRef} className="relative flex text-center">
                   <button
                     type="button"
                     onClick={toggleMenu}
@@ -126,7 +126,10 @@ const Header = () => {
                   )}
                 </div>
               ) : (
-                <button onClick={loginWithGoogle} className="flex items-center gap-1 bg-google-button-blue rounded-full p-0.5 bg-transparent! transition-colors duration-300 hover:bg-google-button-blue-hover hover:underline">
+                <button
+                  onClick={loginWithGoogle}
+                  className="flex items-center gap-1 bg-google-button-blue rounded-full p-0.5 bg-transparent! transition-colors duration-300 hover:bg-google-button-blue-hover hover:underline"
+                >
                   <span className="text-black tracking-wider">
                     Signin with{' '}
                   </span>
@@ -137,10 +140,39 @@ const Header = () => {
               )}
             </div>
           </div>
+
+          <div ref={mobileNavRef} className="lg:hidden flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={toggleMobileNav}
+              className="flex items-center justify-between rounded-full border border-(--color-accent-light) bg-white! px-4 py-2 text-sm font-semibold text-(--color-text) shadow-sm"
+            >
+              <span>Menu</span>
+              <FiChevronDown
+                className={`transition-transform ${isMobileNavOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+
+            {isMobileNavOpen && (
+              <div className="flex flex-col gap-1 rounded-xl border border-(--color-accent-light) bg-white p-2 shadow-sm">
+                {allNavItems.map((item, index) => (
+                  <Link
+                    key={index}
+                    to={item.linkTo}
+                    onClick={closeMobileNav}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-(--color-text) transition hover:bg-(--color-accent-light)"
+                  >
+                    <span className="min-w-6 text-lg">{item.itemIcon}</span>
+                    <span>{item.title}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
           <Search />
         </div>
       </div>
-      <Appbar />
     </div>
   );
 };

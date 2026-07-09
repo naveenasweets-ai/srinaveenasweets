@@ -8,8 +8,8 @@ const Search = () => {
   const Items: any[] = [];
 
   return (
-    <div className="flex items-center justify-end">
-      <div className="relative w-full max-w-90">
+    <div className="flex items-center justify-center w-full">
+      <div className="relative lg:max-w-80 w-full">
         <Autocomplete
           id="grouped-demo"
           options={[...Items].sort(
@@ -24,7 +24,7 @@ const Search = () => {
               backgroundColor: '#fffdf7',
               boxShadow: '0 8px 24px rgba(139, 30, 45, 0.08)',
               paddingRight: '8px',
-              minHeight: '42px',
+              height: '36px',
               '& fieldset': {
                 border: '1px solid #f1d7b0',
               },
@@ -51,6 +51,7 @@ const Search = () => {
             '& .MuiAutocomplete-option': {
               borderRadius: '10px',
               margin: '2px 0',
+              height: '36px',
               padding: '10px 12px',
               color: 'var(--color-text)',
               '&:hover, &.Mui-focused': {

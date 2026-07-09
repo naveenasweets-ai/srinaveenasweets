@@ -22,7 +22,7 @@ const Footer = () => {
         py: 6,
         borderTop: '1px solid',
         borderColor: '#c8a96b',
-        pb: { xs: '4em', md: 0 },
+        pb: { xs: '2em', md: 0 },
       }}
     >
       <Container sx={{ width: '100%' }}>
