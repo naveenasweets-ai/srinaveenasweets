@@ -1,11 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import type { User } from '../types/contextTypes';
+import {
+  getFirebaseAuthErrorMessage,
+  signInWithGooglePopup,
+} from '../firebase';
 
 const apiUrl =
   (import.meta as any).env.VITE_BACKEND_URL || 'http://localhost:4001';
 
-const Auth = () => {
+const AuthApi = () => {
   const navigate = useNavigate();
   const { setUser, showToast } = useStore();
 
@@ -63,7 +67,63 @@ const Auth = () => {
     }
   };
 
-  return { adminLogin };
+  const logout = () => {
+    const guest = {
+      name: 'Guest Patron',
+      email: '',
+      phone: '',
+      role: 'customer',
+      loggedIn: false,
+      token: '',
+      _id: '',
+    } as User;
+    setUser(guest);
+    try {
+      localStorage.removeItem('sns_user');
+    } catch (e) {
+      // ignore
+    }
+    showToast('Logged out successfully', 'success');
+    navigate('/');
+  };
+
+  const loginWithGoogle = async () => {
+    try {
+      const { user } = await signInWithGooglePopup();
+      const name = user.displayName ?? user.email?.split('@')[0] ?? 'Patron';
+      const email = user.email ?? '';
+
+      const response = await fetch(`${apiUrl}/api/auth/google/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email,
+          uid: user.uid,
+        }),
+      });
+      const json = await response.json();
+
+      if (json.success) {
+        login({
+          email,
+          role: 'customer',
+          name,
+          _id: user.uid ?? '',
+          token: json.token,
+          loggedIn: true,
+        });
+      } else {
+        showToast('Google sign-in failed. Please try again.', 'error');
+      }
+    } catch (err) {
+      console.error('Google sign-in failed', err);
+      const message = getFirebaseAuthErrorMessage(err);
+      showToast(message, 'error');
+    }
+  };
+
+  return { adminLogin, loginWithGoogle, logout };
 };
 
-export default Auth;
+export default AuthApi;

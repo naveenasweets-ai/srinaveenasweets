@@ -1,5 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import type { StoreContextType, Toast, ToastType, User } from '../types/contextTypes';
+import React, { createContext, useContext, useState } from 'react';
+import type {
+  StoreContextType,
+  Toast,
+  ToastType,
+  User,
+} from '../types/contextTypes';
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
@@ -14,7 +19,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
         return {
           name: parsed.name || '',
           email: parsed.email || '',
-          role: parsed.role === 'admin' ? 'admin' : parsed.role === 'customer' ? 'customer' : 'guest',
+          role:
+            parsed.role === 'admin'
+              ? 'admin'
+              : parsed.role === 'customer'
+                ? 'customer'
+                : 'guest',
           loggedIn: !!parsed.loggedIn,
           token: parsed.token || '',
           _id: parsed._id || '',
@@ -34,10 +44,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   });
 
-  
   const [toast, setToast] = useState<Toast | null>(null);
 
-    const showToast = (msg: string, type: ToastType = 'success') => {
+  const showToast = (msg: string, type: ToastType = 'success') => {
     setToast({ message: msg, type });
     setTimeout(() => setToast(null), 3000);
   };
@@ -49,7 +58,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
         setUser,
 
         toast,
-        showToast
+        showToast,
       }}
     >
       {children}

@@ -1,20 +1,20 @@
 // AdminLogin.jsx
 import  { useState } from "react";
-import Auth from "../api/auth";
+import AuthApi from "../api/auth";
 
 const AdminLogin = () => {
-  const { adminLogin } = Auth(); 
+  const { adminLogin } = AuthApi(); 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
+    <div className="flex items-center justify-center min-h-[70vh] bg-background">
       <form
         onSubmit={(e) => {
           e.preventDefault();
           adminLogin(email, password);
         }}
-        className="bg-surface shadow-lg rounded-lg p-8 w-full max-w-sm"
+        className="bg-white shadow-lg rounded-lg p-8 w-full max-w-sm"
       >
         <h2 className="text-2xl font-semibold text-center text-primary mb-6">
           Admin Login
@@ -44,10 +44,6 @@ const AdminLogin = () => {
         >
           Login
         </button>
-
-        <p className="text-center text-sm text-muted mt-4 hover:text-primary cursor-pointer">
-          Forgot Password?
-        </p>
       </form>
     </div>
   );

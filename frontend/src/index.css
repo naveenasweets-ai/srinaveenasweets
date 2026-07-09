@@ -2,20 +2,20 @@
 
 :root {
   /* Primary brand colors */
-  --color-primary: #d32f2f; /* Rich candy red */
-  --color-primary-light: #ff6659; /* Sweet strawberry red */
-  --color-primary-dark: #9a0007; /* Deep festive red */
+  --color-primary: #8b1e2d; /* Deep cherry red */
+  --color-primary-light: #c8553d; /* Warm candy coral */
+  --color-primary-dark: #5f1021; /* Rich festive maroon */
 
   /* Accent colors */
-  --color-accent: #fbc02d; /* Golden yellow for highlights */
-  --color-accent-light: #fff176; /* Soft pastel yellow */
-  --color-accent-dark: #f57f17; /* Honey gold */
+  --color-accent: #d4a017; /* Saffron gold */
+  --color-accent-light: #f3d48a; /* Soft golden cream */
+  --color-accent-dark: #a86f0b; /* Deep honey gold */
 
   /* Neutral palette */
-  --color-background: #fff8f6; /* Creamy background */
-  --color-surface: #ffffff; /* Pure white for cards */
-  --color-text: #3e2723; /* Chocolate brown for readability */
-  --color-muted: #8d6e63; /* Soft cocoa for secondary text */
+  --color-background: #fff8ef; /* Creamy dessert background */
+  --color-surface: #fffdf7; /* Warm ivory for cards */
+  --color-text: #4d2b1f; /* Rich chocolate brown */
+  --color-muted: #8a6a4a; /* Soft cocoa brown */
 
   /* Status colors */
   --color-success: #4caf50;
@@ -31,13 +31,13 @@ body {
 }
 
 button {
-  background-color: var(--color-primary);
-  color: var(--color-surface);
+  background-color: var(--color-accent-dark);
+  color: var(--color-accent-light);
   border-radius: 6px;
   padding: 0.5rem 1rem;
   transition: background-color 0.3s ease;
 }
 
 button:hover {
-  background-color: var(--color-primary-dark);
+  background-color: var(--color-accent-light);
 }

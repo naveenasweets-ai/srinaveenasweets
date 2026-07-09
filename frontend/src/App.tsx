@@ -18,7 +18,7 @@ export default function App() {
 
   console.log('Current user:', user); // Log the current user state
   return (
-    <div className="min-h-screen bg-[#fdf8f1] text-maroon-900 flex flex-col justify-between font-sans selection:bg-gold-200 selection:text-maroon-900">
+    <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)] flex flex-col justify-between font-sans selection:bg-[var(--color-accent-light)] selection:text-[var(--color-text)]">
       <Header />
       <main className="flex-1">
         <Routes>

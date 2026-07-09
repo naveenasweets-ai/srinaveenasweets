@@ -1,4 +1,5 @@
 import AdminSchema from '../schemas/AdminSchema.js';
+import Customer from '../schemas/CustomerSchema.js';
 import { createToken } from '../utils/utils.js';
 
 export async function loginUser(req, res) {
@@ -47,5 +48,38 @@ export async function signupUser(req, res) {
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
+  }
+}
+
+export async function googleLogin(req, res) {
+  const { uid, name, email } = req.body;
+
+  if (!uid)
+    return res
+      .status(400)
+      .json({ success: false, message: 'Missing user info' });
+
+  try {
+    const now = new Date();
+    const istString = now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+    const saved = await Customer.findByIdAndUpdate(
+      uid,
+      {
+        _id: uid,
+        fullName: name,
+        email: email,
+        loggedInAtIST: istString,
+        role: 'customer',
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+
+    const token = createToken(saved._id);
+
+    return res.json({ success: true, customer: saved, token });
+  } catch (err) {
+    console.error('Error saving Google user:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
 }
