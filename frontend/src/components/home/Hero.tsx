@@ -1,4 +1,54 @@
+import { useNavigate } from 'react-router-dom';
+import { useStore } from '../../context/StoreContext';
+import { useEffect, useState } from 'react';
+import type { Product } from '../../types/contextTypes';
+import { FaChevronRight } from 'react-icons/fa';
+
 export default function Hero() {
+  const navigate = useNavigate();
+  const { setSelectedCategory, siteContent } = useStore();
+  const { products } = useStore();
+
+  const [featuredProduct, setFeaturedProduct] = useState<Product | null>(null);
+
+  useEffect(() => {
+    const settingFeaturedProduct = async () => {
+      const id = siteContent.heroContent?.featuredProductId || '';
+      if (id) {
+        const p = products.find((x) => x._id === id) || null;
+        setFeaturedProduct(p);
+      } else {
+        setFeaturedProduct(null);
+      }
+    };
+
+    settingFeaturedProduct();
+  }, [siteContent.heroContent, products]);
+
+  const eyebrow =
+    siteContent.heroContent?.eyebrow || 'Freshly baked • festive sweets';
+  const titleLine1 = siteContent.heroContent?.titleLine1 || 'Sri Naveena';
+  const titleLine2 = siteContent.heroContent?.titleLine2 || 'Sweets & Bakery';
+  const subtitle =
+    siteContent.heroContent?.subtitle ||
+    'Traditional sweetness, baked fresh every day.';
+  const description =
+    siteContent.heroContent?.description ||
+    'From rich milk sweets and festive snacks to soft cakes and bakery favorites, Sri Naveena brings warmth, flavor, and celebration to every occasion.';
+  const primaryButtonLabel =
+    siteContent.heroContent?.primaryButtonLabel || 'SHOP BRIDAL';
+  const primaryButtonTarget =
+    siteContent.heroContent?.primaryButtonTarget || 'Explore Fest';
+  const featuredImage =
+    siteContent.heroContent?.image || '/images/hero-bride.jpg';
+  const featuredTitle =
+    featuredProduct?.name ||
+    siteContent.heroContent?.featuredTitle ||
+    'Milk Cake • Gulab Jamun';
+  const featuredPrice = featuredProduct
+    ? `₹${featuredProduct.price.toLocaleString('en-IN')}/-`
+    : siteContent.heroContent?.featuredPrice || '₹35';
+
   return (
     <section className="relative overflow-hidden bg-[#1a0f0f] text-[#fff7e8]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(163,54,45,0.4),transparent_60%)] pointer-events-none" />
@@ -12,7 +62,7 @@ export default function Hero() {
               <div className="absolute -inset-4 rounded-4xl border border-[#f7d98b]/30" />
               <div className="relative overflow-hidden rounded-3xl shadow-2xl shadow-[#240606]/60">
                 <img
-                  src="https://images.unsplash.com/photo-1519869325930-281384150729?auto=format&fit=crop&w=900&q=80"
+                  src={featuredImage}
                   alt="Sri Naveena sweets and bakery display"
                   className="h-105 w-full object-cover sm:h-125"
                 />
@@ -24,14 +74,11 @@ export default function Hero() {
                   <div className="mt-2 flex items-center justify-between gap-4">
                     <div>
                       <div className="text-lg font-semibold text-[#fff8e8]">
-                        Milk Cake • Gulab Jamun
+                        {featuredTitle}
                       </div>
-                      <div className="text-sm text-[#ffe6b1]">
-                        Made with traditional recipes
+                      <div className="text-sm text-[#fff8e8]/80">
+                        {featuredPrice}
                       </div>
-                    </div>
-                    <div className="rounded-full bg-[#ffd166] px-3 py-2 text-sm font-semibold text-[#4b110d]">
-                      Fresh
                     </div>
                   </div>
                 </div>
@@ -41,24 +88,22 @@ export default function Hero() {
 
           <div className="order-1 flex flex-col justify-center lg:order-2">
             <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-[#f7d98b]/40 bg-[#f7d98b]/10 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-[#ffe8b8]">
-              <span>Freshly baked • festive sweets</span>
+              <span>{eyebrow}</span>
             </div>
 
             <h1 className="mb-2 text-5xl font-black leading-tight text-[#fff4d9] sm:text-6xl lg:text-7xl">
-              Sri Naveena
+              {titleLine1}
             </h1>
             <h2 className="mb-6 text-4xl font-semibold leading-tight text-[#ffcf70] sm:text-5xl lg:text-6xl">
-              Sweets & Bakery
+              {titleLine2}
             </h2>
 
             <p className="mb-4 font-serif text-xl italic text-[#ffe3a8] sm:text-2xl">
-              Traditional sweetness, baked fresh every day.
+              {subtitle}
             </p>
 
             <p className="mb-10 max-w-xl text-base leading-8 text-[#fff2d4]/85 sm:text-lg">
-              From rich milk sweets and festive snacks to soft cakes and bakery
-              favorites, Sri Naveena brings warmth, flavor, and celebration to
-              every occasion.
+              {description}
             </p>
 
             <div className="mb-10 flex flex-wrap gap-3">
@@ -81,13 +126,22 @@ export default function Hero() {
                 </div>
               </div>
               <div className="flex flex-col gap-6 sm:flex-row sm:items-end">
-                <a
-                  href="#featured"
+                <button
+                  onClick={() => {
+                    setSelectedCategory(primaryButtonTarget);
+                    navigate(
+                      '/category/' +
+                        primaryButtonTarget
+                          .toLowerCase()
+                          .replace(/[^a-z0-9]+/g, '-')
+                          .replace(/(^-|-$)/g, ''),
+                    );
+                  }}
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-[#ffd166] to-[#ffb703] px-7 py-4 text-sm font-bold text-[#4b110d] shadow-lg shadow-[#ffd166]/30 transition hover:scale-105 hover:shadow-xl hover:shadow-[#ffd166]/50"
                 >
-                  Explore Treats
-                  <span>→</span>
-                </a>
+                  {primaryButtonLabel}
+                  <FaChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform group-hover:translate-x-1" />
+                </button>
               </div>
             </div>
           </div>

@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import SiteConfig from '../schemas/siteConfig.js';
+import { requireAdminAuth } from '../middleware/requireAuth.js';
+import * as siteController from '../controllers/siteConfigController.js';
 
 const router = Router();
 
@@ -32,7 +34,6 @@ router.get('/', async (req, res) => {
         subtitle: '',
         description: '',
         badgePercent: '',
-        badgeText: '',
         couponCode: '',
         couponLabel: '',
         savingsText: '',
@@ -97,5 +98,9 @@ router.get('/', async (req, res) => {
     return res.status(500).json({ success: false, error: error.message });
   }
 });
+
+router
+  .route('/hero-content')
+  .post(requireAdminAuth, siteController.saveHeroContent);
 
 export default router;

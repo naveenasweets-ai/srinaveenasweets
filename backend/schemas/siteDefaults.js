@@ -71,19 +71,3 @@ export const bridalImagesDefault = [
 ];
 
 export const videosDefault = [];
-
-export const heroDefault = {
-  eyebrow: 'WEDDING COLLECTION 2026',
-  titleLine1: 'Woven in',
-  titleLine2: 'Tradition',
-  subtitle: 'परम्परा • अनुग्रह • वैभव',
-  description:
-    'Heirloom Kanjivaram, royal Banarasi and the softest Pattu silks — hand-woven by master artisans across generations.',
-  primaryButtonLabel: 'SHOP BRIDAL',
-  primaryButtonTarget: 'Bridal Kanjivaram',
-  secondaryButtonLabel: 'EXPLORE COLLECTIONS',
-  secondaryButtonTarget: 'All',
-  image: '/images/hero-bride.jpg',
-  featuredProductId: 'HSPID-001',
-  badgeText: '',
-};

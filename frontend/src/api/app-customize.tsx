@@ -1,5 +1,5 @@
 import { useStore } from '../context/StoreContext';
-import type { CategoryConfig } from '../types/contextTypes';
+import type { CategoryConfig, HeroContent } from '../types/appContentTypes';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const AppCustomApi = () => {
@@ -108,7 +108,90 @@ const AppCustomApi = () => {
     }
   };
 
-  return { saveCategory, updateCategory, deleteCategory, fetchSiteContent };
+  const saveHeroContent = async (content: HeroContent) => {
+    try {
+      const response = await fetch(`${apiUrl}/api/site-content/hero-content`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user?.token}`,
+        },
+        body: JSON.stringify(content),
+      });
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error || 'Failed to save hero content');
+      }
+      showToast('Hero section updated successfully', 'success');
+      return json;
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : 'Failed to save hero content',
+        'error',
+      );
+      return null;
+    }
+  };
+
+  const saveProduct = async (product: any) => {
+    try {
+      const response = await fetch(`${apiUrl}/api/admin/products`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user?.token}`,
+        },
+        body: JSON.stringify(product),
+      });
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error || 'Failed to save product');
+      }
+      showToast('Product created successfully', 'success');
+      return json;
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : 'Failed to save product',
+        'error',
+      );
+      return null;
+    }
+  };
+
+  const updateProduct = async (id: string, product: any) => {
+    try {
+      const response = await fetch(`${apiUrl}/api/admin/products/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user?.token}`,
+        },
+        body: JSON.stringify(product),
+      });
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error || 'Failed to update product');
+      }
+      showToast('Product updated successfully', 'success');
+      return json;
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : 'Failed to update product',
+        'error',
+      );
+      return null;
+    }
+  };
+
+  return {
+    saveCategory,
+    updateCategory,
+    deleteCategory,
+    fetchSiteContent,
+    saveHeroContent,
+    saveProduct,
+    updateProduct,
+  };
 };
 
 export default AppCustomApi;

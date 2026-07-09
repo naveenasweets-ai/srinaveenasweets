@@ -1,4 +1,5 @@
 import { getOrCreateSiteConfig } from '../utils/utils.js';
+import ProductSchema from '../schemas/ProductSchema.js';
 
 export async function createCategory(req, res) {
   const { name, description, parentId, type, order } = req.body;
@@ -95,6 +96,56 @@ export async function deleteCategory(req, res) {
     await siteConfig.save();
 
     return res.status(200).json({ success: true, message: 'Category deleted' });
+  } catch (error) {
+    return res.status(400).json({ success: false, error: error.message });
+  }
+}
+
+export async function saveHeroContent(req, res) {
+  try {
+    const {
+      eyebrow,
+      titleLine1,
+      titleLine2,
+      subtitle,
+      description,
+      primaryButtonLabel,
+      primaryButtonTarget,
+      image,
+      featuredProductId,
+    } = req.body || {};
+
+    const siteConfig = await getOrCreateSiteConfig();
+    if (featuredProductId !== undefined) {
+      if (featuredProductId === null || featuredProductId === '') {
+        siteConfig.hero.featuredProductId = null;
+      } else {
+        const product = await ProductSchema.findById(featuredProductId);
+        if (!product) {
+          return res
+            .status(400)
+            .json({ success: false, error: 'Featured product not found' });
+        }
+        siteConfig.hero.featuredProductId = product?._id || '';
+        siteConfig.hero.image = image || '';
+        siteConfig.hero.eyebrow = eyebrow || siteConfig.hero.eyebrow;
+        siteConfig.hero.titleLine1 = titleLine1 || siteConfig.hero.titleLine1;
+        siteConfig.hero.titleLine2 = titleLine2 || siteConfig.hero.titleLine2;
+        siteConfig.hero.subtitle = subtitle || siteConfig.hero.subtitle;
+        siteConfig.hero.description =
+          description || siteConfig.hero.description;
+        siteConfig.hero.primaryButtonLabel =
+          primaryButtonLabel || siteConfig.hero.primaryButtonLabel;
+        siteConfig.hero.primaryButtonTarget =
+          primaryButtonTarget || siteConfig.hero.primaryButtonTarget;
+      }
+    }
+
+    await siteConfig.save();
+
+    return res
+      .status(200)
+      .json({ success: true, heroContent: siteConfig.hero });
   } catch (error) {
     return res.status(400).json({ success: false, error: error.message });
   }

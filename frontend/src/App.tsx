@@ -12,6 +12,7 @@ import AccessDenied from './pages/access-denied';
 import AppCustomize from './pages/admin/app-customize';
 import { useEffect } from 'react';
 import AppCustomApi from './api/app-customize';
+import ProductCatalogue from './pages/admin/products-catalogue';
 
 export default function App() {
   const { user, setSiteContent } = useStore();
@@ -21,6 +22,7 @@ export default function App() {
     fetchSiteContent().then((content) =>
       setSiteContent({
         categories: content.categories || [],
+        heroContent: content.heroContent || null,
       }),
     );
   }, []);
@@ -35,7 +37,6 @@ export default function App() {
     return user.loggedIn && user.role === role ? element : <AccessDenied />;
   };
 
-  console.log('Current user:', user); // Log the current user state
   return (
     <div className="min-h-screen bg-(--color-background) text-(--color-text) flex flex-col justify-between font-sans selection:bg-(--color-accent-light) selection:text-(--color-text)">
       <Header />
@@ -49,6 +50,12 @@ export default function App() {
             path="/admin-dashboard"
             element={
               <ProtectedRoute role="admin" element={<AdminDashboard />} />
+            }
+          />
+          <Route
+            path="/admin-products"
+            element={
+              <ProtectedRoute role="admin" element={<ProductCatalogue />} />
             }
           />
           <Route

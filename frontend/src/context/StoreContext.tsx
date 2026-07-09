@@ -2,12 +2,13 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState } from 'react';
 import type {
-  CategoryConfig,
+  Product,
   StoreContextType,
   Toast,
   ToastType,
   User,
 } from '../types/contextTypes';
+import type { CategoryConfig, HeroContent } from '../types/appContentTypes';
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
@@ -47,12 +48,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   });
 
+  const [products, setProducts] = useState<Product[]>([]);
   const [toast, setToast] = useState<Toast | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [siteContent, setSiteContent] = useState<{
     categories: CategoryConfig[];
+    heroContent: HeroContent | null;
   }>({
     categories: [],
+    heroContent: null,
   });
 
   const showToast = (msg: string, type: ToastType = 'success') => {
@@ -74,6 +78,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
 
         selectedCategory,
         setSelectedCategory,
+
+        products,
+        setProducts,
       }}
     >
       {children}

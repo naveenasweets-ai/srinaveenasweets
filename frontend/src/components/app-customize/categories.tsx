@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import AppCustomApi from '../../api/app-customize';
-import type { CategoryConfig } from '../../types/contextTypes';
+import type { CategoryConfig } from '../../types/appContentTypes';
 
 export default function Categories() {
   const { siteContent, setSiteContent } = useStore();

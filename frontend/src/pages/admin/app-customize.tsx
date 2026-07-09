@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Categories from '../../components/app-customize/categories';
+import Hero from '../../components/app-customize/hero';
 
 function SectionAccordion({
   title,
@@ -47,8 +48,7 @@ function SectionAccordion({
 
 export default function AppCustomize() {
   return (
-    <div className="flex flex-col gap-6 p-6">
-      {/* Title */}
+    <div className="flex flex-col gap-6 p-6 mx-auto max-w-6xl">
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold text-(--color-primary-dark)">
           App Customize
@@ -60,6 +60,10 @@ export default function AppCustomize() {
 
       <SectionAccordion title="Category menu section">
         <Categories />
+      </SectionAccordion>
+
+      <SectionAccordion title="Banner section">
+        <Hero />
       </SectionAccordion>
     </div>
   );

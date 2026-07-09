@@ -1,3 +1,4 @@
+import type { CategoryConfig, HeroContent } from "./appContentTypes";
 
 export type User = {
   _id: string;
@@ -15,17 +16,24 @@ export type Toast = {
   type: ToastType;
 };
 
-
-export type CategoryConfig = {
-  _id?: string;
+export type Product = {
+  _id: string;
   name: string;
-  slug: string;
-  description?: string;
-  image?: string;
-  parentId?: string | null;
-  type?: 'category' | 'subcategory';
-  isActive?: boolean;
-  order?: number;
+  category: string;
+  description: string;
+  subcategory?: string;
+  price: number;
+  originalPrice?: number;
+  image: string;
+  images?: string[];
+  badge?: string;
+  inStock?: boolean;
+  inventoryType?: 'weight' | 'unit';
+  availableWeight?: {
+    value: number;
+    unit: string;
+  };
+  updatedAt?: string;
 };
 
 export interface StoreContextType {
@@ -38,13 +46,18 @@ export interface StoreContextType {
 
   siteContent: {
     categories: CategoryConfig[];
+    heroContent: HeroContent | null;
   }
   setSiteContent: React.Dispatch<
     React.SetStateAction<{
       categories: CategoryConfig[];
+      heroContent: HeroContent | null;
     }>
   >;
 
+
+  products: Product[];
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
 
   selectedCategory: string;
   setSelectedCategory: (cat: string) => void;

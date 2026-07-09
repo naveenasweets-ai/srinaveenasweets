@@ -6,7 +6,6 @@ import {
   handpickedDefault,
   bridalImagesDefault,
   videosDefault,
-  heroDefault,
 } from './siteDefaults.js';
 
 const { Schema } = mongoose;
@@ -52,7 +51,6 @@ const SiteConfigSchema = new Schema(
         type: String,
         default: 'SNSPID001',
       },
-      badgeText: { type: String, default: 'Fresh' },
     },
     footer: {
       help: {

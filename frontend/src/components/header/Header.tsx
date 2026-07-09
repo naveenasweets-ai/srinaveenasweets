@@ -11,7 +11,7 @@ import { customerMenuItems, adminMenuItems } from '../../utils/constants';
 import AuthApi from '../../api/auth';
 import { FiChevronDown, FiLogOut } from 'react-icons/fi';
 import { slugify } from '../../utils/utils';
-import type { CategoryConfig } from '../../types/contextTypes';
+import type { CategoryConfig } from '../../types/appContentTypes';
 import { FaChevronRight } from 'react-icons/fa';
 
 const Header = () => {
