@@ -30,7 +30,7 @@ const Location = () => {
   return (
     <div>
       {place ? (
-        <p className="flex items-center mr-4 lg:text-[1.3rem]">
+        <p className="flex items-center mr-4">
           <IoLocationOutline className="flex" />
           {place}
         </p>
