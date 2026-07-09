@@ -1,0 +1,114 @@
+import { useStore } from '../context/StoreContext';
+import type { CategoryConfig } from '../types/contextTypes';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const AppCustomApi = () => {
+  const apiUrl =
+    import.meta.env.MODE === 'production'
+      ? (import.meta.env.VITE_BACKEND_URL as string)
+      : 'http://localhost:4001';
+
+  const { user, showToast } = useStore();
+
+  const fetchSiteContent = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/api/site-content`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error || 'Failed to fetch hero content');
+      }
+      return json || null;
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : 'Failed to fetch hero content',
+        'error',
+      );
+      return null;
+    }
+  };
+
+  const saveCategory = async (category: Partial<CategoryConfig>) => {
+    try {
+      const response = await fetch(`${apiUrl}/api/admin/categories`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user?.token}`,
+        },
+        body: JSON.stringify(category),
+      });
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error || 'Failed to save category');
+      }
+      showToast('Category saved successfully', 'success');
+      return json;
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : 'Failed to save category',
+        'error',
+      );
+      return null;
+    }
+  };
+
+  const updateCategory = async (
+    id: string,
+    updates: Partial<CategoryConfig>,
+  ) => {
+    try {
+      const response = await fetch(`${apiUrl}/api/admin/categories/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user?.token}`,
+        },
+        body: JSON.stringify(updates),
+      });
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error || 'Failed to update category');
+      }
+      showToast('Category updated successfully', 'success');
+      return json;
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : 'Failed to update category',
+        'error',
+      );
+      return null;
+    }
+  };
+
+  const deleteCategory = async (id: string) => {
+    try {
+      const response = await fetch(`${apiUrl}/api/admin/categories/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user?.token}`,
+        },
+      });
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error || 'Failed to delete category');
+      }
+      showToast('Category deleted successfully', 'success');
+      return true;
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : 'Failed to delete category',
+        'error',
+      );
+      return false;
+    }
+  };
+
+  return { saveCategory, updateCategory, deleteCategory, fetchSiteContent };
+};
+
+export default AppCustomApi;

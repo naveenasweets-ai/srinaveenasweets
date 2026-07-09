@@ -3,7 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 
+import SiteConfig from './routes/SiteConfig.js';
 import authRouter from './routes/auth.js';
+import adminRouter from './routes/admin.js';
 
 dotenv.config();
 
@@ -26,7 +28,9 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use('/api/site-content', SiteConfig);
 app.use('/api/auth', authRouter);
+app.use('/api/admin', adminRouter); // Import and use the admin routes
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 
 mongoose.set('strictQuery', false);

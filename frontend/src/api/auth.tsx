@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import type { User } from '../types/contextTypes';
@@ -7,7 +9,9 @@ import {
 } from '../firebase';
 
 const apiUrl =
-  (import.meta as any).env.VITE_BACKEND_URL || 'http://localhost:4001';
+  import.meta.env.MODE === 'production'
+    ? (import.meta.env.VITE_BACKEND_URL as string)
+    : 'http://localhost:4001';
 
 const AuthApi = () => {
   const navigate = useNavigate();
@@ -35,7 +39,7 @@ const AuthApi = () => {
       // ignore storage errors
     }
     showToast(`Welcome back, ${displayName}!`, 'success');
-    navigate(role === 'admin' ? '/admin' : '/');
+    navigate('/');
   };
 
   const adminLogin = async (email: string, password: string) => {

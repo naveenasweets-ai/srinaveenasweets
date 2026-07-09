@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState } from 'react';
 import type {
+  CategoryConfig,
   StoreContextType,
   Toast,
   ToastType,
@@ -45,6 +48,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
   });
 
   const [toast, setToast] = useState<Toast | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [siteContent, setSiteContent] = useState<{
+    categories: CategoryConfig[];
+  }>({
+    categories: [],
+  });
 
   const showToast = (msg: string, type: ToastType = 'success') => {
     setToast({ message: msg, type });
@@ -59,6 +68,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
 
         toast,
         showToast,
+
+        siteContent,
+        setSiteContent,
+
+        selectedCategory,
+        setSelectedCategory,
       }}
     >
       {children}

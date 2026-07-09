@@ -40,7 +40,7 @@ const AdminLogin = () => {
 
         <button
           type="submit"
-          className="w-full bg-primary text-surface py-2 rounded-md hover:bg-primary-dark transition-colors"
+          className="w-full bg-primary text-surface py-2 rounded-md hover:bg-primary-dark transition-colors text-white! font-semibold"
         >
           Login
         </button>

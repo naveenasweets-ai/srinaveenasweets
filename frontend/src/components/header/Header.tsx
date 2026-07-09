@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Link, useNavigate } from 'react-router-dom';
 import logo from '../../assets/Logo.png';
 import { useStore } from '../../context/StoreContext';
 import Location from './Location';
@@ -6,13 +7,16 @@ import Search from './Search';
 import { FcGoogle } from 'react-icons/fc';
 import { useRef, useState, useEffect } from 'react';
 import { CgProfile } from 'react-icons/cg';
-import { allNavItems, menuItems } from '../../utils/constants';
+import { customerMenuItems, adminMenuItems } from '../../utils/constants';
 import AuthApi from '../../api/auth';
 import { FiChevronDown, FiLogOut } from 'react-icons/fi';
+import { slugify } from '../../utils/utils';
+import type { CategoryConfig } from '../../types/contextTypes';
 
 const Header = () => {
-  const { user } = useStore();
+  const { user, siteContent, setSelectedCategory } = useStore();
   const { loginWithGoogle, logout } = AuthApi();
+  const navigate = useNavigate();
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const mobileNavRef = useRef<HTMLDivElement | null>(null);
 
@@ -22,6 +26,13 @@ const Header = () => {
   const closeMenu = () => setIsMenuOpen(false);
   const toggleMobileNav = () => setIsMobileNavOpen((prev) => !prev);
   const closeMobileNav = () => setIsMobileNavOpen(false);
+  const menuItems = user.role === 'admin' ? adminMenuItems : customerMenuItems;
+
+  const handleNav = (name: string, slug: string = 'all') => {
+    setSelectedCategory(name);
+    navigate(`/category/${slug}`);
+    setIsMenuOpen(false);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -54,20 +65,58 @@ const Header = () => {
         )}
 
         <div className="flex-col justify-center pb-4 lg:flex hidden">
-          <nav className="lg:flex lg:items-center">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {allNavItems.map((item, index) => (
-                  <Link
-                    to={item.linkTo}
-                    key={index}
-                    className="cursor-pointer text-(--color-text) hover:font-semibold hover:text-(--color-primary) whitespace-nowrap font-googleNunito tracking-[1px] flex justify-center px-2 py-1"
-                  >
-                    {item.title}
-                  </Link>
-                ))}
-              </div>
-            </div>
+          <nav className="hidden lg:flex justify-center gap-8 xl:gap-12 pb-2.5 pt-2.5 bg-gradient-to-r from-transparent via-maroon-50/20 to-transparent">
+            {siteContent?.categories
+              ?.filter((cat: CategoryConfig) => cat.type !== 'subcategory')
+              ?.map((cat: CategoryConfig) => ({
+                label: cat.name,
+                name: cat.name,
+                slug: slugify(cat.slug || cat.name),
+                isCat: true,
+                subcategories: siteContent.categories?.filter(
+                  (item: CategoryConfig) =>
+                    item.type === 'subcategory' && item.parentId === cat._id,
+                ),
+              }))
+              .map((item: any) => {
+                const hasSubmenu = Boolean(item.subcategories?.length);
+
+                return (
+                  <div key={item.label} className="relative group">
+                    <button
+                      onClick={() => {
+                        if (item.isCat) {
+                          handleNav(item.name, item.slug);
+                        } else {
+                          navigate('/');
+                        }
+                      }}
+                      className="text-[clamp(0.65rem,0.95vw,0.95rem)] whitespace-nowrap tracking-[0.2em] uppercase font-semibold text-(--color-primary-dark) hover:text-(--color-primary) transition-colors relative py-1.5 cursor-pointer"
+                    >
+                      {item.label}
+                    </button>
+
+                    {hasSubmenu && (
+                      <div className="absolute left-1/2 top-full mt-3 w-60 -translate-x-1/2 rounded-2xl border border-(--color-accent-light) bg-(--color-surface) p-2.5 shadow-[0_18px_45px_rgba(95,16,33,0.12)] opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200 z-50 backdrop-blur-sm">
+                        {item.subcategories?.map((subcat: CategoryConfig) => (
+                          <button
+                            key={subcat._id}
+                            onClick={() =>
+                              handleNav(
+                                subcat.name,
+                                slugify(subcat.slug || subcat.name),
+                              )
+                            }
+                            className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-(--color-text) transition-colors cursor-pointer whitespace-nowrap hover:bg-(--color-accent-light) hover:text-(--color-primary-dark)"
+                          >
+                            {subcat.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
           </nav>
         </div>
 
@@ -155,15 +204,14 @@ const Header = () => {
 
             {isMobileNavOpen && (
               <div className="flex flex-col gap-1 rounded-xl border border-(--color-accent-light) bg-white p-2 shadow-sm">
-                {allNavItems.map((item, index) => (
+                {siteContent?.categories.map((item, index) => (
                   <Link
                     key={index}
-                    to={item.linkTo}
+                    to={item.slug ? `/category/${item.slug}` : '/category/all'}
                     onClick={closeMobileNav}
                     className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-(--color-text) transition hover:bg-(--color-accent-light)"
                   >
-                    <span className="min-w-6 text-lg">{item.itemIcon}</span>
-                    <span>{item.title}</span>
+                    <span>{item.name}</span>
                   </Link>
                 ))}
               </div>

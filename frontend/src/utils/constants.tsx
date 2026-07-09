@@ -8,6 +8,7 @@ import { FiShoppingCart } from 'react-icons/fi';
 import { FaRegUser } from 'react-icons/fa';
 import { GrFavorite } from 'react-icons/gr';
 import { FaBirthdayCake, FaHotdog, FaCookieBite } from 'react-icons/fa';
+import { MdOutlineDashboardCustomize } from "react-icons/md";
 import { LuDessert } from 'react-icons/lu';
 
 export const allNavItems = [
@@ -28,8 +29,15 @@ export const allNavItems = [
   ];
 
   
-   export const menuItems = [
-      { name: 'Profile', to: 'profile', icon: <FaRegUser className="text-lg" /> },
-      { name: 'Favorites', to: 'favorites', icon: <GrFavorite className="text-lg" /> },
-      { name: 'Cart', to: 'cart', icon: <FiShoppingCart className="text-lg" /> },
-    ];
+export const customerMenuItems = [
+  { name: 'Profile', to: 'profile', icon: <FaRegUser className="text-lg" /> },
+  { name: 'Favorites', to: 'favorites', icon: <GrFavorite className="text-lg" /> },
+  { name: 'Cart', to: 'cart', icon: <FiShoppingCart className="text-lg" /> },
+];
+
+export const adminMenuItems = [
+  { name: 'Dashboard', to: 'admin-dashboard', icon: <FiShoppingCart className="text-lg" /> },
+  { name: 'Products', to: 'admin-products', icon: <FaRegUser className="text-lg" /> },
+  { name: 'Orders', to: 'admin-orders', icon: <GrFavorite className="text-lg" /> },
+  { name: 'Customize App', to: 'app-customize', icon: <MdOutlineDashboardCustomize className="text-lg" /> }
+];
