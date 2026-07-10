@@ -17,11 +17,11 @@ const Footer = () => {
   return (
     <Box
       sx={{
-        bgcolor: '#f5efe0',
-        color: '#6d4c41',
+        bgcolor: 'var(--color-surface)',
+        color: 'var(--color-text)',
         py: 6,
         borderTop: '1px solid',
-        borderColor: '#c8a96b',
+        borderColor: 'var(--color-accent-light)',
         pb: { xs: '2em', md: 0 },
       }}
     >
@@ -38,7 +38,7 @@ const Footer = () => {
                   <Link
                     key={i}
                     to={`/${item.linkTo}`}
-                    className="no-underline text-[#6d4c41] w-fit hover:text-[#8a5a2b] hover:underline"
+                    className="no-underline text-[var(--color-text)] w-fit hover:text-[var(--color-primary-dark)] hover:underline"
                   >
                     {item.title}
                   </Link>
@@ -49,28 +49,28 @@ const Footer = () => {
             <div className="flex flex-col lg:flex-row justify-center lg:gap-12">
               <Link
                 to="/terms-and-conditions"
-                className="no-underline text-[#6d4c41] w-fit hover:text-[#8a5a2b] hover:underline"
+                className="no-underline text-[var(--color-text)] w-fit hover:text-[var(--color-primary-dark)] hover:underline"
               >
                 Terms and Conditions
               </Link>
 
               <Link
                 to="/privacy-policy"
-                className="no-underline text-[#6d4c41] w-fit hover:text-[#8a5a2b] hover:underline"
+                className="no-underline text-[var(--color-text)] w-fit hover:text-[var(--color-primary-dark)] hover:underline"
               >
                 Privacy Policy
               </Link>
 
               <Link
                 to="/return-cancellations"
-                className="no-underline text-[#6d4c41] w-fit hover:text-[#8a5a2b] hover:underline"
+                className="no-underline text-[var(--color-text)] w-fit hover:text-[var(--color-primary-dark)] hover:underline"
               >
                 Returns/Cancellations
               </Link>
 
               <Link
                 to="/shipping-policy"
-                className="no-underline text-[#6d4c41] w-fit hover:text-[#8a5a2b] hover:underline"
+                className="no-underline text-[var(--color-text)] w-fit hover:text-[var(--color-primary-dark)] hover:underline"
               >
                 Shipping Policy
               </Link>
@@ -84,12 +84,12 @@ const Footer = () => {
           <Typography
             component="p"
             variant="body1"
-            sx={{ display: 'flex', gap: '4px', color: '#6d4c41' }}
+            sx={{ display: 'flex', gap: '4px', color: 'var(--color-text)' }}
           >
             Follow us on
             <a
               aria-label="Instagram"
-              className="text-2xl text-[#8a5a2b]"
+              className="text-2xl text-[var(--color-accent-dark)]"
               target="_blank"
               rel="noreferrer noopener"
               href="https://www.instagram.com/srinaveenasweets?utm_source=qr&igsh=MXUyNTRlNGZpYm1yMA=="
@@ -98,7 +98,11 @@ const Footer = () => {
             </a>
           </Typography>
 
-          <Typography variant="body2" align="center" sx={{ color: '#6d4c41' }}>
+          <Typography
+            variant="body2"
+            align="center"
+            sx={{ color: 'var(--color-text)' }}
+          >
             Sri Naveena Sweets and Bakery
           </Typography>
 
@@ -108,10 +112,10 @@ const Footer = () => {
             component="p"
             variant="body1"
             className="flex justify-center gap-2 items-center"
-            sx={{ color: '#6d4c41' }}
+            sx={{ color: 'var(--color-text)' }}
           >
             made with
-            <span className="flex gap-1 text-[#8a5a2b]">
+            <span className="flex gap-1 text-[var(--color-accent-dark)]">
               <SiMongodb />
               <SiExpress />
               <SiReact />
@@ -121,7 +125,7 @@ const Footer = () => {
               href="https://vamshidharonline.com/"
               target="_blank"
               rel="noreferrer"
-              className="hover:text-[#8a5a2b]"
+              className="hover:text-[var(--color-accent-dark)]"
             >
               vamshidhar dawoor
             </a>

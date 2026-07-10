@@ -1,11 +1,11 @@
 // AdminLogin.jsx
-import  { useState } from "react";
-import AuthApi from "../api/auth";
+import { useState } from 'react';
+import AuthApi from '../api/auth';
 
 const AdminLogin = () => {
-  const { adminLogin } = AuthApi(); 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const { adminLogin } = AuthApi();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   return (
     <div className="flex items-center justify-center min-h-[70vh] bg-background">
@@ -40,7 +40,7 @@ const AdminLogin = () => {
 
         <button
           type="submit"
-          className="w-full bg-(--color-text) text-white py-2 rounded-md hover:bg-primary-dark transition-colors font-semibold"
+          className="w-full bg-[var(--color-text)] text-white py-2 rounded-md hover:bg-[var(--color-primary-dark)] transition-colors font-semibold"
         >
           Login
         </button>

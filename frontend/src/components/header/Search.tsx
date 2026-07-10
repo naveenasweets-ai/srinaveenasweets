@@ -75,7 +75,7 @@ const Search = () => {
                 }}
                 {...props}
               >
-                <span className="text-(--color-primary)">✦</span>
+                <span className="text-[var(--color-primary)]">✦</span>
                 <span>{option.name}</span>
               </Box>
             </Link>
@@ -91,7 +91,7 @@ const Search = () => {
                 ...params.InputProps,
                 startAdornment: (
                   <InputAdornment position="start">
-                    <FaSearch className="text-(--color-primary)" />
+                    <FaSearch className="text-[var(--color-primary)]" />
                   </InputAdornment>
                 ),
               }}

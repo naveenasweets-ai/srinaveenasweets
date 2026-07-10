@@ -50,7 +50,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-(--color-background) text-(--color-text) flex flex-col justify-between font-sans selection:bg-(--color-accent-light) selection:text-(--color-text)">
+    <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)] flex flex-col justify-between font-sans selection:bg-[var(--color-accent-light)] selection:text-[var(--color-text)]">
       <Header />
       <main className="flex-1">
         <Routes>

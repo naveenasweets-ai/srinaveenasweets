@@ -106,10 +106,10 @@ const Handpicked = () => {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <h2 className="text-lg font-semibold text-(--color-primary-dark)">
+        <h2 className="text-lg font-semibold text-[var(--color-primary-dark)]">
           Handpicked Categories and Products
         </h2>
-        <p className="text-sm text-(--color-primary-light)">
+        <p className="text-sm text-[var(--color-primary-light)]">
           Customize the handpicked categories and products displayed on the home
           page.
         </p>
@@ -117,10 +117,10 @@ const Handpicked = () => {
 
       <div className="rounded-[28px] border border-[#f3d48a]/70 bg-[linear-gradient(135deg,#fffdf7_0%,#fff8ef_100%)] p-5 shadow-[0_18px_45px_rgba(95,16,33,0.08)] sm:p-6">
         <div className="mb-4 flex items-center justify-between gap-2">
-          <h3 className="text-base font-semibold text-(--color-primary-dark)">
+          <h3 className="text-base font-semibold text-[var(--color-primary-dark)]">
             Select Categories
           </h3>
-          <span className="text-sm text-(--color-primary-light)">
+          <span className="text-sm text-[var(--color-primary-light)]">
             {selectedCategories.length} selected
           </span>
         </div>
@@ -142,14 +142,14 @@ const Handpicked = () => {
                     onChange={() => handleCategoryToggle(category)}
                     className="w-5 h-5 rounded cursor-pointer accent-[#e8a643]"
                   />
-                  <span className="text-sm font-medium text-(--color-primary-dark)">
+                  <span className="text-sm font-medium text-[var(--color-primary-dark)]">
                     {category.name}
                   </span>
                 </label>
               );
             })
           ) : (
-            <p className="text-sm text-(--color-primary-light) py-4">
+            <p className="text-sm text-[var(--color-primary-light)] py-4">
               No categories available
             </p>
           )}
@@ -167,11 +167,11 @@ const Handpicked = () => {
                 className="rounded-[28px] border border-[#f3d48a]/70 bg-[linear-gradient(135deg,#fffdf7_0%,#fff8ef_100%)] p-5 shadow-[0_18px_45px_rgba(95,16,33,0.08)] sm:p-6"
               >
                 <div className="mb-4 flex items-center justify-between gap-2">
-                  <h3 className="text-base font-semibold text-(--color-primary-dark)">
+                  <h3 className="text-base font-semibold text-[var(--color-primary-dark)]">
                     Products for{' '}
                     <span className="text-[#e8a643]">{selectedCat.name}</span>
                   </h3>
-                  <span className="text-sm text-(--color-primary-light)">
+                  <span className="text-sm text-[var(--color-primary-light)]">
                     {selectedCat.selectedProducts.length} selected
                   </span>
                 </div>
@@ -196,10 +196,10 @@ const Handpicked = () => {
                             className="w-5 h-5 rounded cursor-pointer accent-[#e8a643]"
                           />
                           <div className="flex flex-col flex-1">
-                            <span className="text-sm font-medium text-(--color-primary-dark)">
+                            <span className="text-sm font-medium text-[var(--color-primary-dark)]">
                               {product.name}
                             </span>
-                            <span className="text-xs text-(--color-primary-light)">
+                            <span className="text-xs text-[var(--color-primary-light)]">
                               ₹{product.price}
                             </span>
                           </div>
@@ -207,7 +207,7 @@ const Handpicked = () => {
                       );
                     })
                   ) : (
-                    <p className="text-sm text-(--color-primary-light) py-4">
+                    <p className="text-sm text-[var(--color-primary-light)] py-4">
                       No products available for this category
                     </p>
                   )}

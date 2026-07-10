@@ -1,12 +1,13 @@
 @import 'tailwindcss';
 
 :root {
-  /* Primary brand colors */
+  /* Primary logo palette */
   --color-primary: #8b1e2d; /* Deep cherry red */
   --color-primary-light: #c8553d; /* Warm candy coral */
   --color-primary-dark: #5f1021; /* Rich festive maroon */
+  --color-primary-contrast: #fff8ef; /* Light text on dark primary */
 
-  /* Accent colors */
+  /* Accent palette */
   --color-accent: #d4a017; /* Saffron gold */
   --color-accent-light: #f3d48a; /* Soft golden cream */
   --color-accent-dark: #a86f0b; /* Deep honey gold */
@@ -14,8 +15,10 @@
   /* Neutral palette */
   --color-background: #fff8ef; /* Creamy dessert background */
   --color-surface: #fffdf7; /* Warm ivory for cards */
+  --color-surface-alt: #fdf6ec; /* Soft surface alternate */
   --color-text: #4d2b1f; /* Rich chocolate brown */
   --color-muted: #8a6a4a; /* Soft cocoa brown */
+  --color-border: rgba(212, 160, 23, 0.32); /* Subtle saffron border */
 
   /* Status colors */
   --color-success: #4caf50;
