@@ -37,7 +37,7 @@ export default function Categories() {
                     alt={cat.name}
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-linear-to-t from-[#5f1021]/80 via-transparent to-transparent" />
+                  {/* <div className="absolute inset-0 bg-linear-to-t from-[#5f1021]/80 via-transparent to-transparent" /> */}
                 </div>
 
                 <div className="p-5 sm:p-6">
