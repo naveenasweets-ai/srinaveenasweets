@@ -16,7 +16,7 @@ export default function Categories() {
           subtitle={siteContent?.categoriesInfo?.description || ''}
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mt-8 sm:mt-10">
           {siteContent.categories
             .filter(
               (cat) => cat.type !== 'subcategory' && cat.isActive !== false,
@@ -31,7 +31,7 @@ export default function Categories() {
                 }}
                 className="group overflow-hidden rounded-[1.75rem] border border-[#f7d98b]/40 bg-white shadow-[0_28px_55px_-35px_rgba(95,16,33,0.75)] transition-transform duration-300 hover:-translate-y-1 cursor-pointer"
               >
-                <div className="relative h-64 sm:h-72 lg:h-80 overflow-hidden">
+                <div className="relative h-52 overflow-hidden">
                   <img
                     src={cat.image}
                     alt={cat.name}
@@ -44,7 +44,7 @@ export default function Categories() {
                   <h3 className="text-xl sm:text-2xl font-semibold text-[#5f1021] mb-2">
                     {cat.name}
                   </h3>
-                  <p className="text-sm sm:text-base leading-7 text-[#5f1021]/80 mb-4 min-h-12">
+                  <p className="text-sm sm:text-base text-[#5f1021]/80 mb-4">
                     {cat.description || 'Explore our delicious range of products in this category.'}
                   </p>
                   <div className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.24em] text-[#9f6c2a] transition-colors group-hover:text-[#7a1a2d]">

@@ -1,5 +1,14 @@
 import ProductSchema from '../schemas/ProductSchema.js';
 
+export async function fetchProducts(req, res) {
+  try {
+    const products = await ProductSchema.find();
+    return res.status(200).json({ success: true, products });
+  } catch (error) {
+    return res.status(400).json({ success: false, error: error.message });
+  }
+}
+
 export async function saveProduct(req, res) {
   try {
     const {

@@ -4,14 +4,14 @@ import { useRef, useState } from 'react';
 import { IoMdAdd } from 'react-icons/io';
 import { IoCloseSharp } from 'react-icons/io5';
 import type { Product } from '../../types/contextTypes';
-import { ImageUploadZone } from './image-upload-zone';
 import { fileListToBase64 } from '../../utils/utils';
 import { useStore } from '../../context/StoreContext';
-import AppCustomApi from '../../api/app-customize';
 import {
   normalizeProductWeights,
   type ProductWeightOption,
 } from '../../utils/productInventory';
+import ProductApi from '../../api/product';
+import { ImageUploadZone } from '../app-customize/image-upload-zone';
 
 const UpdateCatalogue = ({
   action,
@@ -23,17 +23,43 @@ const UpdateCatalogue = ({
   product?: Product;
 }) => {
   const { siteContent, setProducts } = useStore();
+  const categoryOptions = siteContent.categories.filter(
+    (cat) => cat.type !== 'subcategory',
+  );
+
+  const getDefaultCategoryId = (currentProduct?: Product) => {
+    const matchingCategory = categoryOptions.find(
+      (cat) => cat._id === currentProduct?.category,
+    );
+    return matchingCategory?._id ?? categoryOptions[0]?._id ?? '';
+  };
+
+  const getInitialDescription = (value = '') => {
+    const description = value ?? '';
+    return description.includes('<')
+      ? description
+      : description.replace(/\n/g, '<br/>');
+  };
+
+  const getInitialInventoryType = (currentProduct?: Product) =>
+    currentProduct?.inventoryType === 'unit' ? 'unit' : 'weight';
+
+  const getInitialWeight = (
+    currentProduct?: Product,
+    type: 'weight' | 'unit' = 'weight',
+  ) =>
+    normalizeProductWeights(currentProduct) ||
+    (type === 'unit' ? { value: 1, unit: 'unit' } : { value: 250, unit: 'g' });
+
   const [productId, setProductId] = useState(product?._id ?? '');
   const [name, setName] = useState(product?.name ?? '');
   const [price, setPrice] = useState(product?.price ?? '');
   const [origPrice, setOrigPrice] = useState(product?.originalPrice ?? '');
-  const [subcategoryId, setSubcategoryId] = useState('');
-  const [description, setDescription] = useState(() => {
-    const d = product?.description ?? '';
-    return d.includes('<') ? d : d.replace(/\n/g, '<br/>');
-  });
-  const categoryOptions = siteContent.categories.filter(
-    (cat) => cat.type !== 'subcategory',
+  const [subcategoryId, setSubcategoryId] = useState(
+    product?.subcategory ?? '',
+  );
+  const [description, setDescription] = useState(() =>
+    getInitialDescription(product?.description ?? ''),
   );
   const [image, setImage] = useState(product?.image ?? '');
   const [badge, setBadge] = useState(product?.badge ?? '');
@@ -43,28 +69,21 @@ const UpdateCatalogue = ({
   );
 
   const [selectedCategoryId, setSelectedCategoryId] = useState(
-    categoryOptions[0]?._id ?? '',
+    getDefaultCategoryId(product),
   );
 
   const subcategoryOptions = siteContent.categories.filter(
     (cat) => cat.type === 'subcategory' && cat.parentId === selectedCategoryId,
   );
 
-  const api = AppCustomApi();
+  const api = ProductApi();
 
-  const initialInventoryType =
-    product?.inventoryType === 'unit' ? 'unit' : 'weight';
   const [inventoryType, setInventoryType] = useState<'weight' | 'unit'>(
-    initialInventoryType,
+    getInitialInventoryType(product),
   );
-
-  const initialWeight =
-    normalizeProductWeights(product) ||
-    (initialInventoryType === 'unit'
-      ? { value: 1, unit: 'unit' }
-      : { value: 250, unit: 'g' });
-  const [inventoryWeight, setInventoryWeight] =
-    useState<ProductWeightOption>(initialWeight);
+  const [inventoryWeight, setInventoryWeight] = useState<ProductWeightOption>(
+    getInitialWeight(product, getInitialInventoryType(product)),
+  );
 
   const editorRef = useRef<HTMLDivElement | null>(null);
 
@@ -72,24 +91,26 @@ const UpdateCatalogue = ({
     if (!editorRef.current) return;
     editorRef.current.focus();
     document.execCommand(cmd, false as any);
-    // update state after command
     setDescription(editorRef.current.innerHTML);
   };
 
-  const sanitizeWeightOption = (entry: ProductWeightOption) => {
-    return {
-      value: Number(entry.value) || 0,
-      unit:
-        String(entry.unit).trim() || (inventoryType === 'unit' ? 'unit' : 'g'),
-    };
-  };
+  const sanitizeWeightOption = (entry: ProductWeightOption) => ({
+    value: Number(entry.value) || 0,
+    unit:
+      String(entry.unit).trim() || (inventoryType === 'unit' ? 'unit' : 'g'),
+  });
+
+  const selectedCategoryName =
+    categoryOptions.find((cat) => cat._id === selectedCategoryId)?.name ?? '';
+  const selectedSubcategoryName =
+    subcategoryOptions.find((cat) => cat._id === subcategoryId)?.name ?? '';
 
   const makeProductPayload = () => {
     const payload = {
       _id: productId.trim(),
       name: name.trim(),
-      category: selectedCategoryId,
-      subcategory: subcategoryId || '',
+      category: selectedCategoryName,
+      subcategory: selectedSubcategoryName,
       price: Number(price) || 0,
       originalPrice: origPrice !== '' ? Number(origPrice) : undefined,
       image,
@@ -139,119 +160,120 @@ const UpdateCatalogue = ({
       closeModal();
     }
   };
+
+  const inputClassName =
+    'w-full rounded-2xl border border-[#f3d48a]/70 bg-[#fffdf7] px-3 py-2.5 text-sm text-[#4d2b1f] shadow-sm outline-none transition focus:border-[#8b1e2d] focus:ring-2 focus:ring-[#f3d48a]/50 disabled:cursor-not-allowed disabled:bg-[#f8efe3]';
+  const labelClassName =
+    'mb-1 block text-[11px] font-bold uppercase tracking-[0.24em] text-[#5f1021]';
+
   return (
-    <div className="fixed inset-0 z-999 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto admin-scroll">
-        <div className="flex items-center justify-between p-6 border-b border-gold-100 sticky top-0 bg-white z-10">
+    <div className="fixed inset-0 z-999 flex items-center justify-center bg-[#5f1021]/60 p-4 backdrop-blur-sm">
+      <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-4xl border border-[#f3d48a]/70 bg-[#fffdf7] shadow-[0_24px_70px_rgba(95,16,33,0.2)]">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#f3d48a]/70 bg-[#fffdf7]/95 px-6 py-5 backdrop-blur">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gold-500 flex items-center justify-center text-white">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#8b1e2d] text-xl text-[#fff8ef] shadow-[0_10px_24px_rgba(139,30,45,0.18)]">
               <IoMdAdd />
             </div>
             <div>
-              <h2 className="font-display text-lg font-bold text-maroon-900">
+              <h2 className="text-lg font-semibold text-[#5f1021]">
                 {action === 'add' ? 'Add New Product' : 'Edit Product'}
               </h2>
-              <p className="text-xs text-maroon-700/70">Publishes instantly</p>
+              <p className="text-xs text-[#8a6a4a]">Publishes instantly</p>
             </div>
           </div>
           <button
             onClick={closeModal}
-            className="p-2 rounded-full hover:bg-maroon-50 text-maroon-700 cursor-pointer"
+            className="rounded-full p-2 text-[#8b1e2d] transition hover:bg-[#fef4da]"
           >
             <IoCloseSharp />
           </button>
         </div>
         <form
           onSubmit={action === 'add' ? handleAdd : handleSave}
-          className="p-6 space-y-5"
+          className="space-y-5 p-6"
         >
-          <div>
-            <label className="block text-xs font-bold text-maroon-900 uppercase tracking-wider mb-3">
-              Product Id
-            </label>
-            <input
-              required
-              type="text"
-              disabled={action === 'edit'}
-              value={productId ?? ''}
-              onChange={(e: any) => setProductId(e.target.value)}
-              className={`w-full px-4 py-2.5 border-2 border-gold-200 rounded-xl text-sm text-maroon-900 bg-gray-50 ${action === 'edit' ? 'cursor-not-allowed' : ''}`}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-maroon-900 uppercase tracking-wider mb-3">
-              Main Image
-            </label>
-            <ImageUploadZone value={image} onChange={setImage} />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-maroon-900 uppercase tracking-wider mb-3">
-              Additional Images
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              className="w-full text-xs text-maroon-700 rounded-xl border-2 border-gold-200 p-3"
-              onChange={async (e) => {
-                const newImages = await fileListToBase64(e.target.files);
-                setAdditionalImages((prev) => [...prev, ...newImages]);
-                if (e.target) e.target.value = '';
-              }}
-            />
-            {additionalImages.length > 0 && (
-              <div className="mt-4 grid grid-cols-4 gap-2">
-                {additionalImages.map((src, index) => (
-                  <div
-                    key={index}
-                    className="relative rounded-xl overflow-hidden border border-gold-200"
-                  >
-                    <img
-                      src={src}
-                      alt={`Additional ${index + 1}`}
-                      className="w-full h-24 object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setAdditionalImages((prev) =>
-                          prev.filter((_, i) => i !== index),
-                        )
-                      }
-                      className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 text-maroon-900 flex items-center justify-center text-xs"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="rounded-3xl border border-[#f3d48a]/70 bg-[linear-gradient(135deg,#fffdf7_0%,#fff8ef_100%)] p-4 shadow-[0_14px_35px_rgba(95,16,33,0.06)] sm:p-5">
             <div>
-              <label className="block text-xs font-bold text-maroon-900 mb-1">
-                Name *
-              </label>
+              <label className={labelClassName}>Product Id</label>
+              <input
+                required
+                type="text"
+                disabled={action === 'edit'}
+                value={productId ?? ''}
+                onChange={(e: any) => setProductId(e.target.value)}
+                className={`${inputClassName} ${action === 'edit' ? 'cursor-not-allowed' : ''}`}
+              />
+            </div>
+            <div className="mt-5">
+              <label className={labelClassName}>Main Image</label>
+              <div className="rounded-2xl border border-[#f3d48a]/70 bg-[#fffdf7] p-3">
+                <ImageUploadZone value={image} onChange={setImage} />
+              </div>
+            </div>
+            <div className="mt-5">
+              <label className={labelClassName}>Additional Images</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="w-full rounded-2xl border border-[#f3d48a]/70 bg-[#fffdf7] p-3 text-sm text-[#4d2b1f]"
+                onChange={async (e) => {
+                  const newImages = await fileListToBase64(e.target.files);
+                  setAdditionalImages((prev) => [...prev, ...newImages]);
+                  if (e.target) e.target.value = '';
+                }}
+              />
+              {additionalImages.length > 0 && (
+                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {additionalImages.map((src, index) => (
+                    <div
+                      key={index}
+                      className="relative overflow-hidden rounded-2xl border border-[#f3d48a]/70"
+                    >
+                      <img
+                        src={src}
+                        alt={`Additional ${index + 1}`}
+                        className="h-24 w-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setAdditionalImages((prev) =>
+                            prev.filter((_, i) => i !== index),
+                          )
+                        }
+                        className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-sm text-[#5f1021]"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className={labelClassName}>Name *</label>
               <input
                 required
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Mahalakshmi Kanjivaram"
-                className="w-full px-4 py-2.5 border-2 border-gold-200 rounded-xl text-sm text-maroon-900 focus:outline-none focus:border-maroon-700 transition-colors"
+                placeholder="Product Name"
+                className={inputClassName}
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-maroon-900 mb-1">
-                Category
-              </label>
+              <label className={labelClassName}>Category</label>
               <select
                 value={selectedCategoryId}
                 onChange={(e) => {
                   setSelectedCategoryId(e.target.value);
                   setSubcategoryId('');
                 }}
-                className="w-full px-4 py-2.5 border-2 border-gold-200 rounded-xl text-sm text-maroon-900 focus:outline-none focus:border-maroon-700 bg-white cursor-pointer"
+                className={`${inputClassName} cursor-pointer bg-[#fffdf7]`}
               >
                 {categoryOptions.map((cat) => (
                   <option key={cat._id} value={cat._id}>
@@ -261,14 +283,14 @@ const UpdateCatalogue = ({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-maroon-900 mb-1">
+              <label className={labelClassName}>
                 Subcategory{' '}
-                <span className="text-maroon-400 font-normal">optional</span>
+                <span className="font-normal text-[#8a6a4a]">optional</span>
               </label>
               <select
                 value={subcategoryId}
                 onChange={(e) => setSubcategoryId(e.target.value)}
-                className="w-full px-4 py-2.5 border-2 border-gold-200 rounded-xl text-sm text-maroon-900 focus:outline-none focus:border-maroon-700 bg-white cursor-pointer"
+                className={`${inputClassName} cursor-pointer bg-[#fffdf7]`}
               >
                 <option value="">None</option>
                 {subcategoryOptions.map((cat) => (
@@ -279,47 +301,41 @@ const UpdateCatalogue = ({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-maroon-900 mb-1">
-                Price (₹) *
-              </label>
+              <label className={labelClassName}>Price (₹) *</label>
               <input
                 required
                 type="number"
                 value={price}
                 onChange={(e) => setPrice(Number(e.target.value))}
-                className="w-full px-4 py-2.5 border-2 border-gold-200 rounded-xl text-sm font-bold text-maroon-900 focus:outline-none focus:border-maroon-700 transition-colors"
+                className={inputClassName}
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-maroon-900 mb-1">
-                Original Price
-              </label>
+              <label className={labelClassName}>Original Price</label>
               <input
                 type="number"
                 value={origPrice}
                 onChange={(e) => setOrigPrice(e.target.value)}
                 placeholder="For discount"
-                className="w-full px-4 py-2.5 border-2 border-gold-200 rounded-xl text-sm text-maroon-900 focus:outline-none focus:border-maroon-700 transition-colors placeholder:text-maroon-300"
+                className={inputClassName}
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-maroon-900 mb-1">
-                Badge
-              </label>
+              <label className={labelClassName}>Badge</label>
               <input
                 type="text"
                 value={badge}
                 onChange={(e) => setBadge(e.target.value)}
                 placeholder="Optional"
-                className="w-full px-4 py-2.5 border-2 border-gold-200 rounded-xl text-sm text-maroon-900 focus:outline-none focus:border-maroon-700 transition-colors placeholder:text-maroon-300"
+                className={inputClassName}
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-xs font-bold text-[#5f1021] mb-1 uppercase tracking-wide">
+              <label className={`${labelClassName} mb-2`}>
                 Product Measurement
               </label>
-              <div className="grid sm:grid-cols-2 gap-3 mb-4">
-                <label className="flex items-center gap-2 p-3 border border-[#f3d48a]/60 rounded-2xl bg-[#fff8ef] cursor-pointer">
+              <div className="mb-4 grid gap-3 sm:grid-cols-2">
+                <label className="flex cursor-pointer items-center gap-2 rounded-2xl border border-[#f3d48a]/70 bg-[#fff8ef] p-3">
                   <input
                     type="radio"
                     name="inventoryType"
@@ -333,13 +349,13 @@ const UpdateCatalogue = ({
                           prev.unit && prev.unit !== 'unit' ? prev.unit : 'g',
                       }));
                     }}
-                    className="accent-maroon-900"
+                    className="accent-[#8b1e2d]"
                   />
                   <span className="text-sm font-medium text-[#5f1021]">
                     Weight
                   </span>
                 </label>
-                <label className="flex items-center gap-2 p-3 border border-[#f3d48a]/60 rounded-2xl bg-[#fff8ef] cursor-pointer">
+                <label className="flex cursor-pointer items-center gap-2 rounded-2xl border border-[#f3d48a]/70 bg-[#fff8ef] p-3">
                   <input
                     type="radio"
                     name="inventoryType"
@@ -353,7 +369,7 @@ const UpdateCatalogue = ({
                           prev.unit && prev.unit !== 'g' ? prev.unit : 'unit',
                       }));
                     }}
-                    className="accent-maroon-900"
+                    className="accent-[#8b1e2d]"
                   />
                   <span className="text-sm font-medium text-[#5f1021]">
                     Units
@@ -361,18 +377,18 @@ const UpdateCatalogue = ({
                 </label>
               </div>
             </div>
-            <div className="sm:col-span-2 bg-[#fff8ef] p-4 rounded-3xl border border-[#f3d48a]/50">
-              <label className="block text-xs font-bold text-[#5f1021] mb-1 uppercase tracking-wide">
+            <div className="sm:col-span-2 rounded-3xl border border-[#f3d48a]/70 bg-[#fff8ef] p-4">
+              <label className={`${labelClassName} mb-1`}>
                 {inventoryType === 'unit'
                   ? 'Unit Inventory'
                   : 'Weight Inventory'}
               </label>
-              <p className="text-[11px] text-[#5f1021]/80 mb-4">
+              <p className="mb-4 text-[11px] text-[#8a6a4a]">
                 {inventoryType === 'unit'
                   ? 'Set a single unit amount and label for this product.'
                   : 'Set a single weight amount and unit for this product.'}
               </p>
-              <div className="grid sm:grid-cols-[120px_1fr] gap-3 items-center">
+              <div className="grid items-center gap-3 sm:grid-cols-[120px_1fr]">
                 <label className="text-xs font-semibold text-[#5f1021]">
                   {inventoryType === 'unit' ? 'Units' : 'Weight'}
                 </label>
@@ -386,7 +402,7 @@ const UpdateCatalogue = ({
                       value: Number(e.target.value) || 0,
                     }))
                   }
-                  className="w-full px-3 py-2 border border-gold-200 rounded-xl bg-white text-sm text-maroon-900 focus:outline-none focus:border-maroon-700"
+                  className={inputClassName}
                 />
                 <label className="text-xs font-semibold text-[#5f1021]">
                   {inventoryType === 'unit' ? 'Unit label' : 'Weight unit'}
@@ -401,38 +417,35 @@ const UpdateCatalogue = ({
                     }))
                   }
                   placeholder={inventoryType === 'unit' ? 'piece' : 'g'}
-                  className="w-full px-3 py-2 border border-gold-200 rounded-xl bg-white text-sm text-maroon-900 focus:outline-none focus:border-maroon-700"
+                  className={inputClassName}
                 />
               </div>
             </div>
-            <div className="sm:col-span-2 bg-maroon-50/50 p-3 rounded-xl border border-gold-200/60 flex items-center justify-between">
-              <span className="text-xs font-bold text-maroon-900 block">
+            <div className="sm:col-span-2 flex items-center justify-between rounded-2xl border border-[#f3d48a]/70 bg-[#fffdf7] p-3">
+              <span className="text-xs font-bold text-[#5f1021]">
                 Available in Stock immediately
               </span>
-              <label className="relative inline-flex items-center cursor-pointer">
+              <label className="relative inline-flex cursor-pointer items-center">
                 <input
                   type="checkbox"
                   checked={inStock}
                   onChange={(e) => setInStock(e.target.checked)}
-                  className="sr-only peer"
+                  className="peer sr-only"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-maroon-900"></div>
-                <span className="ml-3 text-xs font-bold text-maroon-900 min-w-[70px]">
+                <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-[#8b1e2d] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+                <span className="ml-3 min-w-17.5 text-xs font-bold text-[#5f1021]">
                   {inStock ? '✓ In Stock' : '✗ Sold Out'}
                 </span>
               </label>
             </div>
-            {/* description */}
             <div className="sm:col-span-2">
-              <label className="block text-xs font-bold text-maroon-900 mb-1">
-                Description
-              </label>
+              <label className={`${labelClassName} mb-2`}>Description</label>
               <div className="mb-2 flex gap-2">
                 <button
                   type="button"
                   onClick={() => exec('bold')}
                   title="Bold"
-                  className="px-3 py-1 rounded-lg border border-gold-200 bg-white text-sm font-bold"
+                  className="rounded-lg border border-[#f3d48a]/70 bg-[#fffdf7] px-3 py-1 text-sm font-bold text-[#5f1021]"
                 >
                   B
                 </button>
@@ -440,7 +453,7 @@ const UpdateCatalogue = ({
                   type="button"
                   onClick={() => exec('italic')}
                   title="Italic"
-                  className="px-3 py-1 rounded-lg border border-gold-200 bg-white text-sm italic"
+                  className="rounded-lg border border-[#f3d48a]/70 bg-[#fffdf7] px-3 py-1 text-sm italic text-[#5f1021]"
                 >
                   I
                 </button>
@@ -452,22 +465,23 @@ const UpdateCatalogue = ({
                 }
                 contentEditable
                 suppressContentEditableWarning
-                className="w-full px-4 py-2.5 border-2 border-gold-200 rounded-xl text-sm text-maroon-900 focus:outline-none focus:border-maroon-700 transition-colors placeholder:text-maroon-300 min-h-[80px]"
+                className="min-h-24 w-full rounded-2xl border border-[#f3d48a]/70 bg-[#fffdf7] px-4 py-2.5 text-sm text-[#4d2b1f] shadow-sm outline-none transition focus:border-[#8b1e2d] focus:ring-2 focus:ring-[#f3d48a]/50"
                 dangerouslySetInnerHTML={{ __html: description }}
               />
             </div>
           </div>
+
           <div className="flex gap-3 pt-2">
             <button
               type="button"
               onClick={closeModal}
-              className="flex-1 py-3 rounded-xl border-2 border-gold-200 text-maroon-900 text-sm font-bold hover:bg-gold-50 cursor-pointer"
+              className="flex-1 rounded-2xl border border-[#f3d48a]/70 bg-[#fffdf7] py-3 text-sm font-semibold text-[#5f1021] transition hover:bg-[#fef4da]"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 py-3 rounded-xl bg-gold-500 hover:bg-gold-400 text-white text-sm font-bold flex items-center justify-center gap-2 cursor-pointer shadow-md"
+              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#8b1e2d] py-3 text-sm font-semibold text-[#fff8ef] shadow-[0_10px_24px_rgba(139,30,45,0.18)] transition hover:bg-[#a02233]"
             >
               <IoMdAdd /> Publish
             </button>

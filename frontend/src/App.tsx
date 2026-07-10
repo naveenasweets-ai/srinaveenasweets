@@ -13,10 +13,12 @@ import AppCustomize from './pages/admin/app-customize';
 import { useEffect } from 'react';
 import AppCustomApi from './api/app-customize';
 import ProductCatalogue from './pages/admin/products-catalogue';
+import ProductApi from './api/product';
 
 export default function App() {
-  const { user, setSiteContent } = useStore();
+  const { user, setSiteContent, setProducts } = useStore();
   const { fetchSiteContent } = AppCustomApi();
+  const { fetchProducts } = ProductApi();
 
   useEffect(() => {
     fetchSiteContent().then((content) =>
@@ -31,6 +33,10 @@ export default function App() {
         },
       }),
     );
+
+    fetchProducts().then((products) => {
+      setProducts(products || []);
+    });
   }, []);
 
   const ProtectedRoute = ({

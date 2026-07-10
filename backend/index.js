@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import SiteConfig from './routes/siteConfig.js';
 import authRouter from './routes/auth.js';
 import adminRouter from './routes/admin.js';
+import productsRouter from './routes/products.js';
 
 dotenv.config();
 
@@ -31,7 +32,9 @@ app.use((req, res, next) => {
 
 app.use('/api/site-content', SiteConfig);
 app.use('/api/auth', authRouter);
-app.use('/api/admin', adminRouter); // Import and use the admin routes
+app.use('/api/admin', adminRouter);
+app.use('/api/products', productsRouter);
+
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 
 mongoose.set('strictQuery', false);

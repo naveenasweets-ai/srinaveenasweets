@@ -133,64 +133,12 @@ const AppCustomApi = () => {
     }
   };
 
-  const saveProduct = async (product: any) => {
-    try {
-      const response = await fetch(`${apiUrl}/api/admin/products`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user?.token}`,
-        },
-        body: JSON.stringify(product),
-      });
-      const json = await response.json();
-      if (!response.ok) {
-        throw new Error(json.error || 'Failed to save product');
-      }
-      showToast('Product created successfully', 'success');
-      return json;
-    } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : 'Failed to save product',
-        'error',
-      );
-      return null;
-    }
-  };
-
-  const updateProduct = async (id: string, product: any) => {
-    try {
-      const response = await fetch(`${apiUrl}/api/admin/products/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user?.token}`,
-        },
-        body: JSON.stringify(product),
-      });
-      const json = await response.json();
-      if (!response.ok) {
-        throw new Error(json.error || 'Failed to update product');
-      }
-      showToast('Product updated successfully', 'success');
-      return json;
-    } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : 'Failed to update product',
-        'error',
-      );
-      return null;
-    }
-  };
-
   return {
     saveCategory,
     updateCategory,
     deleteCategory,
     fetchSiteContent,
     saveHeroContent,
-    saveProduct,
-    updateProduct,
   };
 };
 
