@@ -34,6 +34,15 @@ const SiteConfigSchema = new Schema(
         isActive: { type: Boolean, default: true },
       },
     ],
+    categoriesInfo: {
+      title: { type: String, default: 'Our Categories' },
+      description: {
+        type: String,
+        default:
+          'Explore our wide range of traditional sweets, festive treats, and bakery delights. From rich milk sweets to soft cakes, we have something for every occasion.',
+      },
+      selectedCategories: { type: [String], default: [] },
+    },
     hero: {
       eyebrow: { type: String, default: 'Freshly baked • festive sweets' },
       titleLine1: { type: String, default: 'Sri Naveena' },

@@ -18,34 +18,7 @@ router.get('/', async (req, res) => {
       success: true,
       categories: siteConfig.categories || [],
       heroContent: siteConfig.hero || null,
-      features: siteConfig.features || [],
-      ribbon: siteConfig.ribbon || [],
-      heritage: siteConfig.heritage || { title: '', subtitle: '' },
-      handpickedProducts: siteConfig.handpickedProducts || {
-        title: '',
-        subtitle: '',
-        productIds: [],
-      },
-      bridal: siteConfig.bridal || {
-        eyebrow: '',
-        titlePrefix: '',
-        titleHighlight: '',
-        titleSuffix: '',
-        subtitle: '',
-        description: '',
-        badgePercent: '',
-        couponCode: '',
-        couponLabel: '',
-        savingsText: '',
-        buttonLabel: '',
-        buttonTarget: '',
-        images: [
-          { src: '/images/model1.jpg', alt: 'Bridal pink saree' },
-          { src: '/images/saree-banarasi.jpg', alt: 'Banarasi saree' },
-          { src: '/images/saree-kanjivaram.jpg', alt: 'Kanjivaram saree' },
-          { src: '/images/model2.jpg', alt: 'Bridal mustard saree' },
-        ],
-      },
+      categoriesInfo: siteConfig.categoriesInfo,
       footer: siteConfig.footer || {
         help: [
           {
@@ -92,7 +65,6 @@ router.get('/', async (req, res) => {
           },
         ],
       },
-      videos: siteConfig.videos || [],
     });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });

@@ -1,18 +1,21 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import AppCustomApi from '../../api/app-customize';
 import type { CategoryConfig } from '../../types/appContentTypes';
+import { fileToBase64 } from '../../utils/utils';
 
 export default function Categories() {
   const { siteContent, setSiteContent } = useStore();
   const { saveCategory, updateCategory, deleteCategory, fetchSiteContent } =
     AppCustomApi();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: '',
     description: '',
     type: 'category' as 'category' | 'subcategory',
+    image: '',
     parentId: '',
   });
 
@@ -28,6 +31,15 @@ export default function Categories() {
     setSiteContent((prev) => ({ ...prev, categories: data.categories }));
   };
 
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const base64 = await fileToBase64(file);
+    setForm((prev) => ({ ...prev, image: base64 }));
+    if (e.target) e.target.value = '';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) return;
@@ -38,6 +50,7 @@ export default function Categories() {
         description: form.description,
         type: form.type,
         parentId: form.parentId || null,
+        image: form.image || '',
       });
     } else {
       await saveCategory({
@@ -49,6 +62,7 @@ export default function Categories() {
           form.type === 'subcategory' || activeParentCategoryCount < 6
             ? true
             : false,
+        image: form.image || '',
       });
     }
 
@@ -57,6 +71,7 @@ export default function Categories() {
       description: '',
       type: 'category',
       parentId: '',
+      image: '',
     });
     setEditingId(null);
     refresh();
@@ -69,6 +84,7 @@ export default function Categories() {
       description: item.description || '',
       type: item.type || 'category',
       parentId: item.parentId || '',
+      image: item.image || '',
     });
   };
 
@@ -158,6 +174,27 @@ export default function Categories() {
               placeholder="Optional description"
             />
           </div>
+          <div>
+            <label className="mb-1 block text-xs font-bold uppercase tracking-[0.2em] text-[#5f1021]">
+              Image
+            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="w-full rounded-xl border border-gold-200 px-3 py-2 bg-white"
+              onChange={handleImageChange}
+            />
+            {form.image && (
+              <div className="mt-3 rounded-xl border border-gold-100 p-2">
+                <img
+                  src={form.image}
+                  alt="Category preview"
+                  className="h-[28vh] w-full rounded-lg object-cover"
+                />
+              </div>
+            )}
+          </div>
           <div className="flex flex-wrap gap-3 pt-1">
             <button
               type="submit"
@@ -175,6 +212,7 @@ export default function Categories() {
                     description: '',
                     type: 'category',
                     parentId: '',
+                    image: '',
                   });
                 }}
                 className="rounded-2xl border border-[#f3d48a]/70 bg-[#fffdf7] px-4 py-2.5 text-sm font-semibold text-[#5f1021] transition hover:bg-[#f3d48a]/30"

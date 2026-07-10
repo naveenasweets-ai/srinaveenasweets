@@ -56,7 +56,7 @@ export default function Hero() {
       <div className="absolute top-1/2 -right-40 h-96 w-96 rounded-full bg-[#ffb703]/8 blur-3xl pointer-events-none" />
 
       <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-        <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+        <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center px-4">
           <div className="order-2 lg:order-1">
             <div className="relative mx-auto max-w-115">
               <div className="absolute -inset-4 rounded-4xl border border-[#f7d98b]/30" />

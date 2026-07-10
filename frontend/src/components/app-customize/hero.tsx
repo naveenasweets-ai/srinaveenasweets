@@ -167,7 +167,7 @@ export default function Hero() {
           </div>
           <div className="flex lg:w-1/2 flex-col gap-0">
             <label className="block text-xs font-bold uppercase tracking-wide text-maroon-900 mb-1">
-              Image URL
+              Image
             </label>
             <input
               ref={fileInputRef}

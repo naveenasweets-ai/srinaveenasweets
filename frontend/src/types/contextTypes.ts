@@ -47,11 +47,21 @@ export interface StoreContextType {
   siteContent: {
     categories: CategoryConfig[];
     heroContent: HeroContent | null;
+    categoriesInfo: {
+      title: string;
+      description: string;
+      selectedCategories: string[];
+    };
   }
   setSiteContent: React.Dispatch<
     React.SetStateAction<{
       categories: CategoryConfig[];
       heroContent: HeroContent | null;
+      categoriesInfo: {
+        title: string;
+        description: string;
+        selectedCategories: string[];
+      };
     }>
   >;
 

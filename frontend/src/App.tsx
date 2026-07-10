@@ -23,6 +23,12 @@ export default function App() {
       setSiteContent({
         categories: content.categories || [],
         heroContent: content.heroContent || null,
+        categoriesInfo: content.categoriesInfo || {
+          title: 'Our Categories',
+          description:
+            'Explore our wide range of traditional sweets, festive treats, and bakery delights. From rich milk sweets to soft cakes, we have something for every occasion.',
+          selectedCategories: [],
+        },
       }),
     );
   }, []);
