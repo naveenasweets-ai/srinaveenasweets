@@ -41,7 +41,7 @@ const ProductCatalogue = () => {
   );
 
   return (
-    <div className="space-y-6 p-12">
+    <div className="space-y-6 lg:p-12 p-4">
       <div className="rounded-[28px] border border-[#f3d48a]/70 bg-linear-to-br from-[#fff8ef] via-[#fffdf7] to-[#fef4da] p-4 shadow-[0_12px_35px_rgba(139,30,45,0.08)] sm:p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-2">
@@ -132,7 +132,7 @@ const ProductCatalogue = () => {
                       </span>
                     )}
 
-                    <div className="absolute inset-0 z-20 flex items-center justify-center gap-2 bg-black/50 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                    <div className="absolute inset-0 z-20 hidden items-center justify-center gap-2 bg-black/50 opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:flex">
                       <button
                         onClick={() => {
                           setEditingProduct(p);
@@ -166,16 +166,38 @@ const ProductCatalogue = () => {
                   </div>
                 </div>
 
-                <div className="mt-auto flex items-center justify-between border-t border-[#f3d48a]/70 bg-linear-to-r from-[#fff8ef] to-[#fef4da] p-3">
-                  <div className="min-w-0">
-                    <span className="block text-base font-bold text-[#8b1e2d] sm:text-lg lg:text-xl">
-                      ₹{p.price.toLocaleString('en-IN')}/-
-                    </span>
-                    {p.originalPrice && (
-                      <span className="ml-1 block text-xs text-[#8a6a4a] line-through sm:text-sm">
-                        ₹{p.originalPrice.toLocaleString('en-IN')}
+                <div className="mt-auto border-t border-[#f3d48a]/70 bg-linear-to-r from-[#fff8ef] to-[#fef4da] p-3">
+                  <div className="flex flex-col gap-2">
+                    <div className="min-w-0">
+                      <span className="block text-base font-bold text-[#8b1e2d] sm:text-lg lg:text-xl">
+                        ₹{p.price.toLocaleString('en-IN')}/-
                       </span>
-                    )}
+                      {p.originalPrice && (
+                        <span className="ml-1 block text-xs text-[#8a6a4a] line-through sm:text-sm">
+                          ₹{p.originalPrice.toLocaleString('en-IN')}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-2 md:hidden">
+                      <button
+                        onClick={() => {
+                          setEditingProduct(p);
+                          setActionModal('edit');
+                        }}
+                        className="flex items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-[#8b1e2d] transition hover:bg-[#fef4da]"
+                      >
+                        <CiEdit /> Edit
+                      </button>
+                      <button
+                        onClick={() =>
+                          setDeleteConfirm({ product: p, isOpen: true })
+                        }
+                        className="flex items-center justify-center gap-1.5 rounded-xl bg-[#e53935] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#c62828]"
+                      >
+                        <FaRegTrashAlt /> Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
