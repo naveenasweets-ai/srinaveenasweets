@@ -54,9 +54,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
   const [siteContent, setSiteContent] = useState<{
     categories: CategoryConfig[];
     heroContent: HeroContent | null;
+    categoriesInfo: {
+      title: string;
+      description: string;
+      selectedCategories: string[];
+    };
   }>({
     categories: [],
     heroContent: null,
+    categoriesInfo: {
+      title: 'Our Categories',
+      description:
+        'Explore our wide range of traditional sweets, festive treats, and bakery delights. From rich milk sweets to soft cakes, we have something for every occasion.',
+      selectedCategories: [],
+    },
   });
 
   const showToast = (msg: string, type: ToastType = 'success') => {
