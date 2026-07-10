@@ -150,3 +150,27 @@ export async function saveHeroContent(req, res) {
     return res.status(400).json({ success: false, error: error.message });
   }
 }
+
+export async function saveHandpickedCategories(req, res) {
+  try {
+    const { selectedCategories } = req.body || {};
+
+    if (!selectedCategories || !Array.isArray(selectedCategories)) {
+      return res.status(400).json({
+        success: false,
+        error: 'selectedCategories must be an array',
+      });
+    }
+
+    const siteConfig = await getOrCreateSiteConfig();
+    siteConfig.categoriesInfo.selectedCategories = selectedCategories;
+    await siteConfig.save();
+
+    return res.status(200).json({
+      success: true,
+      categoriesInfo: siteConfig.categoriesInfo,
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, error: error.message });
+  }
+}

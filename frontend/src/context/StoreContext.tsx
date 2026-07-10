@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState } from 'react';
@@ -51,13 +52,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
   const [products, setProducts] = useState<Product[]>([]);
   const [toast, setToast] = useState<Toast | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+
   const [siteContent, setSiteContent] = useState<{
     categories: CategoryConfig[];
     heroContent: HeroContent | null;
     categoriesInfo: {
       title: string;
       description: string;
-      selectedCategories: string[];
+      selectedCategories: {
+        name: string;
+        slug: string;
+        selectedProducts: [string];
+      }[];
     };
   }>({
     categories: [],
@@ -69,6 +75,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
       selectedCategories: [],
     },
   });
+
+  const handpickedCats = siteContent?.categoriesInfo?.selectedCategories?.map(
+    (cat) => cat.name,
+  );
 
   const showToast = (msg: string, type: ToastType = 'success') => {
     setToast({ message: msg, type });
@@ -92,6 +102,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
 
         products,
         setProducts,
+
+        handpickedCats,
       }}
     >
       {children}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Categories from '../../components/app-customize/categories';
 import Hero from '../../components/app-customize/hero';
+import Handpicked from '../../components/app-customize/handpicked';
 
 function SectionAccordion({
   title,
@@ -64,6 +65,10 @@ export default function AppCustomize() {
 
       <SectionAccordion title="Banner section">
         <Hero />
+      </SectionAccordion>
+
+      <SectionAccordion title="Handpicked Categories and Products section">
+        <Handpicked />
       </SectionAccordion>
     </div>
   );

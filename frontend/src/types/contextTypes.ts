@@ -50,7 +50,11 @@ export interface StoreContextType {
     categoriesInfo: {
       title: string;
       description: string;
-      selectedCategories: string[];
+      selectedCategories: {
+        name: string,
+        slug: string,
+        selectedProducts: [string],
+      }[];
     };
   }
   setSiteContent: React.Dispatch<
@@ -60,7 +64,11 @@ export interface StoreContextType {
       categoriesInfo: {
         title: string;
         description: string;
-        selectedCategories: string[];
+        selectedCategories: {
+          name: string;
+          slug: string;
+          selectedProducts: [string];
+        }[];
       };
     }>
   >;
@@ -71,4 +79,6 @@ export interface StoreContextType {
 
   selectedCategory: string;
   setSelectedCategory: (cat: string) => void;
+
+  handpickedCats: string[];
 }

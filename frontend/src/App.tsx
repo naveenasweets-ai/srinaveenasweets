@@ -29,7 +29,7 @@ export default function App() {
           title: 'Our Categories',
           description:
             'Explore our wide range of traditional sweets, festive treats, and bakery delights. From rich milk sweets to soft cakes, we have something for every occasion.',
-          selectedCategories: [],
+          selectedCategories: content.categoriesInfo?.selectedCategories || [],
         },
       }),
     );

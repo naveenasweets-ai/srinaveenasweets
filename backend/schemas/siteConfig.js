@@ -41,13 +41,22 @@ const SiteConfigSchema = new Schema(
         default:
           'Explore our wide range of traditional sweets, festive treats, and bakery delights. From rich milk sweets to soft cakes, we have something for every occasion.',
       },
-      selectedCategories: { type: [String], default: [] },
+      selectedCategories: [
+        {
+          name: { type: String, default: 'Selected Categories' },
+          slug: { type: String, default: 'selected-categories' },
+          selectedProducts: { type: [String], default: [] },
+        },
+      ],
     },
     hero: {
       eyebrow: { type: String, default: 'Freshly baked • festive sweets' },
       titleLine1: { type: String, default: 'Sri Naveena' },
       titleLine2: { type: String, default: 'Sweets & Bakery' },
-      subtitle: { type: String, default: 'Traditional sweetness, baked fresh every day.' },
+      subtitle: {
+        type: String,
+        default: 'Traditional sweetness, baked fresh every day.',
+      },
       description: {
         type: String,
         default:

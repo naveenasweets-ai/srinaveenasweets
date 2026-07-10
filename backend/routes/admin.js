@@ -15,6 +15,10 @@ router
   .put(requireAdminAuth, siteController.updateCategory)
   .delete(requireAdminAuth, siteController.deleteCategory);
 
+router
+  .route('/handpicked-categories')
+  .post(requireAdminAuth, siteController.saveHandpickedCategories);
+
 router.route('/products').post(requireAdminAuth, productController.saveProduct);
 
 router

@@ -133,12 +133,43 @@ const AppCustomApi = () => {
     }
   };
 
+  const saveHandpickedCategories = async (selectedCategories: any[]) => {
+    try {
+      const response = await fetch(
+        `${apiUrl}/api/admin/handpicked-categories`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${user?.token}`,
+          },
+          body: JSON.stringify({ selectedCategories }),
+        },
+      );
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error || 'Failed to save handpicked categories');
+      }
+      showToast('Handpicked categories saved successfully', 'success');
+      return json;
+    } catch (err) {
+      showToast(
+        err instanceof Error
+          ? err.message
+          : 'Failed to save handpicked categories',
+        'error',
+      );
+      return null;
+    }
+  };
+
   return {
     saveCategory,
     updateCategory,
     deleteCategory,
     fetchSiteContent,
     saveHeroContent,
+    saveHandpickedCategories,
   };
 };
 
