@@ -1,3 +1,6 @@
+import type { FeatureItem } from "../types/contextTypes";
+import { ICON_SET } from "./constants";
+
 export const slugify = (value: string) =>
   value
     .toLowerCase()
@@ -136,3 +139,16 @@ export const fileListToBase64 = async (
     Array.from(files).map((file) => fileToBase64(file, options)),
   );
 };
+
+export const FEATURE_SLOTS: FeatureItem[] = ICON_SET.map((icon) => ({
+  title: icon.name,
+  description: '',
+  icon,
+}));
+
+export const getDefaultFeatures = (): FeatureItem[] =>
+  FEATURE_SLOTS.map((feature) => ({
+    title: feature.title,
+    description: feature.description,
+    icon: feature.icon,
+  }));

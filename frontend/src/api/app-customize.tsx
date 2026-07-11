@@ -1,5 +1,6 @@
 import { useStore } from '../context/StoreContext';
 import type { CategoryConfig, HeroContent } from '../types/appContentTypes';
+import type { FeatureItem } from '../types/contextTypes';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const AppCustomApi = () => {
@@ -163,6 +164,31 @@ const AppCustomApi = () => {
     }
   };
 
+  const saveFeatures = async (features: FeatureItem[]) => {
+    try {
+      const response = await fetch(`${apiUrl}/api/site-content/features`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user?.token}`,
+        },
+        body: JSON.stringify({ features }),
+      });
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error || 'Failed to save features');
+      }
+      showToast('Features updated successfully', 'success');
+      return json;
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : 'Failed to save features',
+        'error',
+      );
+      return null;
+    }
+  };
+
   return {
     saveCategory,
     updateCategory,
@@ -170,6 +196,7 @@ const AppCustomApi = () => {
     fetchSiteContent,
     saveHeroContent,
     saveHandpickedCategories,
+    saveFeatures,
   };
 };
 

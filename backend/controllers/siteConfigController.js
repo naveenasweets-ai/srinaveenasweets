@@ -174,3 +174,29 @@ export async function saveHandpickedCategories(req, res) {
     return res.status(400).json({ success: false, error: error.message });
   }
 }
+
+export async function saveFeatures(req, res) {
+  try {
+    const { features } = req.body || {};
+
+    if (!Array.isArray(features)) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'Features must be an array' });
+    }
+
+    const siteConfig = await getOrCreateSiteConfig();
+    siteConfig.features = features.map((feature) => ({
+      title: feature.title || '',
+      description: feature.description || '',
+    }));
+
+    await siteConfig.save();
+
+    return res
+      .status(200)
+      .json({ success: true, features: siteConfig.features });
+  } catch (error) {
+    return res.status(400).json({ success: false, error: error.message });
+  }
+}

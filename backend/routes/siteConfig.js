@@ -19,6 +19,7 @@ router.get('/', async (req, res) => {
       categories: siteConfig.categories || [],
       heroContent: siteConfig.hero || null,
       categoriesInfo: siteConfig.categoriesInfo,
+      features: siteConfig.features || [],
       footer: siteConfig.footer || {
         help: [
           {
@@ -74,5 +75,7 @@ router.get('/', async (req, res) => {
 router
   .route('/hero-content')
   .post(requireAdminAuth, siteController.saveHeroContent);
+
+router.route('/features').post(requireAdminAuth, siteController.saveFeatures);
 
 export default router;

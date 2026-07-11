@@ -14,11 +14,13 @@ import { useEffect } from 'react';
 import AppCustomApi from './api/app-customize';
 import ProductCatalogue from './pages/admin/products-catalogue';
 import ProductApi from './api/product';
+import { getDefaultFeatures } from './utils/utils';
 
 export default function App() {
   const { user, setSiteContent, setProducts } = useStore();
   const { fetchSiteContent } = AppCustomApi();
   const { fetchProducts } = ProductApi();
+  const defaultFeatures = getDefaultFeatures();
 
   useEffect(() => {
     fetchSiteContent().then((content) =>
@@ -31,6 +33,15 @@ export default function App() {
             'Explore our wide range of traditional sweets, festive treats, and bakery delights. From rich milk sweets to soft cakes, we have something for every occasion.',
           selectedCategories: content.categoriesInfo?.selectedCategories || [],
         },
+        features: content.features.map((preset: {title: string, description: string}, index: number) => {
+          if(preset.title === defaultFeatures[index].title) {
+            return {
+              title: preset.title,
+              description: preset.description || '',
+              icon: defaultFeatures[index].icon,
+            };
+          }
+        }),
       }),
     );
 

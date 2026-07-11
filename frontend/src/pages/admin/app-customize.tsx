@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Categories from '../../components/app-customize/categories';
 import Hero from '../../components/app-customize/hero';
 import Handpicked from '../../components/app-customize/handpicked';
+import Features from '../../components/app-customize/features';
 
 function SectionAccordion({
   title,
@@ -14,15 +15,15 @@ function SectionAccordion({
 
   return (
     <div
-      className={`bg-[var(--color-surface)] rounded-2xl border border-[var(--color-accent-light)] shadow-xs overflow-hidden transition-all ${
+      className={`bg-(--color-surface) rounded-2xl border border-(--color-accent-light) shadow-xs overflow-hidden transition-all ${
         expanded ? 'shadow-md' : ''
       }`}
     >
       <div
-        className="flex flex-nowrap items-center justify-between gap-4 p-4 cursor-pointer hover:bg-[var(--color-accent-light)] transition-colors"
+        className="flex flex-nowrap items-center justify-between gap-4 p-4 cursor-pointer hover:bg-(--color-accent-light) transition-colors"
         onClick={() => setExpanded((current) => !current)}
       >
-        <h2 className="text-sm font-semibold text-[var(--color-primary-dark)]">
+        <h2 className="text-sm font-semibold text-(--color-primary-dark)">
           {title}
         </h2>
         <svg
@@ -30,7 +31,7 @@ function SectionAccordion({
           fill="none"
           stroke="currentColor"
           strokeWidth={2}
-          className={`w-4 h-4 text-[var(--color-primary)] transition-transform ${
+          className={`w-4 h-4 text-(--color-primary) transition-transform ${
             expanded ? 'rotate-180' : ''
           }`}
         >
@@ -39,7 +40,7 @@ function SectionAccordion({
       </div>
 
       {expanded && (
-        <div className="border-t border-[var(--color-accent-light)] p-4 animate-fadeIn">
+        <div className="border-t border-(--color-accent-light) p-4 animate-fadeIn">
           {children}
         </div>
       )}
@@ -51,10 +52,10 @@ export default function AppCustomize() {
   return (
     <div className="flex flex-col gap-6 p-6 mx-auto max-w-6xl">
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold text-[var(--color-primary-dark)]">
+        <h1 className="text-2xl font-semibold text-(--color-primary-dark)">
           App Customize
         </h1>
-        <p className="text-sm text-[var(--color-primary-light)]">
+        <p className="text-sm text-(--color-primary-light)">
           Customize the app's appearance and menu structure.
         </p>
       </div>
@@ -69,6 +70,10 @@ export default function AppCustomize() {
 
       <SectionAccordion title="Handpicked Categories and Products section">
         <Handpicked />
+      </SectionAccordion>
+
+      <SectionAccordion title="Features section">
+        <Features />
       </SectionAccordion>
     </div>
   );

@@ -70,6 +70,13 @@ const SiteConfigSchema = new Schema(
         default: 'SNSPID001',
       },
     },
+    features: [
+      {
+        _id: { type: Schema.Types.ObjectId, auto: true },
+        title: { type: String, required: true, trim: true },
+        description: { type: String, default: '' },
+      },
+    ],
     footer: {
       help: {
         type: [

@@ -36,6 +36,16 @@ export type Product = {
   updatedAt?: string;
 };
 
+export type FeatureItem = {
+  _id?: string;
+  title: string;
+  description: string;
+  icon: {
+    name: string;
+    svg: React.ReactNode;
+  };
+};
+
 export interface StoreContextType {
   user: User;
   setUser: React.Dispatch<React.SetStateAction<User>>;
@@ -56,6 +66,7 @@ export interface StoreContextType {
         selectedProducts: [string],
       }[];
     };
+    features: FeatureItem[];
   }
   setSiteContent: React.Dispatch<
     React.SetStateAction<{
@@ -70,6 +81,7 @@ export interface StoreContextType {
           selectedProducts: [string];
         }[];
       };
+      features: FeatureItem[];
     }>
   >;
 

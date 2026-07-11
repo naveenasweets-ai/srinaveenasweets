@@ -1,16 +1,17 @@
 @import 'tailwindcss';
 
 :root {
-  /* Primary logo palette */
-  --color-primary: #8b1e2d; /* Deep cherry red */
-  --color-primary-light: #c8553d; /* Warm candy coral */
-  --color-primary-dark: #5f1021; /* Rich festive maroon */
-  --color-primary-contrast: #fff8ef; /* Light text on dark primary */
+  /* Brand palette */
+  --color-logo: #fd1d1b; /* Brand red logo */
+  --color-primary: #1a0f0f; /* Deep chocolate background */
+  --color-primary-light: #2b0707; /* Dark cherry accent */
+  --color-primary-dark: #0f0505; /* Rich festive maroon */
+  --color-on-primary: #fff7e8; /* Light text on dark primary */
 
   /* Accent palette */
-  --color-accent: #d4a017; /* Saffron gold */
-  --color-accent-light: #f3d48a; /* Soft golden cream */
-  --color-accent-dark: #a86f0b; /* Deep honey gold */
+  --color-accent: #ffd166; /* Gold highlight */
+  --color-accent-light: #ffb703; /* Bright saffron */
+  --color-accent-dark: #c97a00; /* Deep honey gold */
 
   /* Neutral palette */
   --color-background: #fff8ef; /* Creamy dessert background */
