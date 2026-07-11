@@ -3,6 +3,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState } from 'react';
 import type {
+  FeatureItem,
   Product,
   StoreContextType,
   Toast,
@@ -65,6 +66,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
         selectedProducts: [string];
       }[];
     };
+    features: FeatureItem[];
   }>({
     categories: [],
     heroContent: null,
@@ -74,6 +76,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
         'Explore our wide range of traditional sweets, festive treats, and bakery delights. From rich milk sweets to soft cakes, we have something for every occasion.',
       selectedCategories: [],
     },
+    features: [],
   });
 
   const handpickedCats = siteContent?.categoriesInfo?.selectedCategories?.map(
