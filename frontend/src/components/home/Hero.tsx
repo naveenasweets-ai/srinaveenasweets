@@ -36,11 +36,11 @@ export default function Hero() {
     siteContent.heroContent?.description ||
     'From rich milk sweets and festive snacks to soft cakes and bakery favorites, Sri Naveena brings warmth, flavor, and celebration to every occasion.';
   const primaryButtonLabel =
-    siteContent.heroContent?.primaryButtonLabel || 'SHOP BRIDAL';
+    siteContent.heroContent?.primaryButtonLabel || 'Explore Festivals';
   const primaryButtonTarget =
-    siteContent.heroContent?.primaryButtonTarget || 'Explore Fest';
+    siteContent.heroContent?.primaryButtonTarget || 'Explore Festivals';
   const featuredImage =
-    siteContent.heroContent?.image || '/images/hero-bride.jpg';
+    siteContent.heroContent?.image || '/images/hero/hero-image.jpg';
   const featuredTitle =
     featuredProduct?.name ||
     siteContent.heroContent?.featuredTitle ||
