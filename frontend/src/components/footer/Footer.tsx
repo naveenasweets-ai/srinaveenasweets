@@ -4,7 +4,6 @@ import { FaInstagram } from 'react-icons/fa';
 import logo_path from '../../assets/Logo.png';
 
 import { SiMongodb, SiExpress, SiReact, SiNodedotjs } from 'react-icons/si';
-import Search from '../header/Search';
 
 const Footer = () => {
   const allNavItems = [
@@ -76,9 +75,6 @@ const Footer = () => {
               </Link>
             </div>
           </div>
-        </div>
-        <div className="max-w-[450px]  mx-auto flex items-center justify-center my-[25px]">
-          <Search />
         </div>
         <div className="w-full flex flex-col items-center justify-center gap-3 my-3">
           <Typography

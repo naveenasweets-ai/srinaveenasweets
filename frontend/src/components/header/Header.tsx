@@ -2,8 +2,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '../../assets/Logo.png';
 import { useStore } from '../../context/StoreContext';
-import Location from './Location';
-import Search from './Search';
 import { FcGoogle } from 'react-icons/fc';
 import { useRef, useState, useEffect } from 'react';
 import { CgProfile } from 'react-icons/cg';
@@ -138,7 +136,6 @@ const Header = () => {
               </Link>
             )}
             <div className="flex flex-col lg:gap-1 lg:justify-between items-end justify-end font-normal ">
-              <Location />
               {user.loggedIn ? (
                 <div ref={profileMenuRef} className="relative flex text-center">
                   <button
@@ -275,8 +272,6 @@ const Header = () => {
               </div>
             )}
           </div>
-
-          <Search />
         </div>
       </div>
     </div>

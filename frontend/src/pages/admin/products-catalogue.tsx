@@ -72,7 +72,7 @@ const ProductCatalogue = () => {
               type="text"
               value={productSearch}
               onChange={(e) => setProductSearch(e.target.value)}
-              placeholder="Search sarees, categories…"
+              placeholder="Search items, categories…"
               className="w-full rounded-2xl border border-[#f3d48a]/80 bg-[#fffdf7] py-2.5 pl-10 pr-4 text-sm text-[#4d2b1f] outline-none transition focus:border-[#8b1e2d] focus:ring-2 focus:ring-[#f3d48a]/60"
             />
           </div>
