@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import type { TouchEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import type { Product } from '../types/contextTypes';
@@ -27,6 +28,7 @@ const ProductDetailPage = () => {
         setLoading(true);
 
         setProduct(selectedProduct || null);
+        setSelectedImage(0);
         setSelectedWeight(
           selectedProduct?.availableWeight?.value?.toString() || '',
         );
@@ -74,6 +76,53 @@ const ProductDetailPage = () => {
       showToast('Link copied to clipboard', 'success');
     }
   };
+
+  const galleryImages = product
+    ? [product.image, ...(product.images || [])]
+        .filter(Boolean)
+        .filter((v, i, a) => a.indexOf(v) === i)
+    : [];
+
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: TouchEvent<HTMLDivElement>) => {
+    if (touchStartX.current === null) return;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const dx = touchStartX.current - endX;
+    const dy = (touchStartY.current ?? 0) - endY;
+    const threshold = 40;
+
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > threshold) {
+      if (dx > 0) {
+        setSelectedImage((prev) =>
+          Math.min(galleryImages.length - 1, prev + 1),
+        );
+      } else {
+        setSelectedImage((prev) => Math.max(0, prev - 1));
+      }
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
+
+  const [indexPulse, setIndexPulse] = useState(false);
+
+  // trigger a short animation when selected image changes
+  useEffect(() => {
+    if (!galleryImages || galleryImages.length === 0) return;
+    const indexPulseSetter = () => setIndexPulse(true);
+    indexPulseSetter();
+    const t = setTimeout(() => setIndexPulse(false), 400);
+    return () => clearTimeout(t);
+  }, [selectedImage, galleryImages.length]);
 
   if (loading) {
     return (
@@ -127,12 +176,36 @@ const ProductDetailPage = () => {
           {/* Product Images */}
           <div className="space-y-4">
             {/* Main Image */}
-            <div className="relative w-full rounded-2xl overflow-hidden bg-(--color-surface) border-2 border-(--color-border) shadow-sm">
+            <div
+              className="relative w-full rounded-2xl overflow-hidden bg-(--color-surface) border-2 border-(--color-border) shadow-sm"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
               <img
-                src={product.images?.[selectedImage] || product.image}
+                src={galleryImages[selectedImage] || product.image}
                 alt={product.name}
                 className="w-full h-auto max-h-[75vh] object-contain"
               />
+
+              {/* Progress line + dot indicators */}
+              {galleryImages.length > 0 && (
+                <div className="absolute left-1/2 bottom-4 -translate-x-1/2 pointer-events-auto w-full max-w-xs px-4">
+                  <div className="mt-2 flex items-center justify-center gap-3">
+                    {galleryImages.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedImage(idx)}
+                        aria-label={`Go to image ${idx + 1}`}
+                        className={`w-3 h-3 rounded-full transition-transform focus:outline-none ${
+                          selectedImage === idx
+                            ? 'scale-125 bg-(--color-accent) border border-(--color-accent)'
+                            : 'scale-100 bg-(--color-border)'
+                        } ${indexPulse && selectedImage === idx ? 'animate-pulse' : ''}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Stock Badge */}
               {!product.inStock && (
@@ -160,9 +233,9 @@ const ProductDetailPage = () => {
             </div>
 
             {/* Thumbnail Gallery */}
-            {product.images && product.images.length > 1 && (
+            {galleryImages && galleryImages.length > 1 && (
               <div className="flex gap-3 overflow-x-auto pb-2">
-                {product.images.map((img, idx) => (
+                {galleryImages.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setSelectedImage(idx)}

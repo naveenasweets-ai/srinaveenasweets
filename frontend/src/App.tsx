@@ -10,7 +10,7 @@ import AdminDashboard from './pages/admin/dashboard';
 import HomePage from './pages/home';
 import AccessDenied from './pages/access-denied';
 import AppCustomize from './pages/admin/app-customize';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import AppCustomApi from './api/app-customize';
 import ProductCatalogue from './pages/admin/products-catalogue';
 import ProductApi from './api/product';
@@ -25,11 +25,15 @@ export default function App() {
   const defaultFeatures = getDefaultFeatures();
   const location = useLocation();
 
+  const hasFetchedProducts = useRef(false);
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [location.pathname]);
 
   useEffect(() => {
+    if (hasFetchedProducts.current) return;
+    hasFetchedProducts.current = true;
     fetchSiteContent().then((content) =>
       setSiteContent({
         categories: content.categories || [],
@@ -96,7 +100,7 @@ export default function App() {
           />
 
           <Route path="/category/:slug" element={<CategoryPage />} />
-          
+
           <Route path="/product/:slug" element={<ProductDetailPage />} />
         </Routes>
       </main>

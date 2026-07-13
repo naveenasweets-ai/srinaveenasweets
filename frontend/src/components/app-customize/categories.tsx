@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import AppCustomApi from '../../api/app-customize';
 import type { CategoryConfig } from '../../types/appContentTypes';
-import { fileToBase64 } from '../../utils/utils';
+import { uploadImageToCloudinary } from '../../utils/utils';
 
 export default function Categories() {
   const { siteContent, setSiteContent } = useStore();
@@ -11,6 +11,7 @@ export default function Categories() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -18,7 +19,7 @@ export default function Categories() {
     image: '',
     parentId: '',
   });
-
+  console.log('form: ', form)
   const parentCategories = siteContent.categories.filter(
     (item) => item.type !== 'subcategory',
   );
@@ -35,8 +36,9 @@ export default function Categories() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const base64 = await fileToBase64(file);
-    setForm((prev) => ({ ...prev, image: base64 }));
+    const previewUrl = URL.createObjectURL(file);
+    setForm((prev) => ({ ...prev, image: previewUrl }));
+    setPendingImageFile(file);
     if (e.target) e.target.value = '';
   };
 
@@ -44,37 +46,48 @@ export default function Categories() {
     e.preventDefault();
     if (!form.name.trim()) return;
 
-    if (editingId) {
-      await updateCategory(editingId, {
-        name: form.name,
-        description: form.description,
-        type: form.type,
-        parentId: form.parentId || null,
-        image: form.image || '',
-      });
-    } else {
-      await saveCategory({
-        name: form.name,
-        description: form.description,
-        type: form.type,
-        parentId: form.parentId || null,
-        isActive:
-          form.type === 'subcategory' || activeParentCategoryCount < 6
-            ? true
-            : false,
-        image: form.image || '',
-      });
-    }
+    try {
+      let imageUrl = form.image || '';
 
-    setForm({
-      name: '',
-      description: '',
-      type: 'category',
-      parentId: '',
-      image: '',
-    });
-    setEditingId(null);
-    refresh();
+      if (pendingImageFile) {
+        imageUrl = await uploadImageToCloudinary(pendingImageFile);
+      }
+
+      if (editingId) {
+        await updateCategory(editingId, {
+          name: form.name,
+          description: form.description,
+          type: form.type,
+          parentId: form.parentId || null,
+          image: imageUrl,
+        });
+      } else {
+        await saveCategory({
+          name: form.name,
+          description: form.description,
+          type: form.type,
+          parentId: form.parentId || null,
+          isActive:
+            form.type === 'subcategory' || activeParentCategoryCount < 6
+              ? true
+              : false,
+          image: imageUrl,
+        });
+      }
+
+      setForm({
+        name: '',
+        description: '',
+        type: 'category',
+        parentId: '',
+        image: '',
+      });
+      setPendingImageFile(null);
+      setEditingId(null);
+      refresh();
+    } catch (error) {
+      console.error('Category save failed:', error);
+    }
   };
 
   const startEdit = (item: CategoryConfig) => {

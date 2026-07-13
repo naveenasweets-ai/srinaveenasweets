@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import AppCustomApi from '../../api/app-customize';
 import type { HeroContent } from '../../types/appContentTypes';
-import { fileToBase64 } from '../../utils/utils';
+import { uploadImageToCloudinary } from '../../utils/utils';
 import type { Product } from '../../types/contextTypes';
 
 export default function Hero() {
@@ -10,16 +10,31 @@ export default function Hero() {
   const { fetchSiteContent, saveHeroContent } = AppCustomApi();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [heroForm, setHeroForm] = useState<HeroContent>({});
 
   const handleHeroSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    const saved = await saveHeroContent(heroForm).then((res) => res);
 
-    if (saved.success) {
-      const updated = await fetchSiteContent().then((res) => res);
-      console.log('updated: ', updated);
-      if (updated.success) setHeroForm(updated.heroContent || {});
+    try {
+      let heroPayload = { ...heroForm };
+
+      if (pendingImageFile) {
+        const uploadedUrl = await uploadImageToCloudinary(pendingImageFile);
+        heroPayload = { ...heroPayload, image: uploadedUrl };
+      }
+
+      const saved = await saveHeroContent(heroPayload);
+
+      if (saved.success) {
+        const updated = await fetchSiteContent();
+        if (updated.success) {
+          setHeroForm(updated.heroContent || {});
+          setPendingImageFile(null);
+        }
+      }
+    } catch (error) {
+      console.error('Hero save failed:', error);
     }
   };
 
@@ -27,8 +42,9 @@ export default function Hero() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const base64 = await fileToBase64(file);
-    setHeroForm((prev) => ({ ...prev, image: base64 }));
+    const previewUrl = URL.createObjectURL(file);
+    setHeroForm((prev) => ({ ...prev, image: previewUrl }));
+    setPendingImageFile(file);
     if (e.target) e.target.value = '';
   };
 

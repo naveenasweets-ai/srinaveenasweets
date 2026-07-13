@@ -27,7 +27,7 @@ const defaultImageOptions: Required<ImageConversionOptions> = {
   maxWidth: 1400,
   maxHeight: 1400,
   quality: 0.82,
-  maxBytes: 700 * 1024,
+  maxBytes: 8 * 1024 * 1024,
 };
 
 const readFileAsDataUrl = (file: File | Blob): Promise<string> => {
@@ -135,6 +135,122 @@ export const fileToBase64 = async (
   } catch {
     return readFileAsDataUrl(file);
   }
+};
+
+const compressImageFile = async (
+  file: File | Blob,
+  options: ImageConversionOptions = {},
+): Promise<File> => {
+  const { maxWidth, maxHeight, quality, maxBytes } = {
+    ...defaultImageOptions,
+    ...options,
+  };
+
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return file as File;
+  }
+
+  if (!file.type.startsWith('image/')) {
+    return file as File;
+  }
+
+  try {
+    const dataUrl = await readFileAsDataUrl(file);
+    const image = await loadImage(dataUrl);
+
+    const canvas = document.createElement('canvas');
+    const originalWidth = image.naturalWidth;
+    const originalHeight = image.naturalHeight;
+    const scale = Math.min(
+      1,
+      maxWidth / originalWidth,
+      maxHeight / originalHeight,
+    );
+
+    let width = Math.max(1, Math.round(originalWidth * scale));
+    let height = Math.max(1, Math.round(originalHeight * scale));
+    let qualityValue = quality;
+
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      canvas.width = width;
+      canvas.height = height;
+
+      const context = canvas.getContext('2d');
+      if (!context) break;
+
+      context.clearRect(0, 0, width, height);
+      context.drawImage(image, 0, 0, width, height);
+
+      const compressedBlob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob((blob) => resolve(blob), 'image/jpeg', qualityValue);
+      });
+
+      if (compressedBlob && compressedBlob.size <= maxBytes) {
+        const fileName = file instanceof File ? file.name : 'image.jpg';
+        return new File(
+          [compressedBlob],
+          fileName.replace(/\.[^.]+$/, '.jpg'),
+          {
+            type: 'image/jpeg',
+          },
+        );
+      }
+
+      qualityValue = Math.max(0.55, qualityValue - 0.1);
+      width = Math.max(200, Math.round(width * 0.9));
+      height = Math.max(200, Math.round(height * 0.9));
+    }
+  } catch {
+    // fall back to the original file if compression fails
+  }
+
+  return file as File;
+};
+
+export const uploadImageToCloudinary = async (file: File): Promise<string> => {
+  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+  const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+  if (!cloudName || !uploadPreset) {
+    throw new Error('Cloudinary is not configured');
+  }
+
+  const uploadableFile = await compressImageFile(file, {
+    maxWidth: 1400,
+    maxHeight: 1400,
+    quality: 0.82,
+    maxBytes: 8 * 1024 * 1024,
+  });
+
+  const formData = new FormData();
+  formData.append('file', uploadableFile);
+  formData.append('upload_preset', uploadPreset);
+
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    {
+      method: 'POST',
+      body: formData,
+    },
+  );
+
+  const data = await response.json();
+
+  if (!response.ok || !data.secure_url) {
+    throw new Error(data.error?.message || 'Image upload failed');
+  }
+
+  return data.secure_url as string;
+};
+
+export const uploadImagesToCloudinary = async (
+  files: FileList | File[] | null,
+): Promise<string[]> => {
+  if (!files) return [];
+
+  return Promise.all(
+    Array.from(files).map((file) => uploadImageToCloudinary(file)),
+  );
 };
 
 export const fileListToBase64 = async (

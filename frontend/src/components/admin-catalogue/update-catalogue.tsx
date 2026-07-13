@@ -4,7 +4,10 @@ import { useRef, useState } from 'react';
 import { IoMdAdd } from 'react-icons/io';
 import { IoCloseSharp } from 'react-icons/io5';
 import type { Product } from '../../types/contextTypes';
-import { fileListToBase64 } from '../../utils/utils';
+import {
+  uploadImageToCloudinary,
+  uploadImagesToCloudinary,
+} from '../../utils/utils';
 import { useStore } from '../../context/StoreContext';
 import {
   normalizeProductWeights,
@@ -64,8 +67,12 @@ const UpdateCatalogue = ({
   const [image, setImage] = useState(product?.image ?? '');
   const [badge, setBadge] = useState(product?.badge ?? '');
   const [inStock, setInStock] = useState(product?.inStock ?? true);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [additionalImages, setAdditionalImages] = useState(
     product?.images ?? [],
+  );
+  const [pendingAdditionalFiles, setPendingAdditionalFiles] = useState<File[]>(
+    [],
   );
 
   const [selectedCategoryId, setSelectedCategoryId] = useState(
@@ -137,27 +144,83 @@ const UpdateCatalogue = ({
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = makeProductPayload();
 
-    const result = await api.saveProduct(payload);
-    if (result?.success && result.product) {
-      setProducts((prevProducts) => [...prevProducts, result.product]);
-      closeModal();
+    try {
+      let finalImage = image;
+      let finalAdditionalImages = additionalImages.filter(
+        (src) => !src.startsWith('blob:'),
+      );
+
+      if (pendingImageFile) {
+        finalImage = await uploadImageToCloudinary(pendingImageFile);
+      }
+
+      if (pendingAdditionalFiles.length) {
+        const uploadedAdditionalImages = await uploadImagesToCloudinary(
+          pendingAdditionalFiles,
+        );
+        finalAdditionalImages = [
+          ...finalAdditionalImages,
+          ...uploadedAdditionalImages,
+        ];
+      }
+
+      const payload = {
+        ...makeProductPayload(),
+        image: finalImage,
+        images: finalAdditionalImages,
+      };
+
+      const result = await api.saveProduct(payload);
+      if (result?.success && result.product) {
+        setProducts((prevProducts) => [...prevProducts, result.product]);
+        closeModal();
+      }
+    } catch (error) {
+      console.error('Product save failed:', error);
     }
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = makeProductPayload();
 
-    const result = await api.updateProduct(productId, payload);
-    if (result?.success && result.product) {
-      setProducts((prevProducts) =>
-        prevProducts.map((item) =>
-          item._id === result.product._id ? result.product : item,
-        ),
+    try {
+      let finalImage = image;
+      let finalAdditionalImages = additionalImages.filter(
+        (src) => !src.startsWith('blob:'),
       );
-      closeModal();
+
+      if (pendingImageFile) {
+        finalImage = await uploadImageToCloudinary(pendingImageFile);
+      }
+
+      if (pendingAdditionalFiles.length) {
+        const uploadedAdditionalImages = await uploadImagesToCloudinary(
+          pendingAdditionalFiles,
+        );
+        finalAdditionalImages = [
+          ...finalAdditionalImages,
+          ...uploadedAdditionalImages,
+        ];
+      }
+
+      const payload = {
+        ...makeProductPayload(),
+        image: finalImage,
+        images: finalAdditionalImages,
+      };
+
+      const result = await api.updateProduct(productId, payload);
+      if (result?.success && result.product) {
+        setProducts((prevProducts) =>
+          prevProducts.map((item) =>
+            item._id === result.product._id ? result.product : item,
+          ),
+        );
+        closeModal();
+      }
+    } catch (error) {
+      console.error('Product update failed:', error);
     }
   };
 
@@ -207,7 +270,11 @@ const UpdateCatalogue = ({
             <div className="mt-5">
               <label className={labelClassName}>Main Image</label>
               <div className="rounded-2xl border border-[#f3d48a]/70 bg-[#fffdf7] p-3">
-                <ImageUploadZone value={image} onChange={setImage} />
+                <ImageUploadZone
+                  value={image}
+                  onChange={setImage}
+                  onFileSelect={setPendingImageFile}
+                />
               </div>
             </div>
             <div className="mt-5">
@@ -217,9 +284,15 @@ const UpdateCatalogue = ({
                 accept="image/*"
                 multiple
                 className="w-full rounded-2xl border border-[#f3d48a]/70 bg-[#fffdf7] p-3 text-sm text-[#4d2b1f]"
-                onChange={async (e) => {
-                  const newImages = await fileListToBase64(e.target.files);
-                  setAdditionalImages((prev) => [...prev, ...newImages]);
+                onChange={(e) => {
+                  const files = Array.from(e.target.files ?? []);
+                  if (!files.length) return;
+
+                  const previewUrls = files.map((file) =>
+                    URL.createObjectURL(file),
+                  );
+                  setAdditionalImages((prev) => [...prev, ...previewUrls]);
+                  setPendingAdditionalFiles((prev) => [...prev, ...files]);
                   if (e.target) e.target.value = '';
                 }}
               />

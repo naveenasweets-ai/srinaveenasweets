@@ -1,27 +1,26 @@
 import { useRef, useState } from 'react';
-import { fileToBase64 } from '../../utils/utils';
 import { FiUpload } from 'react-icons/fi';
 
 export function ImageUploadZone({
   value,
   onChange,
+  onFileSelect,
 }: {
   value: string;
   onChange: (url: string) => void;
+  onFileSelect?: (file: File | null) => void;
 }) {
   const [drag, setDrag] = useState(false);
   const [preview, setPreview] = useState(value);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = (file: File | null) => {
+  const handleFile = async (file: File | null) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const url = e.target?.result as string;
-      setPreview(url);
-      onChange(url);
-    };
-    reader.readAsDataURL(file);
+
+    const previewUrl = URL.createObjectURL(file);
+    setPreview(previewUrl);
+    onChange(previewUrl);
+    onFileSelect?.(file);
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,9 +28,8 @@ export function ImageUploadZone({
 
     if (!file) return;
 
-    const base64 = await fileToBase64(file);
-    setPreview(base64);
-    onChange(base64);
+    await handleFile(file);
+    if (e.target) e.target.value = '';
   };
 
   return (
