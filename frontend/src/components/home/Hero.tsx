@@ -3,6 +3,7 @@ import { useStore } from '../../context/StoreContext';
 import { useEffect, useState } from 'react';
 import type { Product } from '../../types/contextTypes';
 import { FaChevronRight } from 'react-icons/fa';
+import { generateSlug } from '../../utils/utils';
 
 export default function Hero() {
   const navigate = useNavigate();
@@ -45,22 +46,28 @@ export default function Hero() {
     featuredProduct?.name ||
     siteContent.heroContent?.featuredTitle ||
     'Milk Cake • Gulab Jamun';
-  const featuredPrice = featuredProduct
-    ? `₹${featuredProduct.price.toLocaleString('en-IN')}/-`
-    : siteContent.heroContent?.featuredPrice || '₹35';
 
   return (
-    <section className="relative overflow-hidden bg-[color:var(--color-primary)] text-[color:var(--color-on-primary)]">
+    <section className="relative overflow-hidden bg-(--color-primary) text-(--color-on-primary)">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(163,54,45,0.4),transparent_60%)] pointer-events-none" />
-      <div className="absolute -top-32 -left-32 h-80 w-80 rounded-full bg-[color:var(--color-accent)]/5 blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 -right-40 h-96 w-96 rounded-full bg-[color:var(--color-accent-light)]/8 blur-3xl pointer-events-none" />
+      <div className="absolute -top-32 -left-32 h-80 w-80 rounded-full bg-(--color-accent)/5 blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 -right-40 h-96 w-96 rounded-full bg-(--color-accent-light)/8 blur-3xl pointer-events-none" />
 
       <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
         <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center px-4">
           <div className="order-2 lg:order-1">
             <div className="relative mx-auto max-w-115">
               <div className="absolute -inset-4 rounded-4xl border border-[#f7d98b]/30" />
-              <div className="relative overflow-hidden rounded-3xl shadow-2xl shadow-[#240606]/60">
+              <div
+                className="relative overflow-hidden rounded-3xl shadow-2xl shadow-[#240606]/60"
+                onClick={() => {
+                  if (featuredProduct) {
+                    navigate(
+                      `/product/${generateSlug(featuredProduct._id, featuredProduct.name)}`,
+                    );
+                  }
+                }}
+              >
                 <img
                   src={featuredImage}
                   alt="Sri Naveena sweets and bakery display"
@@ -68,16 +75,13 @@ export default function Hero() {
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-[#2b0707]/80 via-[#2b0707]/20 to-transparent" />
                 <div className="absolute bottom-4 left-4 right-4 rounded-2xl border border-[#f7d98b]/40 bg-[#2b0707]/70 p-4 backdrop-blur-sm sm:bottom-6 sm:left-6 sm:right-6 sm:p-5">
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[color:var(--color-accent)]">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-(--color-accent)">
                     Today’s Special
                   </div>
                   <div className="mt-2 flex items-center justify-between gap-4">
                     <div>
-                      <div className="text-lg font-semibold text-[color:var(--color-on-primary)]">
+                      <div className="text-lg font-semibold text-(--color-on-primary)">
                         {featuredTitle}
-                      </div>
-                      <div className="text-sm text-[color:var(--color-on-primary)]/80">
-                        {featuredPrice}
                       </div>
                     </div>
                   </div>
@@ -91,43 +95,43 @@ export default function Hero() {
               <span>{eyebrow}</span>
             </div>
 
-            <h1 className="mb-2 text-5xl font-black leading-tight text-[color:var(--color-logo)] sm:text-6xl lg:text-7xl">
+            <h1 className="mb-2 text-5xl font-black leading-tight text-(--color-logo) sm:text-6xl lg:text-7xl">
               {titleLine1}
             </h1>
-            <h2 className="mb-6 text-4xl font-semibold leading-tight text-[color:var(--color-accent)] sm:text-5xl lg:text-6xl">
+            <h2 className="mb-6 text-4xl font-semibold leading-tight text-(--color-accent) sm:text-5xl lg:text-6xl">
               {titleLine2}
             </h2>
 
-            <p className="mb-4 font-serif text-xl italic text-[color:var(--color-accent-light)] sm:text-2xl">
+            <p className="mb-4 font-serif text-xl italic text-(--color-accent-light) sm:text-2xl">
               {subtitle}
             </p>
 
-            <p className="mb-10 max-w-xl text-base leading-8 text-[color:var(--color-on-primary)]/85 sm:text-lg">
+            <p className="mb-10 max-w-xl text-base leading-8 text-(--color-on-primary)/85 sm:text-lg">
               {description}
             </p>
 
             <div className="mb-10 flex flex-wrap gap-3">
-              <div className="flex items-center gap-3 rounded-full border border-[color:var(--color-accent)]/30 bg-[color:var(--color-accent)]/15 px-5 py-3">
-                <div className="text-2xl font-bold text-[color:var(--color-accent-light)]">
+              <div className="flex items-center gap-3 rounded-full border border-(--color-accent)/30 bg-(--color-accent)/15 px-5 py-3">
+                <div className="text-2xl font-bold text-(--color-accent-light)">
                   100%
                 </div>
-                <div className="text-xs uppercase tracking-wider text-[color:var(--color-on-primary)]/80">
+                <div className="text-xs uppercase tracking-wider text-(--color-on-primary)/80">
                   Handmade
                 </div>
               </div>
-              <div className="flex items-center gap-3 rounded-full border border-[color:var(--color-accent)]/30 bg-[color:var(--color-accent)]/15 px-5 py-3">
-                <div className="text-2xl font-bold text-[color:var(--color-accent-light)]">
+              <div className="flex items-center gap-3 rounded-full border border-(--color-accent)/30 bg-(--color-accent)/15 px-5 py-3">
+                <div className="text-2xl font-bold text-(--color-accent-light)">
                   Daily
                 </div>
-                <div className="text-xs uppercase tracking-wider text-[color:var(--color-on-primary)]/80">
+                <div className="text-xs uppercase tracking-wider text-(--color-on-primary)/80">
                   Fresh Bakes
                 </div>
               </div>
-              <div className="flex items-center gap-3 rounded-full border border-[color:var(--color-accent)]/30 bg-[color:var(--color-accent)]/15 px-5 py-3">
-                <div className="text-2xl font-bold text-[color:var(--color-accent-light)]">
+              <div className="flex items-center gap-3 rounded-full border border-(--color-accent)/30 bg-(--color-accent)/15 px-5 py-3">
+                <div className="text-2xl font-bold text-(--color-accent-light)">
                   Festive
                 </div>
-                <div className="text-xs uppercase tracking-wider text-[color:var(--color-on-primary)]/80">
+                <div className="text-xs uppercase tracking-wider text-(--color-on-primary)/80">
                   Favorites
                 </div>
               </div>
@@ -143,7 +147,7 @@ export default function Hero() {
                           .replace(/(^-|-$)/g, ''),
                     );
                   }}
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-[color:var(--color-accent)] to-[color:var(--color-accent-light)] px-7 py-4 text-sm font-bold text-[color:var(--color-primary-dark)] shadow-lg shadow-[color:var(--color-accent)]/30 transition hover:scale-105 hover:shadow-xl hover:shadow-[color:var(--color-accent)]/50"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-(--color-accent) to-(--color-accent-light) px-7 py-4 text-sm font-bold text-(--color-primary-dark) shadow-lg shadow-(color:--color-accent)/30 transition hover:scale-105 hover:shadow-xl hover:shadow-(color:--color-accent)/50"
                 >
                   {primaryButtonLabel}
                   <FaChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform group-hover:translate-x-1" />

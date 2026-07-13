@@ -16,6 +16,7 @@ import ProductCatalogue from './pages/admin/products-catalogue';
 import ProductApi from './api/product';
 import { getDefaultFeatures } from './utils/utils';
 import CategoryPage from './pages/category-page';
+import ProductDetailPage from './pages/product-detail-page';
 
 export default function App() {
   const { user, setSiteContent, setProducts } = useStore();
@@ -95,6 +96,8 @@ export default function App() {
           />
 
           <Route path="/category/:slug" element={<CategoryPage />} />
+          
+          <Route path="/product/:slug" element={<ProductDetailPage />} />
         </Routes>
       </main>
       <Footer />

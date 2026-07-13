@@ -9,9 +9,9 @@
   --color-on-primary: #fff7e8; /* Light text on dark primary */
 
   /* Accent palette */
-  --color-accent: #ffd166; /* Gold highlight */
-  --color-accent-light: #ffb703; /* Bright saffron */
-  --color-accent-dark: #c97a00; /* Deep honey gold */
+  --color-accent: #d4533e; /* Warm rose/copper accent */
+  --color-accent-light: #e89985; /* Lighter warm rose */
+  --color-accent-dark: #a63d2a; /* Deep rust accent */
 
   /* Neutral palette */
   --color-background: #fff8ef; /* Creamy dessert background */
@@ -19,7 +19,7 @@
   --color-surface-alt: #fdf6ec; /* Soft surface alternate */
   --color-text: #4d2b1f; /* Rich chocolate brown */
   --color-muted: #8a6a4a; /* Soft cocoa brown */
-  --color-border: rgba(212, 160, 23, 0.32); /* Subtle saffron border */
+  --color-border: rgba(212, 83, 62, 0.25); /* Warm rose-copper border */
 
   /* Status colors */
   --color-success: #4caf50;

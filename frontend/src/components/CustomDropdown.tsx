@@ -65,7 +65,7 @@ export default function CustomDropdown({
 
       {isOpen && (
         <div
-          className={`absolute right-0 z-20 mt-2 min-w-[12rem] rounded-xl border border-[#f3d48a]/70 bg-[#fffdf7] p-1 shadow-[0_12px_30px_rgba(95,16,33,0.12)] ${menuClassName}`}
+          className={`absolute right-0 z-20 mt-2 min-w-48 rounded-xl border border-[#f3d48a]/70 bg-[#fffdf7] p-1 shadow-[0_12px_30px_rgba(95,16,33,0.12)] ${menuClassName}`}
         >
           {options.map((option) => (
             <button

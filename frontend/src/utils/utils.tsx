@@ -160,3 +160,12 @@ export const getDefaultFeatures = (): FeatureItem[] =>
     description: feature.description,
     icon: feature.icon,
   }));
+
+export function findProductBySlug<T extends { _id: string; name: string }>(
+  products: T[],
+  slug: string,
+): T | undefined {
+  return products.find(
+    (p) => generateSlug(p._id, p.name) === slug.toLowerCase(),
+  );
+}

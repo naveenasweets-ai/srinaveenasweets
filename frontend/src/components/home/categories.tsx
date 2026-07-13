@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useNavigate } from 'react-router-dom';
 import SectionHeader from '../SectionHeader';
-import { slugify } from '../../utils/utils';
+import { generateSlug, slugify } from '../../utils/utils';
 import { useStore } from '../../context/StoreContext';
 import { FaChevronRight } from 'react-icons/fa';
 
@@ -89,6 +89,11 @@ export default function Categories() {
                 cat.selectedProducts.map((product: any) => (
                   <div
                     key={product._id}
+                    onClick={() => {
+                      navigate(
+                        `/product/${generateSlug(product._id, product.name)}`,
+                      );
+                    }}
                     className="group overflow-hidden rounded-[1.75rem] border border-[#f7d98b]/40 bg-white shadow-[0_28px_55px_-35px_rgba(95,16,33,0.75)] transition-transform duration-300 hover:-translate-y-1 cursor-pointer"
                   >
                     <div className="relative h-52 overflow-hidden">
