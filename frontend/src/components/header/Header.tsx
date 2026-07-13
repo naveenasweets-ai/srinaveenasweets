@@ -21,9 +21,16 @@ const Header = () => {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-  const toggleMenu = () => setIsMenuOpen((prev) => !prev);
+  const [isVisible, setIsVisible] = useState(true);
+  const toggleMenu = () => {
+    setIsVisible(true);
+    setIsMenuOpen((prev) => !prev);
+  };
   const closeMenu = () => setIsMenuOpen(false);
-  const toggleMobileNav = () => setIsMobileNavOpen((prev) => !prev);
+  const toggleMobileNav = () => {
+    setIsVisible(true);
+    setIsMobileNavOpen((prev) => !prev);
+  };
   const closeMobileNav = () => setIsMobileNavOpen(false);
 
   const [mobileOpenCategory, setMobileOpenCategory] = useState<string | null>(
@@ -38,6 +45,19 @@ const Header = () => {
     setIsMenuOpen(false);
   };
 
+  const parentCategories = (siteContent?.categories ?? [])
+    .filter((cat: CategoryConfig) => cat.type !== 'subcategory')
+    .map((cat: CategoryConfig) => ({
+      label: cat.name,
+      name: cat.name,
+      slug: slugify(cat.slug || cat.name),
+      isCat: true,
+      subcategories: (siteContent?.categories ?? []).filter(
+        (item: CategoryConfig) =>
+          item.type === 'subcategory' && item.parentId === cat._id,
+      ),
+    }));
+
   const navigationCategories = [
     {
       label: 'All',
@@ -46,19 +66,10 @@ const Header = () => {
       isCat: true,
       subcategories: [],
     },
-    ...(siteContent?.categories
-      ?.filter((cat: CategoryConfig) => cat.type !== 'subcategory')
-      ?.map((cat: CategoryConfig) => ({
-        label: cat.name,
-        name: cat.name,
-        slug: slugify(cat.slug || cat.name),
-        isCat: true,
-        subcategories: siteContent.categories?.filter(
-          (item: CategoryConfig) =>
-            item.type === 'subcategory' && item.parentId === cat._id,
-        ),
-      })) ?? []),
+    ...parentCategories.slice(0, 4),
   ];
+
+  const overflowCategories = parentCategories.slice(4);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -81,8 +92,34 @@ const Header = () => {
     };
   }, [isMenuOpen, isMobileNavOpen]);
 
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (isMenuOpen || isMobileNavOpen) {
+        setIsVisible(true);
+        lastScrollY = currentScrollY;
+        return;
+      }
+
+      const scrollingDown = currentScrollY > lastScrollY && currentScrollY > 80;
+      setIsVisible(!scrollingDown || currentScrollY <= 80);
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [isMenuOpen, isMobileNavOpen]);
+
   return (
-    <div className="w-full z-999 py-4 flex flex-col items-center gap-4 border-b border-(--color-accent-light) bg-(--color-surface) shadow-sm">
+    <div
+      className={`sticky top-0 z-50 w-full py-4 flex flex-col items-center gap-4 border-b border-(--color-accent-light) bg-(--color-surface) shadow-sm transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}
+    >
       <div className="lg:flex lg:justify-around lg:px-4 w-full">
         {window.innerWidth > 768 && (
           <Link to="/" className="w-[10em]">
@@ -131,6 +168,63 @@ const Header = () => {
                 </div>
               );
             })}
+
+            {overflowCategories.length > 0 && (
+              <div className="relative group/more">
+                <button
+                  type="button"
+                  className="flex items-center gap-1 text-[clamp(0.65rem,0.95vw,0.95rem)] whitespace-nowrap tracking-[0.2em] uppercase font-semibold text-(--color-primary-dark) hover:text-(--color-primary) transition-colors relative py-1.5 cursor-pointer"
+                >
+                  <span>More</span>
+                  <FiChevronDown className="h-3.5 w-3.5" />
+                </button>
+
+                <div className="absolute left-1/2 top-full mt-3 min-w-60 -translate-x-1/2 rounded-2xl border border-(--color-accent-light) bg-(--color-surface) p-2.5 shadow-[0_18px_45px_rgba(95,16,33,0.12)] opacity-0 invisible translate-y-2 group-hover/more:opacity-100 group-hover/more:visible group-hover/more:translate-y-0 transition-all duration-200 z-50 backdrop-blur-sm">
+                  {overflowCategories.map((item: any) => {
+                    const hasSubmenu = Boolean(item.subcategories?.length);
+
+                    return (
+                      <div key={item.label} className="relative group/submenu">
+                        <button
+                          onClick={() => {
+                            if (item.isCat) {
+                              handleNav(item.name, item.slug);
+                            }
+                          }}
+                          className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-medium text-(--color-text) transition-colors cursor-pointer whitespace-nowrap hover:bg-(--color-accent-light) hover:text-(--color-primary-dark)"
+                        >
+                          <span>{item.label}</span>
+                          {hasSubmenu && (
+                            <FaChevronRight className="h-3.5 w-3.5 text-(--color-primary-dark)" />
+                          )}
+                        </button>
+
+                        {hasSubmenu && (
+                          <div className="absolute left-full top-0 ml-2 min-w-56 rounded-2xl border border-(--color-accent-light) bg-(--color-surface) p-2.5 shadow-[0_18px_45px_rgba(95,16,33,0.12)] opacity-0 invisible translate-y-2 group-hover/submenu:opacity-100 group-hover/submenu:visible group-hover/submenu:translate-y-0 transition-all duration-200 z-60 backdrop-blur-sm">
+                            {item.subcategories?.map(
+                              (subcat: CategoryConfig) => (
+                                <button
+                                  key={subcat._id}
+                                  onClick={() =>
+                                    handleNav(
+                                      subcat.name,
+                                      slugify(subcat.slug || subcat.name),
+                                    )
+                                  }
+                                  className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-(--color-text) transition-colors cursor-pointer whitespace-nowrap hover:bg-(--color-accent-light) hover:text-(--color-primary-dark)"
+                                >
+                                  {subcat.name}
+                                </button>
+                              ),
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </nav>
         </div>
 
