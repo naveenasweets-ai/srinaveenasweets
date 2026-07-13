@@ -3,12 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import type { Product } from '../types/contextTypes';
-import {
-  FiHeart,
-  FiShare2,
-  FiCheck,
-  FiChevronLeft,
-} from 'react-icons/fi';
+import { FiHeart, FiShare2, FiCheck, FiChevronLeft } from 'react-icons/fi';
 import { findProductBySlug } from '../utils/utils';
 
 const ProductDetailPage = () => {
@@ -132,11 +127,11 @@ const ProductDetailPage = () => {
           {/* Product Images */}
           <div className="space-y-4">
             {/* Main Image */}
-            <div className="relative w-full h-[65vh] rounded-2xl overflow-hidden bg-(--color-surface) border-2 border-(--color-border) flex items-center justify-center shadow-sm">
+            <div className="relative w-full rounded-2xl overflow-hidden bg-(--color-surface) border-2 border-(--color-border) shadow-sm">
               <img
                 src={product.images?.[selectedImage] || product.image}
                 alt={product.name}
-                className="w-full h-full object-contain"
+                className="w-full h-auto max-h-[75vh] object-contain"
               />
 
               {/* Stock Badge */}
