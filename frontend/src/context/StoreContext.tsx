@@ -53,6 +53,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
   const [products, setProducts] = useState<Product[]>([]);
   const [toast, setToast] = useState<Toast | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [wishlist, setWishlist] = useState<string[]>([]);
 
   const [siteContent, setSiteContent] = useState<{
     categories: CategoryConfig[];
@@ -88,6 +89,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
     setTimeout(() => setToast(null), 3000);
   };
 
+  const isInWishlist = (productId: string) => wishlist.includes(productId);
+  const wishlistCount = wishlist.length;
+
   return (
     <StoreContext.Provider
       value={{
@@ -107,6 +111,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
         setProducts,
 
         handpickedCats,
+
+        wishlist,
+        setWishlist,
+
+        isInWishlist,
+        wishlistCount,
       }}
     >
       {children}

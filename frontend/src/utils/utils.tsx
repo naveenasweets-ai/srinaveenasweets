@@ -1,5 +1,13 @@
-import type { FeatureItem } from "../types/contextTypes";
-import { ICON_SET } from "./constants";
+import type { FeatureItem } from '../types/contextTypes';
+import { ICON_SET } from './constants';
+
+export function generateSlug(id: string, name: string): string {
+  const slugifiedName = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+  return `${id}-${slugifiedName}`.toLowerCase();
+}
 
 export const slugify = (value: string) =>
   value

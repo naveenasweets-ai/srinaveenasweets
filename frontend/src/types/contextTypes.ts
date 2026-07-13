@@ -93,4 +93,11 @@ export interface StoreContextType {
   setSelectedCategory: (cat: string) => void;
 
   handpickedCats: string[];
+
+
+  wishlist: string[];
+  setWishlist: React.Dispatch<React.SetStateAction<string[]>>;
+
+  isInWishlist: (productId: string) => boolean;
+  wishlistCount: number;
 }

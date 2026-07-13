@@ -38,6 +38,28 @@ const Header = () => {
     setIsMenuOpen(false);
   };
 
+  const navigationCategories = [
+    {
+      label: 'All',
+      name: 'All',
+      slug: 'all',
+      isCat: true,
+      subcategories: [],
+    },
+    ...(siteContent?.categories
+      ?.filter((cat: CategoryConfig) => cat.type !== 'subcategory')
+      ?.map((cat: CategoryConfig) => ({
+        label: cat.name,
+        name: cat.name,
+        slug: slugify(cat.slug || cat.name),
+        isCat: true,
+        subcategories: siteContent.categories?.filter(
+          (item: CategoryConfig) =>
+            item.type === 'subcategory' && item.parentId === cat._id,
+        ),
+      })) ?? []),
+  ];
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
@@ -60,7 +82,7 @@ const Header = () => {
   }, [isMenuOpen, isMobileNavOpen]);
 
   return (
-    <div className="w-full z-999 py-4 flex flex-col items-center gap-4 border-b border-[var(--color-accent-light)] bg-[var(--color-surface)] shadow-sm">
+    <div className="w-full z-999 py-4 flex flex-col items-center gap-4 border-b border-(--color-accent-light) bg-(--color-surface) shadow-sm">
       <div className="lg:flex lg:justify-around lg:px-4 w-full">
         {window.innerWidth > 768 && (
           <Link to="/" className="w-[10em]">
@@ -70,57 +92,45 @@ const Header = () => {
 
         <div className="flex-col justify-center pb-4 lg:flex hidden">
           <nav className="hidden lg:flex justify-center gap-8 xl:gap-12 pb-2.5 pt-2.5 bg-linear-to-r from-transparent via-maroon-50/20 to-transparent">
-            {siteContent?.categories
-              ?.filter((cat: CategoryConfig) => cat.type !== 'subcategory')
-              ?.map((cat: CategoryConfig) => ({
-                label: cat.name,
-                name: cat.name,
-                slug: slugify(cat.slug || cat.name),
-                isCat: true,
-                subcategories: siteContent.categories?.filter(
-                  (item: CategoryConfig) =>
-                    item.type === 'subcategory' && item.parentId === cat._id,
-                ),
-              }))
-              .map((item: any) => {
-                const hasSubmenu = Boolean(item.subcategories?.length);
+            {navigationCategories.map((item: any) => {
+              const hasSubmenu = Boolean(item.subcategories?.length);
 
-                return (
-                  <div key={item.label} className="relative group">
-                    <button
-                      onClick={() => {
-                        if (item.isCat) {
-                          handleNav(item.name, item.slug);
-                        } else {
-                          navigate('/');
-                        }
-                      }}
-                      className="text-[clamp(0.65rem,0.95vw,0.95rem)] whitespace-nowrap tracking-[0.2em] uppercase font-semibold text-[var(--color-primary-dark)] hover:text-[var(--color-primary)] transition-colors relative py-1.5 cursor-pointer"
-                    >
-                      {item.label}
-                    </button>
+              return (
+                <div key={item.label} className="relative group">
+                  <button
+                    onClick={() => {
+                      if (item.isCat) {
+                        handleNav(item.name, item.slug);
+                      } else {
+                        navigate('/');
+                      }
+                    }}
+                    className="text-[clamp(0.65rem,0.95vw,0.95rem)] whitespace-nowrap tracking-[0.2em] uppercase font-semibold text-(--color-primary-dark) hover:text-(--color-primary) transition-colors relative py-1.5 cursor-pointer"
+                  >
+                    {item.label}
+                  </button>
 
-                    {hasSubmenu && (
-                      <div className="absolute left-1/2 top-full mt-3 w-60 -translate-x-1/2 rounded-2xl border border-[var(--color-accent-light)] bg-[var(--color-surface)] p-2.5 shadow-[0_18px_45px_rgba(95,16,33,0.12)] opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200 z-50 backdrop-blur-sm">
-                        {item.subcategories?.map((subcat: CategoryConfig) => (
-                          <button
-                            key={subcat._id}
-                            onClick={() =>
-                              handleNav(
-                                subcat.name,
-                                slugify(subcat.slug || subcat.name),
-                              )
-                            }
-                            className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-[var(--color-text)] transition-colors cursor-pointer whitespace-nowrap hover:bg-[var(--color-accent-light)] hover:text-[var(--color-primary-dark)]"
-                          >
-                            {subcat.name}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                  {hasSubmenu && (
+                    <div className="absolute left-1/2 top-full mt-3 w-60 -translate-x-1/2 rounded-2xl border border-(--color-accent-light) bg-(--color-surface) p-2.5 shadow-[0_18px_45px_rgba(95,16,33,0.12)] opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200 z-50 backdrop-blur-sm">
+                      {item.subcategories?.map((subcat: CategoryConfig) => (
+                        <button
+                          key={subcat._id}
+                          onClick={() =>
+                            handleNav(
+                              subcat.name,
+                              slugify(subcat.slug || subcat.name),
+                            )
+                          }
+                          className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-(--color-text) transition-colors cursor-pointer whitespace-nowrap hover:bg-(--color-accent-light) hover:text-(--color-primary-dark)"
+                        >
+                          {subcat.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </nav>
         </div>
 
@@ -197,7 +207,7 @@ const Header = () => {
             <button
               type="button"
               onClick={toggleMobileNav}
-              className="flex items-center justify-between rounded-full border border-[var(--color-accent-light)] bg-white! px-4 py-2 text-sm font-semibold text-[var(--color-text)] shadow-sm"
+              className="flex items-center justify-between rounded-full border border-(--color-accent-light) bg-white! px-4 py-2 text-sm font-semibold text-(--color-text) shadow-sm"
             >
               <span>Menu</span>
               <FiChevronDown
@@ -206,7 +216,13 @@ const Header = () => {
             </button>
 
             {isMobileNavOpen && (
-              <div className="flex flex-col gap-1 rounded-xl border border-[var(--color-accent-light)] bg-white p-2 shadow-sm">
+              <div className="flex flex-col gap-1 rounded-xl border border-(--color-accent-light) bg-white p-2 shadow-sm">
+                <button
+                  onClick={() => handleNav('All', 'all')}
+                  className="flex-1 py-2 text-left text-xs font-semibold uppercase tracking-[0.2em] text-(--color-primary-dark) cursor-pointer"
+                >
+                  All
+                </button>
                 {(siteContent?.categories ?? [])
                   .filter((cat: any) => cat.type !== 'subcategory')
                   .map((cat: any) => {
