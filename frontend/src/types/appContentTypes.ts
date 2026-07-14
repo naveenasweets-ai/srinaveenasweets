@@ -24,3 +24,23 @@ export type HeroContent = {
   image?: string;
   featuredProductId?: string;
 };
+
+export type CategoryInfoType = {
+  title: string;
+  description: string;
+  selectedCategories: {
+    name: string;
+    slug: string;
+    selectedProducts: [string];
+  }[];
+}
+
+export type FeatureItem = {
+  _id?: string;
+  title: string;
+  description: string;
+  icon: {
+    name: string;
+    svg: React.ReactNode;
+  };
+};

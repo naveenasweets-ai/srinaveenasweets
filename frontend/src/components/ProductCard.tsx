@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import type { Product } from '../types/contextTypes';
+import { getProductInventoryState } from '../utils/productInventory';
 import { generateSlug } from '../utils/utils';
+import CustomerUtils from '../utils/customer';
 
 export default function ProductCard({ product }: { product: Product }) {
   const { isInWishlist, user } = useStore();
-  // const { addToCart, toggleWishlist } = CustomerApi();
+  const { addToCart, toggleWishlist } = CustomerUtils();
   const discount = product.originalPrice
     ? Math.round(
         ((product.originalPrice - product.price) / product.originalPrice) * 100,
@@ -13,7 +15,8 @@ export default function ProductCard({ product }: { product: Product }) {
     : 0;
 
   const liked = isInWishlist(product._id);
-  const outOfStock = product.inStock === false;
+  const inventoryState = getProductInventoryState(product);
+  const outOfStock = inventoryState.isOutOfStock;
   const isAdmin = user.role === 'admin';
   const productUrl = `/product/${generateSlug(product._id, product.name)}`;
 
@@ -60,9 +63,10 @@ export default function ProductCard({ product }: { product: Product }) {
           {!isAdmin && (
             <button
               onClick={(e) => {
+                if(user.role === 'admin') return;
                 e.preventDefault();
-                e.stopPropagation();
-                // toggleWishlist(product._id);
+                e.stopPropagation();                
+                toggleWishlist(product._id);
               }}
               className={`absolute right-3 top-3 z-10 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full shadow-lg transition-all sm:h-10 sm:w-10 ${
                 liked
@@ -88,9 +92,10 @@ export default function ProductCard({ product }: { product: Product }) {
             <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 hidden p-3 transition-transform duration-300 group-hover:translate-y-0 md:pointer-events-auto md:flex md:translate-y-full">
               <button
                 onClick={(e) => {
+                  if(user.role === 'admin') return;
                   e.preventDefault();
                   e.stopPropagation();
-                  // addToCart(product);
+                  addToCart(product);
                 }}
                 className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] px-3 py-2.5 text-xs font-bold uppercase tracking-[0.24em] text-(--color-accent-light) shadow-lg transition-all hover:brightness-110 active:scale-[0.97] sm:py-3"
               >

@@ -17,23 +17,29 @@ import ProductApi from './api/product';
 import { getDefaultFeatures } from './utils/utils';
 import CategoryPage from './pages/category-page';
 import ProductDetailPage from './pages/product-detail-page';
+import CustomerApi from './api/customer';
+import CartPage from './pages/customer/cart-page';
+import WishlistPage from './pages/customer/wishlist-page';
 
 export default function App() {
   const { user, setSiteContent, setProducts } = useStore();
   const { fetchSiteContent } = AppCustomApi();
   const { fetchProducts } = ProductApi();
+  const { getCustomerData } = CustomerApi();
   const defaultFeatures = getDefaultFeatures();
   const location = useLocation();
 
+  const hasFetchedSiteContent = useRef(false);
   const hasFetchedProducts = useRef(false);
+  const hasFetchedUser = useRef(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [location.pathname]);
 
   useEffect(() => {
-    if (hasFetchedProducts.current) return;
-    hasFetchedProducts.current = true;
+    if (hasFetchedSiteContent.current) return;
+    hasFetchedSiteContent.current = true;
     fetchSiteContent().then((content) =>
       setSiteContent({
         categories: content.categories || [],
@@ -57,11 +63,29 @@ export default function App() {
         ),
       }),
     );
+  }, []);
 
+  useEffect(() => {
+    if (hasFetchedProducts.current) return;
+    hasFetchedProducts.current = true;
     fetchProducts().then((products) => {
-      setProducts(products || []);
+      if (products && Array.isArray(products)) {
+        setProducts(products);
+      }
     });
   }, []);
+
+  useEffect(() => {
+    const getUserData = async () => {
+      if (user.loggedIn && user.role === 'customer') {
+        await getCustomerData();
+        hasFetchedUser.current = true;
+      }
+    };
+
+    if (hasFetchedUser.current) return;
+    getUserData();
+  }, [user]);
 
   const ProtectedRoute = ({
     role,
@@ -102,6 +126,17 @@ export default function App() {
           <Route path="/category/:slug" element={<CategoryPage />} />
 
           <Route path="/product/:slug" element={<ProductDetailPage />} />
+
+          <Route
+            path="/cart"
+            element={<ProtectedRoute role="customer" element={<CartPage />} />}
+          />
+          <Route
+            path="/favorites"
+            element={
+              <ProtectedRoute role="customer" element={<WishlistPage />} />
+            }
+          />
         </Routes>
       </main>
       <Footer />

@@ -1,4 +1,4 @@
-import type { FeatureItem } from '../types/contextTypes';
+import type { FeatureItem } from '../types/appContentTypes';
 import { ICON_SET } from './constants';
 
 export function generateSlug(id: string, name: string): string {

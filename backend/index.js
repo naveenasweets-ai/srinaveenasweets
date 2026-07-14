@@ -7,6 +7,7 @@ import SiteConfig from './routes/siteConfig.js';
 import authRouter from './routes/auth.js';
 import adminRouter from './routes/admin.js';
 import productsRouter from './routes/products.js';
+import customerRouter from './routes/customer.js';
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use('/api/site-content', SiteConfig);
 app.use('/api/auth', authRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/products', productsRouter);
+app.use('/api/customer', customerRouter);
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 

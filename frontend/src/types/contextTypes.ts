@@ -1,4 +1,4 @@
-import type { CategoryConfig, HeroContent } from "./appContentTypes";
+import type { CategoryConfig, CategoryInfoType, FeatureItem, HeroContent } from "./appContentTypes";
 
 export type User = {
   _id: string;
@@ -36,15 +36,13 @@ export type Product = {
   updatedAt?: string;
 };
 
-export type FeatureItem = {
-  _id?: string;
-  title: string;
-  description: string;
-  icon: {
-    name: string;
-    svg: React.ReactNode;
-  };
+
+export type CartItem = {
+  product: Product;
+  quantity: number;
+  weightOrUnits: string;
 };
+
 
 export interface StoreContextType {
   user: User;
@@ -72,15 +70,7 @@ export interface StoreContextType {
     React.SetStateAction<{
       categories: CategoryConfig[];
       heroContent: HeroContent | null;
-      categoriesInfo: {
-        title: string;
-        description: string;
-        selectedCategories: {
-          name: string;
-          slug: string;
-          selectedProducts: [string];
-        }[];
-      };
+      categoriesInfo: CategoryInfoType;
       features: FeatureItem[];
     }>
   >;
@@ -94,6 +84,12 @@ export interface StoreContextType {
 
   handpickedCats: string[];
 
+  cart: CartItem[];
+  setCart: React.Dispatch<React.SetStateAction<CartItem[]>>;
+
+
+  cartTotal: number;
+  cartCount: number;
 
   wishlist: string[];
   setWishlist: React.Dispatch<React.SetStateAction<string[]>>;

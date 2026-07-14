@@ -26,6 +26,9 @@ const normalizeWeightEntry = (entry: any): ProductWeightOption | null => {
   return null;
 };
 
+const normalizeSelection = (selection?: string) =>
+  String(selection ?? '').trim().toLowerCase();
+
 export const normalizeProductWeights = (
   product?: Product,
 ): ProductWeightOption | null => {
@@ -54,34 +57,70 @@ export const normalizeProductInventory = (product?: Product) => {
 
 export const getAvailableWeightOption = (
   product: Product,
-): ProductWeightOption | null => {
-  return normalizeProductWeights(product);
+): ProductWeightOption | null => normalizeProductWeights(product);
+
+export const getInventoryDisplayLabel = (product?: Product) => {
+  const option = normalizeProductWeights(product);
+  if (!option || option.value <= 0) return '';
+
+  return product?.inventoryType === 'unit'
+    ? `${option.value} ${option.unit}`.trim()
+    : `${option.value}${option.unit}`.trim();
+};
+
+export const getDefaultInventorySelection = (product?: Product) => {
+  const option = normalizeProductWeights(product);
+
+  if (!option || option.value <= 0) return '';
+
+  if (product?.inventoryType === 'unit') {
+    return option.unit || 'unit';
+  }
+
+  return String(option.value);
 };
 
 export const getProductInventoryState = (product: Product) => {
   const weight = normalizeProductWeights(product);
   const availableWeight = weight && weight.value > 0 ? weight : null;
+  const hasInventory = Boolean(availableWeight);
 
   return {
     weight,
     availableWeight,
-    hasInventory: Boolean(availableWeight),
-    isOutOfStock:
-      product?.inStock === false || availableWeight === null,
+    hasInventory,
+    isOutOfStock: product?.inStock === false || !hasInventory,
   };
 };
 
-export const getSelectedWeightOption = (product: any, unit: string) => {
-  const weight = normalizeProductWeights(product);
-  if (!weight) return null;
-  return weight.unit.toLowerCase() === unit.toLowerCase() ? weight : null;
+export const getSelectedWeightOption = (
+  product: any,
+  selectedValue?: string,
+) => {
+  const option = normalizeProductWeights(product);
+  if (!option || option.value <= 0) return null;
+
+  if (product?.inventoryType === 'unit') return option;
+
+  const normalizedSelection = normalizeSelection(selectedValue);
+  if (!normalizedSelection) return option;
+
+  const normalizedValue = String(option.value).toLowerCase();
+  const normalizedUnit = option.unit.toLowerCase();
+
+  return normalizedSelection === normalizedValue ||
+    normalizedSelection === normalizedUnit ||
+    normalizedSelection === `${normalizedValue}${normalizedUnit}` ||
+    normalizedSelection === `${normalizedValue} ${normalizedUnit}`
+    ? option
+    : null;
 };
 
 export const isCartItemAvailable = (item: any, products: any[] = []) => {
   const product = products.find((entry) => entry._id === item?.product?._id);
   const weightOption = getSelectedWeightOption(
     product || item?.product,
-    item?.weight,
+    item?.weightOrUnits,
   );
 
   return Boolean(weightOption && weightOption.value > 0);

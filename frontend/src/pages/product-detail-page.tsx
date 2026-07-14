@@ -1,25 +1,33 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import type { TouchEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import type { Product } from '../types/contextTypes';
 import { FiHeart, FiShare2, FiCheck, FiChevronLeft } from 'react-icons/fi';
 import { findProductBySlug } from '../utils/utils';
+import CustomerUtils from '../utils/customer';
+import {
+  getDefaultInventorySelection,
+  getProductInventoryState,
+  getSelectedWeightOption,
+} from '../utils/productInventory';
 
 const ProductDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { showToast, products } = useStore();
+  const { showToast, products, user, isInWishlist } = useStore();
+  const { addToCart, toggleWishlist } = CustomerUtils();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [selectedWeight, setSelectedWeight] = useState<string>('');
-  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [selectedWeight, setSelectedWeight] = useState<string>('250g');
 
   const selectedProduct = slug ? findProductBySlug(products, slug) : null;
+
+  const isAdmin = user.role === 'admin';
 
   // Mock data for testing - replace with actual API calls
   useEffect(() => {
@@ -30,7 +38,7 @@ const ProductDetailPage = () => {
         setProduct(selectedProduct || null);
         setSelectedImage(0);
         setSelectedWeight(
-          selectedProduct?.availableWeight?.value?.toString() || '',
+          getDefaultInventorySelection(selectedProduct ?? undefined),
         );
       } catch (error) {
         showToast('Failed to load product details', 'error');
@@ -48,20 +56,26 @@ const ProductDetailPage = () => {
         ((product.originalPrice - product.price) / product.originalPrice) * 100,
       )
     : 0;
+  const inventoryState = product ? getProductInventoryState(product) : null;
+  const selectedInventoryOption = getSelectedWeightOption(
+    product,
+    selectedWeight,
+  );
 
   const handleAddToCart = () => {
-    showToast(
-      `${product?.name} added to cart with quantity ${quantity}`,
-      'success',
+    if (isAdmin) return;
+    const selectedUnitOrWeightOption = getSelectedWeightOption(
+      product,
+      selectedWeight,
     );
-  };
+    if (!selectedUnitOrWeightOption || selectedUnitOrWeightOption.value <= 0) {
+      showToast('This is currently out of stock.', 'warning');
+      return;
+    }
 
-  const handleToggleWishlist = () => {
-    setIsInWishlist(!isInWishlist);
-    showToast(
-      isInWishlist ? 'Removed from wishlist' : 'Added to wishlist',
-      'success',
-    );
+    if (product) {
+      addToCart(product, quantity, selectedWeight);
+    }
   };
 
   const handleShare = () => {
@@ -77,11 +91,15 @@ const ProductDetailPage = () => {
     }
   };
 
-  const galleryImages = product
-    ? [product.image, ...(product.images || [])]
-        .filter(Boolean)
-        .filter((v, i, a) => a.indexOf(v) === i)
-    : [];
+  const galleryImages = useMemo(
+    () =>
+      product
+        ? [product.image, ...(product.images || [])]
+            .filter(Boolean)
+            .filter((v, i, a) => a.indexOf(v) === i)
+        : [],
+    [product],
+  );
 
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -122,7 +140,7 @@ const ProductDetailPage = () => {
     indexPulseSetter();
     const t = setTimeout(() => setIndexPulse(false), 400);
     return () => clearTimeout(t);
-  }, [selectedImage, galleryImages.length]);
+  }, [selectedImage, galleryImages]);
 
   if (loading) {
     return (
@@ -208,7 +226,7 @@ const ProductDetailPage = () => {
               )}
 
               {/* Stock Badge */}
-              {!product.inStock && (
+              {inventoryState?.isOutOfStock && (
                 <div className="absolute inset-0 bg-(--color-primary)/60 backdrop-blur-sm flex items-center justify-center">
                   <span className="bg-(--color-primary) border border-(--color-accent) text-(--color-accent) px-6 py-3 rounded-full font-bold">
                     Out of Stock
@@ -273,16 +291,20 @@ const ProductDetailPage = () => {
                 {/* Wishlist & Share */}
                 <div className="flex gap-2">
                   <button
-                    onClick={handleToggleWishlist}
+                    onClick={() =>
+                      !isAdmin ? toggleWishlist(product._id) : null
+                    }
                     className={`p-3 rounded-full transition border-2 ${
-                      isInWishlist
+                      isInWishlist(product._id)
                         ? 'bg-(--color-accent) text-(--color-primary) border-(--color-accent)'
                         : 'bg-(--color-surface) text-(--color-primary) border-(--color-border) hover:border-(--color-accent)'
                     }`}
                   >
                     <FiHeart
                       size={20}
-                      className={isInWishlist ? 'fill-current' : ''}
+                      className={
+                        isInWishlist(product._id) ? 'fill-current' : ''
+                      }
                     />
                   </button>
                   <button
@@ -322,28 +344,37 @@ const ProductDetailPage = () => {
 
             {/* Weight/Quantity Selection */}
             <div className="py-6 border-b-2 border-(--color-border) space-y-4">
-              {product.inventoryType === 'weight' && (
-                <div>
-                  <label className="block text-sm font-semibold text-(--color-primary) mb-3">
-                    Select Weight
-                  </label>
-                  <div className="flex gap-3 flex-wrap">
-                    {['250', '500', '1000'].map((w) => (
-                      <button
-                        key={w}
-                        onClick={() => setSelectedWeight(w)}
-                        className={`px-4 py-2 rounded-lg border-2 font-medium transition ${
-                          selectedWeight === w
-                            ? 'border-(--color-accent) bg-(--color-accent) text-(--color-primary)'
-                            : 'border-(--color-border) text-(--color-text) hover:border-(--color-accent) hover:bg-(--color-surface-alt)'
-                        }`}
-                      >
-                        {w}g
-                      </button>
-                    ))}
+              <div className="rounded-2xl border border-(--color-border) bg-(--color-surface-alt) p-4 flex gap-4 items-center">
+                <label className="block text-sm font-semibold text-(--color-primary)">
+                  {product.inventoryType === 'unit'
+                    ? 'Available Units'
+                    : 'Available Weights'}
+                </label>
+                {product.inventoryType === 'unit' && (
+                  <span className="text-lg font-bold text-(--color-accent)">
+                    {`${selectedInventoryOption?.value ?? ''}`}
+                  </span>
+                )}
+                {product.inventoryType === 'weight' && (
+                  <div>
+                    <div className="flex gap-3 flex-wrap">
+                      {['250g', '500g', '1000g'].map((w) => (
+                        <button
+                          key={w}
+                          onClick={() => setSelectedWeight(w)}
+                          className={`px-4 py-2 rounded-lg border-2 font-medium transition ${
+                            selectedWeight === w
+                              ? 'border-(--color-accent) bg-(--color-accent) text-(--color-primary)'
+                              : 'border-(--color-border) text-(--color-text) hover:border-(--color-accent) hover:bg-(--color-surface-alt)'
+                          }`}
+                        >
+                          {w}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
               <div>
                 <label className="block text-sm font-semibold text-(--color-primary) mb-3">

@@ -3,14 +3,20 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState } from 'react';
 import type {
-  FeatureItem,
+  CartItem,
   Product,
   StoreContextType,
   Toast,
   ToastType,
   User,
 } from '../types/contextTypes';
-import type { CategoryConfig, HeroContent } from '../types/appContentTypes';
+import type {
+  CategoryConfig,
+  CategoryInfoType,
+  FeatureItem,
+  HeroContent,
+} from '../types/appContentTypes';
+import { getSelectedWeightOption } from '../utils/productInventory';
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
@@ -53,20 +59,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
   const [products, setProducts] = useState<Product[]>([]);
   const [toast, setToast] = useState<Toast | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
 
   const [siteContent, setSiteContent] = useState<{
     categories: CategoryConfig[];
     heroContent: HeroContent | null;
-    categoriesInfo: {
-      title: string;
-      description: string;
-      selectedCategories: {
-        name: string;
-        slug: string;
-        selectedProducts: [string];
-      }[];
-    };
+    categoriesInfo: CategoryInfoType;
     features: FeatureItem[];
   }>({
     categories: [],
@@ -92,6 +92,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
   const isInWishlist = (productId: string) => wishlist.includes(productId);
   const wishlistCount = wishlist.length;
 
+  const availableCartItems = cart.filter((item) => {
+    const selectedWeightOrUnits = getSelectedWeightOption(item.product, item.weightOrUnits);
+    return Boolean(selectedWeightOrUnits && selectedWeightOrUnits.value > 0);
+  });
+
+  const cartTotal = availableCartItems.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0,
+  );
+  const cartCount = availableCartItems.reduce(
+    (sum, item) => sum + item.quantity,
+    0,
+  );
+
   return (
     <StoreContext.Provider
       value={{
@@ -111,6 +125,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
         setProducts,
 
         handpickedCats,
+
+        cart,
+        setCart,
+
+        cartTotal,
+        cartCount,
 
         wishlist,
         setWishlist,
