@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import type { FeatureItem } from '../../types/contextTypes';
 import { useStore } from '../../context/StoreContext';
 import AppCustomApi from '../../api/app-customize';
 import { getDefaultFeatures } from '../../utils/utils';
+import type { FeatureItem } from '../../types/appContentTypes';
 
 export default function Features() {
   const { siteContent, setSiteContent, showToast } = useStore();

@@ -1,6 +1,5 @@
 import { useStore } from '../context/StoreContext';
-import type { CategoryConfig, HeroContent } from '../types/appContentTypes';
-import type { FeatureItem } from '../types/contextTypes';
+import type { CategoryConfig, FeatureItem, HeroContent } from '../types/appContentTypes';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const AppCustomApi = () => {
