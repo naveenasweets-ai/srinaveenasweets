@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { CartItem, Product } from '../types/contextTypes';
-import { getSelectedWeightOption } from './productInventory';
+import { getSelectedWeightOption, getDefaultInventorySelection } from './productInventory';
 import { useStore } from '../context/StoreContext';
 import CustomerApi from '../api/customer';
 
@@ -8,8 +8,14 @@ const CustomerUtils = () => {
   const { user, showToast, cart, setCart, wishlist, setWishlist } = useStore();
   const { updateCart, updateWishlist } = CustomerApi();
 
-  const addToCart = async (product: Product, quantity = 1, activeWeight = '') => {
-    const selectedSizeOption = getSelectedWeightOption(product, activeWeight);
+  const addToCart = async (
+    product: Product,
+    quantity = 1,
+    activeWeight?: string,
+  ) => {
+    const resolvedWeight =
+      activeWeight ?? getDefaultInventorySelection(product);
+    const selectedSizeOption = getSelectedWeightOption(product, resolvedWeight);
     if (!selectedSizeOption || selectedSizeOption.value <= 0) {
       showToast('This is currently out of stock.', 'warning');
       return;
@@ -24,20 +30,21 @@ const CustomerUtils = () => {
     }
 
     const existingItem = cart.find(
-      (item) => item.product._id === product._id && item.weightOrUnits === activeWeight,
+      (item) =>
+        item.product._id === product._id && item.weight === resolvedWeight,
     );
 
     const newCart = existingItem
       ? cart.map((item) =>
-          item.product._id === product._id && item.weightOrUnits === activeWeight
+          item.product._id === product._id && item.weight === resolvedWeight
             ? {
                 ...item,
                 quantity: item.quantity + safeQuantity,
-                weightOrUnits: activeWeight,
+                weight: resolvedWeight,
               }
             : item,
         )
-      : [...cart, { product, quantity: safeQuantity, weightOrUnits: activeWeight }];
+      : [...cart, { product, quantity: safeQuantity, weight: resolvedWeight }];
 
     await updateCart(newCart, user).then((res: any) => {
       if (res.success) {
@@ -49,10 +56,12 @@ const CustomerUtils = () => {
     });
   };
 
-  const removeFromCart = async (productId: string, weightOrUnits?: string) => {
+  const removeFromCart = async (productId: string, weight?: string) => {
     const newCart = cart.filter((item) => {
       const matchesProduct = item.product._id === productId;
-      return weightOrUnits ? !(matchesProduct && item.weightOrUnits === weightOrUnits) : !matchesProduct;
+      return weight
+        ? !(matchesProduct && item.weight === weight)
+        : !matchesProduct;
     });
 
     await updateCart(newCart, user).then((res) => {
@@ -68,18 +77,18 @@ const CustomerUtils = () => {
   const updateQuantity = async (
     productId: string,
     quantity: number,
-    weightOrUnits?: string,
+    weight?: string,
   ) => {
     if (quantity <= 0) {
-      await removeFromCart(productId, weightOrUnits);
+      await removeFromCart(productId, weight);
       return;
     }
 
     const matchingItem = cart.find(
-      (item) => item.product._id === productId && item.weightOrUnits === weightOrUnits,
+      (item) => item.product._id === productId && item.weight === weight,
     );
     const weightOrUnitsOption = matchingItem
-      ? getSelectedWeightOption(matchingItem.product, matchingItem.weightOrUnits)
+      ? getSelectedWeightOption(matchingItem.product, matchingItem.weight)
       : null;
 
     if (weightOrUnitsOption && quantity > weightOrUnitsOption.value) {
@@ -91,7 +100,7 @@ const CustomerUtils = () => {
     }
 
     const newCart = cart.map((item) =>
-      item.product._id === productId && item.weightOrUnits === weightOrUnits
+      item.product._id === productId && item.weight === weight
         ? { ...item, quantity }
         : item,
     );

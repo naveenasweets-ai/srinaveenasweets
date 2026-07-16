@@ -22,7 +22,7 @@ const ProductSchema = new Schema(
     },
     price: {
       type: Number,
-      required: true,
+      required: false,
     },
     originalPrice: {
       type: Number,
@@ -57,10 +57,14 @@ const ProductSchema = new Schema(
       default: 'weight',
     },
     availableWeight: {
-      type: {
-        value: { type: Number, required: true, default: 0 },
-        unit: { type: String, required: true, default: '' },
-      },
+      type: [
+        {
+          value: { type: Number, required: true, default: 0 },
+          unit: { type: String, required: true, default: '' },
+          price: { type: Number, required: false, default: 0 },
+          originalPrice: { type: Number, required: false },
+        },
+      ],
       required: false,
       default: null,
     },

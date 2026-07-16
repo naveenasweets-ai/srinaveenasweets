@@ -93,7 +93,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
   const wishlistCount = wishlist.length;
 
   const availableCartItems = cart.filter((item) => {
-    const selectedWeightOrUnits = getSelectedWeightOption(item.product, item.weightOrUnits);
+    const selectedWeightOrUnits = getSelectedWeightOption(
+      item.product,
+      item.weight,
+    );
     return Boolean(selectedWeightOrUnits && selectedWeightOrUnits.value > 0);
   });
 

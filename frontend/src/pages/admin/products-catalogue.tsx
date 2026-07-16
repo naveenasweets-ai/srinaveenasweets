@@ -1,10 +1,11 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { IoIosSearch } from 'react-icons/io';
 import { IoMdAdd } from 'react-icons/io';
 import { CiEdit } from 'react-icons/ci';
 import { FaRegTrashAlt } from 'react-icons/fa';
 import type { Product } from '../../types/contextTypes';
+import { getProductPrice, getProductOriginalPrice } from '../../utils/productInventory';
 import UpdateCatalogue from '../../components/admin-catalogue/update-catalogue';
 import DeleteConfirmModal from '../../components/admin-catalogue/delete-confirmation';
 
@@ -89,9 +90,13 @@ const ProductCatalogue = () => {
       ) : (
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredProducts.map((p, i) => {
-            const d = p.originalPrice
+            const displayPrice = getProductPrice(p);
+            const displayOriginalPrice = getProductOriginalPrice(p);
+            const d = displayOriginalPrice
               ? Math.round(
-                  ((p.originalPrice - p.price) / p.originalPrice) * 100,
+                  ((displayOriginalPrice - displayPrice) /
+                    displayOriginalPrice) *
+                    100,
                 )
               : 0;
             const outOfStock = p.inStock === false;
@@ -170,11 +175,11 @@ const ProductCatalogue = () => {
                   <div className="flex flex-col gap-2">
                     <div className="min-w-0">
                       <span className="block text-base font-bold text-[#8b1e2d] sm:text-lg lg:text-xl">
-                        ₹{p.price.toLocaleString('en-IN')}/-
+                        ₹{displayPrice.toLocaleString('en-IN')}/-
                       </span>
-                      {p.originalPrice && (
+                      {displayOriginalPrice && (
                         <span className="ml-1 block text-xs text-[#8a6a4a] line-through sm:text-sm">
-                          ₹{p.originalPrice.toLocaleString('en-IN')}
+                          ₹{displayOriginalPrice.toLocaleString('en-IN')}
                         </span>
                       )}
                     </div>

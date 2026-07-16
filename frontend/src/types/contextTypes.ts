@@ -16,6 +16,13 @@ export type Toast = {
   type: ToastType;
 };
 
+export type ProductWeightPrice = {
+  value: number;
+  unit: string;
+  price: number;
+  originalPrice?: number;
+};
+
 export type Product = {
   _id: string;
   name: string;
@@ -29,10 +36,7 @@ export type Product = {
   badge?: string;
   inStock?: boolean;
   inventoryType?: 'weight' | 'unit';
-  availableWeight?: {
-    value: number;
-    unit: string;
-  };
+  availableWeight?: ProductWeightPrice[] | ProductWeightPrice | null;
   updatedAt?: string;
 };
 
@@ -40,7 +44,7 @@ export type Product = {
 export type CartItem = {
   product: Product;
   quantity: number;
-  weightOrUnits: string;
+  weight: string;
 };
 
 

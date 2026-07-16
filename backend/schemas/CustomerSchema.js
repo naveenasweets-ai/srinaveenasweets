@@ -29,7 +29,7 @@ const CustomerSchema = new Schema({
         type: Number,
         default: 1,
       },
-      weightOrUnits: {
+      weight: {
         type: String,
       },
     },

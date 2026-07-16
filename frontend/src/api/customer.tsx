@@ -57,7 +57,7 @@ const CustomerApi = () => {
               return {
                 product,
                 quantity: item.quantity,
-                weightOrUnits: item.weightOrUnits,
+                weight: item.weight,
               };
             }
             return null;
@@ -87,7 +87,7 @@ const CustomerApi = () => {
       products: cart.map((item) => ({
         productId: item.product._id,
         quantity: item.quantity,
-        weightOrUnits: item.weightOrUnits,
+        weight: item.weight,
       })),
     };
 

@@ -11,7 +11,7 @@ import {
 import { useStore } from '../../context/StoreContext';
 import {
   normalizeProductWeights,
-  type ProductWeightOption,
+  type ProductWeightPriceOption,
 } from '../../utils/productInventory';
 import ProductApi from '../../api/product';
 import { ImageUploadZone } from '../app-customize/image-upload-zone';
@@ -47,17 +47,16 @@ const UpdateCatalogue = ({
   const getInitialInventoryType = (currentProduct?: Product) =>
     currentProduct?.inventoryType === 'unit' ? 'unit' : 'weight';
 
-  const getInitialWeight = (
-    currentProduct?: Product,
-    type: 'weight' | 'unit' = 'weight',
-  ) =>
-    normalizeProductWeights(currentProduct) ||
-    (type === 'unit' ? { value: 1, unit: 'unit' } : { value: 250, unit: 'g' });
+  const getInitialWeightOptions = (currentProduct?: Product) => {
+    const existing = normalizeProductWeights(currentProduct);
+    if (existing.length) return existing;
+    return inventoryType === 'unit'
+      ? [{ value: 1, unit: 'unit', price: 0, originalPrice: undefined }]
+      : [{ value: 250, unit: 'g', price: 0, originalPrice: undefined }];
+  };
 
   const [productId, setProductId] = useState(product?._id ?? '');
   const [name, setName] = useState(product?.name ?? '');
-  const [price, setPrice] = useState(product?.price ?? '');
-  const [origPrice, setOrigPrice] = useState(product?.originalPrice ?? '');
   const [subcategoryId, setSubcategoryId] = useState(
     product?.subcategory ?? '',
   );
@@ -88,9 +87,9 @@ const UpdateCatalogue = ({
   const [inventoryType, setInventoryType] = useState<'weight' | 'unit'>(
     getInitialInventoryType(product),
   );
-  const [inventoryWeight, setInventoryWeight] = useState<ProductWeightOption>(
-    getInitialWeight(product, getInitialInventoryType(product)),
-  );
+  const [weightOptions, setWeightOptions] = useState<
+    ProductWeightPriceOption[]
+  >(getInitialWeightOptions(product));
 
   const editorRef = useRef<HTMLDivElement | null>(null);
 
@@ -101,11 +100,43 @@ const UpdateCatalogue = ({
     setDescription(editorRef.current.innerHTML);
   };
 
-  const sanitizeWeightOption = (entry: ProductWeightOption) => ({
-    value: Number(entry.value) || 0,
-    unit:
-      String(entry.unit).trim() || (inventoryType === 'unit' ? 'unit' : 'g'),
-  });
+  const updateWeightOption = (
+    index: number,
+    field: keyof ProductWeightPriceOption,
+    rawValue: string | number,
+  ) => {
+    setWeightOptions((prev) =>
+      prev.map((option, i) => {
+        if (i !== index) return option;
+        if (field === 'value' || field === 'price') {
+          return { ...option, [field]: Number(rawValue) || 0 };
+        }
+        if (field === 'originalPrice') {
+          return {
+            ...option,
+            originalPrice:
+              rawValue === '' || rawValue === null || rawValue === undefined
+                ? undefined
+                : Number(rawValue),
+          };
+        }
+        return { ...option, [field]: String(rawValue) };
+      }),
+    );
+  };
+
+  const addWeightOption = () => {
+    setWeightOptions((prev) => [
+      ...prev,
+      inventoryType === 'unit'
+        ? { value: 1, unit: 'unit', price: 0, originalPrice: undefined }
+        : { value: 250, unit: 'g', price: 0, originalPrice: undefined },
+    ]);
+  };
+
+  const removeWeightOption = (index: number) => {
+    setWeightOptions((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const selectedCategoryName =
     categoryOptions.find((cat) => cat._id === selectedCategoryId)?.name ?? '';
@@ -113,35 +144,41 @@ const UpdateCatalogue = ({
     subcategoryOptions.find((cat) => cat._id === subcategoryId)?.name ?? '';
 
   const makeProductPayload = () => {
-    const payload = {
+    const payload: any = {
       _id: productId.trim(),
       name: name.trim(),
       category: selectedCategoryName,
       subcategory: selectedSubcategoryName,
-      price: Number(price) || 0,
-      originalPrice: origPrice !== '' ? Number(origPrice) : undefined,
       image,
       images: additionalImages,
       badge: badge.trim() || undefined,
       description,
       inStock,
       inventoryType,
-      availableWeight: sanitizeWeightOption(inventoryWeight),
     };
+
+    const normalizedOptions = weightOptions.map((option) => ({
+      value: Number(option.value) || 0,
+      unit:
+        String(option.unit).trim() || (inventoryType === 'unit' ? 'unit' : 'g'),
+      price: Number(option.price) || 0,
+      originalPrice:
+        option.originalPrice !== undefined
+          ? Number(option.originalPrice)
+          : undefined,
+    }));
+
+    payload.availableWeight = normalizedOptions;
+    payload.price = normalizedOptions[0]?.price || 0;
+    payload.originalPrice = normalizedOptions[0]?.originalPrice;
 
     if (!payload.badge) {
       delete payload.badge;
     }
-    if (
-      payload.originalPrice === undefined ||
-      Number.isNaN(payload.originalPrice)
-    ) {
-      delete payload.originalPrice;
-    }
 
     return payload;
   };
-
+  console.log('makeProductPayload: ', makeProductPayload());
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -374,26 +411,6 @@ const UpdateCatalogue = ({
               </select>
             </div>
             <div>
-              <label className={labelClassName}>Price (₹) *</label>
-              <input
-                required
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(Number(e.target.value))}
-                className={inputClassName}
-              />
-            </div>
-            <div>
-              <label className={labelClassName}>Original Price</label>
-              <input
-                type="number"
-                value={origPrice}
-                onChange={(e) => setOrigPrice(e.target.value)}
-                placeholder="For discount"
-                className={inputClassName}
-              />
-            </div>
-            <div>
               <label className={labelClassName}>Badge</label>
               <input
                 type="text"
@@ -416,11 +433,15 @@ const UpdateCatalogue = ({
                     checked={inventoryType === 'weight'}
                     onChange={() => {
                       setInventoryType('weight');
-                      setInventoryWeight((prev) => ({
-                        value: prev.value > 0 ? prev.value : 250,
-                        unit:
-                          prev.unit && prev.unit !== 'unit' ? prev.unit : 'g',
-                      }));
+                      setWeightOptions((prev) =>
+                        prev.map((option) => ({
+                          ...option,
+                          unit:
+                            option.unit && option.unit !== 'unit'
+                              ? option.unit
+                              : 'g',
+                        })),
+                      );
                     }}
                     className="accent-[#8b1e2d]"
                   />
@@ -436,11 +457,15 @@ const UpdateCatalogue = ({
                     checked={inventoryType === 'unit'}
                     onChange={() => {
                       setInventoryType('unit');
-                      setInventoryWeight((prev) => ({
-                        value: prev.value > 0 ? prev.value : 1,
-                        unit:
-                          prev.unit && prev.unit !== 'g' ? prev.unit : 'unit',
-                      }));
+                      setWeightOptions((prev) =>
+                        prev.map((option) => ({
+                          ...option,
+                          unit:
+                            option.unit && option.unit !== 'g'
+                              ? option.unit
+                              : 'unit',
+                        })),
+                      );
                     }}
                     className="accent-[#8b1e2d]"
                   />
@@ -458,41 +483,145 @@ const UpdateCatalogue = ({
               </label>
               <p className="mb-4 text-[11px] text-[#8a6a4a]">
                 {inventoryType === 'unit'
-                  ? 'Set a single unit amount and label for this product.'
-                  : 'Set a single weight amount and unit for this product.'}
+                  ? 'Set a single unit amount and its price for this product.'
+                  : 'Add one or more weights, each with its own price (and optional original price for discounts).'}
               </p>
-              <div className="grid items-center gap-3 sm:grid-cols-[120px_1fr]">
-                <label className="text-xs font-semibold text-[#5f1021]">
-                  {inventoryType === 'unit' ? 'Units' : 'Weight'}
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={inventoryWeight.value}
-                  onChange={(e) =>
-                    setInventoryWeight((prev) => ({
-                      ...prev,
-                      value: Number(e.target.value) || 0,
-                    }))
-                  }
-                  className={inputClassName}
-                />
-                <label className="text-xs font-semibold text-[#5f1021]">
-                  {inventoryType === 'unit' ? 'Unit label' : 'Weight unit'}
-                </label>
-                <input
-                  type="text"
-                  value={inventoryWeight.unit}
-                  onChange={(e) =>
-                    setInventoryWeight((prev) => ({
-                      ...prev,
-                      unit: e.target.value,
-                    }))
-                  }
-                  placeholder={inventoryType === 'unit' ? 'piece' : 'g'}
-                  className={inputClassName}
-                />
-              </div>
+              {inventoryType === 'unit' ? (
+                <div className="grid items-end gap-3 sm:grid-cols-3">
+                  <div>
+                    <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#5f1021]">
+                      Unit Amount
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={weightOptions[0]?.value ?? 1}
+                      onChange={(e) =>
+                        updateWeightOption(0, 'value', e.target.value)
+                      }
+                      className={inputClassName}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#5f1021]">
+                      Price (₹)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={weightOptions[0]?.price ?? 0}
+                      onChange={(e) =>
+                        updateWeightOption(0, 'price', e.target.value)
+                      }
+                      className={inputClassName}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#5f1021]">
+                      Orig. Price
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={weightOptions[0]?.originalPrice ?? ''}
+                      onChange={(e) =>
+                        updateWeightOption(0, 'originalPrice', e.target.value)
+                      }
+                      placeholder="Optional"
+                      className={inputClassName}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-3">
+                    {weightOptions.map((option, index) => (
+                      <div
+                        key={index}
+                        className="flex items-end gap-3 rounded-2xl border border-[#f3d48a]/60 bg-[#fffdf7] p-3 sm:grid-cols-[90px_90px_1fr_1fr_36px]"
+                      >
+                        <div>
+                          <label className="mb-1 whitespace-nowrap block text-[10px] font-bold uppercase tracking-wider text-[#5f1021]">
+                            Avl Weight (gms)
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={option.value}
+                            onChange={(e) =>
+                              updateWeightOption(index, 'value', e.target.value)
+                            }
+                            className={inputClassName}
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#5f1021]">
+                            Avl Unit
+                          </label>
+                          <input
+                            type="text"
+                            value={option.unit}
+                            onChange={(e) =>
+                              updateWeightOption(index, 'unit', e.target.value)
+                            }
+                            placeholder="g"
+                            className={inputClassName}
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#5f1021]">
+                            Selling Price (₹)
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={option.price}
+                            onChange={(e) =>
+                              updateWeightOption(index, 'price', e.target.value)
+                            }
+                            className={inputClassName}
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#5f1021]">
+                            Orig. Price
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={option.originalPrice ?? ''}
+                            onChange={(e) =>
+                              updateWeightOption(
+                                index,
+                                'originalPrice',
+                                e.target.value,
+                              )
+                            }
+                            placeholder="Optional"
+                            className={inputClassName}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeWeightOption(index)}
+                          disabled={weightOptions.length === 1}
+                          className="flex h-10.5 w-10.5 items-center justify-center rounded-xl border border-[#f3d48a]/70 bg-[#fff8ef] text-lg text-[#8b1e2d] transition hover:bg-[#fef4da] disabled:cursor-not-allowed disabled:opacity-40"
+                          aria-label="Remove weight option"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addWeightOption}
+                    className="mt-3 flex items-center gap-2 rounded-2xl border border-dashed border-[#8b1e2d]/50 bg-[#fff8ef] px-4 py-2.5 text-sm font-semibold text-[#8b1e2d] transition hover:bg-[#fef4da]"
+                  >
+                    <IoMdAdd /> Add weight option
+                  </button>
+                </>
+              )}
             </div>
             <div className="sm:col-span-2 flex items-center justify-between rounded-2xl border border-[#f3d48a]/70 bg-[#fffdf7] p-3">
               <span className="text-xs font-bold text-[#5f1021]">

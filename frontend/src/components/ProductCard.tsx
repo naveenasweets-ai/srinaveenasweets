@@ -1,16 +1,23 @@
 import { Link } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import type { Product } from '../types/contextTypes';
-import { getProductInventoryState } from '../utils/productInventory';
+import {
+  getProductInventoryState,
+  getProductPrice,
+  getProductOriginalPrice,
+} from '../utils/productInventory';
 import { generateSlug } from '../utils/utils';
 import CustomerUtils from '../utils/customer';
+import { getDefaultInventorySelection } from '../utils/productInventory';
 
 export default function ProductCard({ product }: { product: Product }) {
   const { isInWishlist, user } = useStore();
   const { addToCart, toggleWishlist } = CustomerUtils();
-  const discount = product.originalPrice
+  const displayPrice = getProductPrice(product);
+  const displayOriginalPrice = getProductOriginalPrice(product);
+  const discount = displayOriginalPrice
     ? Math.round(
-        ((product.originalPrice - product.price) / product.originalPrice) * 100,
+        ((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100,
       )
     : 0;
 
@@ -63,9 +70,9 @@ export default function ProductCard({ product }: { product: Product }) {
           {!isAdmin && (
             <button
               onClick={(e) => {
-                if(user.role === 'admin') return;
+                if (user.role === 'admin') return;
                 e.preventDefault();
-                e.stopPropagation();                
+                e.stopPropagation();
                 toggleWishlist(product._id);
               }}
               className={`absolute right-3 top-3 z-10 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full shadow-lg transition-all sm:h-10 sm:w-10 ${
@@ -92,10 +99,10 @@ export default function ProductCard({ product }: { product: Product }) {
             <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 hidden p-3 transition-transform duration-300 group-hover:translate-y-0 md:pointer-events-auto md:flex md:translate-y-full">
               <button
                 onClick={(e) => {
-                  if(user.role === 'admin') return;
+                  if (user.role === 'admin') return;
                   e.preventDefault();
                   e.stopPropagation();
-                  addToCart(product);
+                  addToCart(product, 1, getDefaultInventorySelection(product));
                 }}
                 className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] px-3 py-2.5 text-xs font-bold uppercase tracking-[0.24em] text-(--color-accent-light) shadow-lg transition-all hover:brightness-110 active:scale-[0.97] sm:py-3"
               >
@@ -109,9 +116,10 @@ export default function ProductCard({ product }: { product: Product }) {
           <div className="px-3 pb-3 pt-3 md:hidden">
             <button
               onClick={(e) => {
+                if (user.role === 'admin') return;
                 e.preventDefault();
                 e.stopPropagation();
-                // addToCart(product);
+                addToCart(product, 1, getDefaultInventorySelection(product));
               }}
               className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] px-3 py-2.5 text-xs font-bold uppercase tracking-[0.24em] text-(--color-accent-light) shadow-lg transition-all hover:brightness-110 active:scale-[0.97]"
             >
@@ -139,29 +147,15 @@ export default function ProductCard({ product }: { product: Product }) {
           {product.name}
         </Link>
 
-        {/* Size Spec */}
-        {/* {product.sizes?.length ? (
-          <div className="text-[11px] text-maroon-800/80 mb-3 font-medium bg-gold-50/50 px-2.5 py-1 rounded-lg border border-gold-200/40 inline-block self-start">
-            📏{' '}
-            <span className="font-semibold text-maroon-900">
-              {product.sizes
-                .filter((entry: any) => entry.units > 0)
-                .map((entry) => entry.name)
-                .filter(Boolean)
-                .join(', ')}
-            </span>
-          </div>
-        ) : null} */}
-
         {/* Price */}
         <div className="mt-auto flex items-baseline justify-between gap-2 border-t border-(--color-border) pt-2.5">
           <div>
             <span className="font-display text-base font-bold text-(--color-primary-dark) sm:text-lg lg:text-xl">
-              ₹{product.price.toLocaleString('en-IN')}
+              ₹{displayPrice.toLocaleString('en-IN')}
             </span>
-            {product.originalPrice && (
+            {displayOriginalPrice && (
               <span className="ml-2 text-xs text-(--color-muted) line-through sm:text-sm">
-                ₹{product.originalPrice.toLocaleString('en-IN')}
+                ₹{displayOriginalPrice.toLocaleString('en-IN')}
               </span>
             )}
           </div>

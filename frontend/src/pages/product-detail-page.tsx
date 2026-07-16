@@ -11,6 +11,7 @@ import {
   getDefaultInventorySelection,
   getProductInventoryState,
   getSelectedWeightOption,
+  getWeightOptions,
 } from '../utils/productInventory';
 
 const ProductDetailPage = () => {
@@ -321,11 +322,11 @@ const ProductDetailPage = () => {
             <div className="py-6 border-b-2 border-(--color-border)">
               <div className="flex items-center gap-4">
                 <div className="text-4xl font-bold text-(--color-accent)">
-                  ₹{product.price}
+                  ₹{selectedInventoryOption?.price ?? product.price}
                 </div>
-                {product.originalPrice && (
+                {selectedInventoryOption?.originalPrice && (
                   <div className="text-lg text-(--color-muted) line-through">
-                    ₹{product.originalPrice}
+                    ₹{selectedInventoryOption.originalPrice}
                   </div>
                 )}
               </div>
@@ -344,7 +345,7 @@ const ProductDetailPage = () => {
 
             {/* Weight/Quantity Selection */}
             <div className="py-6 border-b-2 border-(--color-border) space-y-4">
-              <div className="rounded-2xl border border-(--color-border) bg-(--color-surface-alt) p-4 flex gap-4 items-center">
+              <div className="rounded-2xl border border-(--color-border) bg-(--color-surface-alt) p-4 flex gap-4 items-center flex-wrap">
                 <label className="block text-sm font-semibold text-(--color-primary)">
                   {product.inventoryType === 'unit'
                     ? 'Available Units'
@@ -352,25 +353,31 @@ const ProductDetailPage = () => {
                 </label>
                 {product.inventoryType === 'unit' && (
                   <span className="text-lg font-bold text-(--color-accent)">
-                    {`${selectedInventoryOption?.value ?? ''}`}
+                    {`${selectedInventoryOption?.value ?? ''} ${
+                      selectedInventoryOption?.unit ?? ''
+                    }`.trim()}
                   </span>
                 )}
                 {product.inventoryType === 'weight' && (
                   <div>
                     <div className="flex gap-3 flex-wrap">
-                      {['250g', '500g', '1000g'].map((w) => (
-                        <button
-                          key={w}
-                          onClick={() => setSelectedWeight(w)}
-                          className={`px-4 py-2 rounded-lg border-2 font-medium transition ${
-                            selectedWeight === w
-                              ? 'border-(--color-accent) bg-(--color-accent) text-(--color-primary)'
-                              : 'border-(--color-border) text-(--color-text) hover:border-(--color-accent) hover:bg-(--color-surface-alt)'
-                          }`}
-                        >
-                          {w}
-                        </button>
-                      ))}
+                      {getWeightOptions(product).map((option) => {
+                        const key = `${option.value}${option.unit}`;
+                        const label = `${option.value}`;
+                        return (
+                          <button
+                            key={key}
+                            onClick={() => setSelectedWeight(String(option.value))}
+                            className={`px-4 py-2 rounded-lg border-2 font-medium transition ${
+                              selectedWeight === String(option.value)
+                                ? 'border-(--color-accent) bg-(--color-accent) text-(--color-primary)'
+                                : 'border-(--color-border) text-(--color-text) hover:border-(--color-accent) hover:bg-(--color-surface-alt)'
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
