@@ -10,36 +10,19 @@ const WishlistPage = () => {
 
   return savedItems && savedItems.length > 0 ? (
     <div
-      className="min-h-screen px-4 py-8 sm:px-6 lg:px-8"
+      className="lg:min-h-screen px-4 py-8 sm:px-6 lg:px-8"
       style={{ backgroundColor: 'var(--color-background)' }}
     >
       <div className="mx-auto max-w-7xl">
         <div
-          className="mb-6 rounded-2xl border p-6 shadow-sm sm:p-8"
+          className="w-fit rounded-full px-4 py-2 text-sm font-medium"
           style={{
-            backgroundColor: 'var(--color-surface)',
-            borderColor: 'var(--color-border)',
+            backgroundColor: 'var(--color-surface-alt)',
+            color: 'var(--color-primary)',
           }}
         >
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1
-                className="text-3xl font-semibold"
-                style={{ color: 'var(--color-primary)' }}
-              >
-                Your Wishlist
-              </h1>
-            </div>
-            <div
-              className="w-fit rounded-full px-4 py-2 text-sm font-medium"
-              style={{
-                backgroundColor: 'var(--color-surface-alt)',
-                color: 'var(--color-primary)',
-              }}
-            >
-              {savedItems.length} {savedItems.length === 1 ? 'item' : 'items'}
-            </div>
-          </div>
+          Whishlist - {savedItems.length}{' '}
+          {savedItems.length === 1 ? 'item' : 'items'}
         </div>
 
         <div className="hidden lg:block space-y-4">
