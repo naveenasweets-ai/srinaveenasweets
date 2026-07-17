@@ -158,6 +158,11 @@ export default function ProductCard({ product }: { product: Product }) {
                 ₹{displayOriginalPrice.toLocaleString('en-IN')}
               </span>
             )}
+            {product.gstIncluded && (
+              <span className="ml-1.5 rounded bg-(--color-surface-alt) px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-(--color-accent-dark)">
+                + GST
+              </span>
+            )}
           </div>
           {outOfStock && (
             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-(--color-muted)">

@@ -44,3 +44,11 @@ export type FeatureItem = {
     svg: React.ReactNode;
   };
 };
+
+export type ChargesConfig = {
+  deliveryFee: number;
+  freeDeliveryThreshold: number;
+  platformFee: number;
+  packagingFee: number;
+  gstRate: number;
+};

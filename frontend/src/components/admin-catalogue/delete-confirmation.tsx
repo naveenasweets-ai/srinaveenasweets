@@ -41,6 +41,11 @@ export default function DeleteConfirmModal({
                 </h4>
                 <span className="text-xs font-bold text-maroon-900">
                   ₹{product.price.toLocaleString('en-IN')}
+                  {product.gstIncluded && (
+                    <span className="ml-1.5 rounded bg-[#fff3e0] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[#9f6c2a]">
+                      GST
+                    </span>
+                  )}
                 </span>
               </div>
             </div>

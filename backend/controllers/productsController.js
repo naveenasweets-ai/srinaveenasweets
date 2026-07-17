@@ -25,6 +25,7 @@ export async function saveProduct(req, res) {
       inStock,
       inventoryType,
       availableWeight,
+      gstIncluded,
     } = req.body || {};
 
     if (!_id || !_id.toString().trim()) {
@@ -82,6 +83,7 @@ export async function saveProduct(req, res) {
       inStock: inStock !== undefined ? Boolean(inStock) : true,
       inventoryType: inventoryType === 'unit' ? 'unit' : 'weight',
       availableWeight: normalizedWeightOptions,
+      gstIncluded: gstIncluded !== undefined ? Boolean(gstIncluded) : false,
     });
 
     return res.status(201).json({ success: true, product });
@@ -129,6 +131,10 @@ export async function updateProduct(req, res) {
       inStock: updates.inStock,
       inventoryType: updates.inventoryType === 'unit' ? 'unit' : 'weight',
       availableWeight: normalizedWeightOptions,
+      gstIncluded:
+        updates.gstIncluded !== undefined
+          ? Boolean(updates.gstIncluded)
+          : undefined,
     };
 
     const product = await ProductSchema.findByIdAndUpdate(id, allowedUpdates, {

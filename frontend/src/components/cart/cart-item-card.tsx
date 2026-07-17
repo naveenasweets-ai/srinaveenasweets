@@ -117,6 +117,11 @@ const CartItemCard = () => {
                       style={{ color: 'var(--color-text)' }}
                     >
                       ₹ {unitPrice}.00
+                      {item.product.gstIncluded && (
+                        <span className="ml-1.5 rounded bg-(--color-surface-alt) px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-(--color-accent-dark)">
+                          + GST
+                        </span>
+                      )}
                     </td>
                     <td className="lg:py-4">
                       <div className="flex items-center justify-center gap-2">
@@ -206,6 +211,11 @@ const CartItemCard = () => {
                       style={{ color: 'var(--color-text)' }}
                     >
                       ₹ {item.quantity * mobileUnitPrice}.00
+                      {item.product.gstIncluded && (
+                        <span className="ml-1.5 rounded bg-(--color-surface-alt) px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-(--color-accent-dark)">
+                          + GST
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="mt-3 flex items-center justify-between">

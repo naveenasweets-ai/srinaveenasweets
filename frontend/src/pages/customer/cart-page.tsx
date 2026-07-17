@@ -3,25 +3,47 @@ import { useStore } from '../../context/StoreContext';
 import CartItemCard from '../../components/cart/cart-item-card';
 import { Link } from 'react-router-dom';
 import { FiList } from 'react-icons/fi';
+import { getSelectedWeightOption } from '../../utils/productInventory';
 
 const CartPage = () => {
-  const { cart, cartTotal, cartCount } = useStore();
+  const { cart, cartTotal, cartCount, siteContent } = useStore();
 
-  const DELIVERY_FEE = parseFloat(import.meta.env.VITE_DELIVERY_FEE || '40');
-  const FREE_DELIVERY_THRESHOLD = parseFloat(
-    import.meta.env.VITE_FREE_DELIVERY_THRESHOLD || '499',
-  );
-  const PLATFORM_FEE = parseFloat(import.meta.env.VITE_PLATFORM_FEE || '29');
-  const PACKAGING_FEE = parseFloat(import.meta.env.VITE_PACKAGING_FEE || '15');
-  const GST_RATE = parseFloat(import.meta.env.VITE_GST_RATE || '5') / 100;
+  const charges = siteContent?.charges || {
+    deliveryFee: 40,
+    freeDeliveryThreshold: 499,
+    platformFee: 29,
+    packagingFee: 15,
+    gstRate: 5,
+  };
+
+  const DELIVERY_FEE = charges.deliveryFee;
+  const FREE_DELIVERY_THRESHOLD = charges.freeDeliveryThreshold;
+  const PLATFORM_FEE = charges.platformFee;
+  const PACKAGING_FEE = charges.packagingFee;
+  const GST_RATE = charges.gstRate / 100;
 
   const displayCart = useMemo(() => cart, [cart]);
   const hasItems = displayCart.length > 0;
 
+  const gstApplicableItems = displayCart.filter(
+    (item) => item.product.gstIncluded,
+  );
+
   const platformFee = PLATFORM_FEE;
   const packagingFee = PACKAGING_FEE;
-  const gstAmount = cartTotal * GST_RATE;
   const deliveryFee = cartTotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
+
+  const gstAmount = useMemo(() => {
+    return gstApplicableItems.reduce((sum, item) => {
+      const selectedOption = getSelectedWeightOption(
+        item.product,
+        item.weight,
+      );
+      const price = selectedOption ? selectedOption.price : item.product.price;
+      return sum + price * item.quantity * GST_RATE;
+    }, 0);
+  }, [gstApplicableItems, GST_RATE]);
+
   const total =
     cartTotal + platformFee + packagingFee + gstAmount + deliveryFee;
 
@@ -87,26 +109,34 @@ const CartPage = () => {
                     <span className="text-green-600 font-medium">FREE</span>
                   </div>
                 ) : (
+                  DELIVERY_FEE > 0 && (
+                    <div className="flex justify-between mb-2 text-sm">
+                      <span>Delivery Fee</span>
+                      <span>₹ {DELIVERY_FEE.toFixed(2)}</span>
+                    </div>
+                  )
+                )}
+
+                {GST_RATE > 0 && gstAmount > 0 && (
                   <div className="flex justify-between mb-2 text-sm">
-                    <span>Delivery Fee</span>
-                    <span>₹ {DELIVERY_FEE.toFixed(2)}</span>
+                    <span>GST ({charges.gstRate}%)</span>
+                    <span>₹ {gstAmount.toFixed(2)}</span>
                   </div>
                 )}
 
-                <div className="flex justify-between mb-2 text-sm">
-                  <span>GST (5%)</span>
-                  <span>₹ {gstAmount.toFixed(2)}</span>
-                </div>
+                {PACKAGING_FEE > 0 && (
+                  <div className="flex justify-between mb-2 text-sm">
+                    <span>Packaging</span>
+                    <span>₹ {packagingFee.toFixed(2)}</span>
+                  </div>
+                )}
 
-                <div className="flex justify-between mb-2 text-sm">
-                  <span>Packaging</span>
-                  <span>₹ {packagingFee.toFixed(2)}</span>
-                </div>
-
-                <div className="flex justify-between mb-2 text-sm">
-                  <span>Platform Fee</span>
-                  <span>₹ {platformFee.toFixed(2)}</span>
-                </div>
+                {PLATFORM_FEE > 0 && (
+                  <div className="flex justify-between mb-2 text-sm">
+                    <span>Platform Fee</span>
+                    <span>₹ {platformFee.toFixed(2)}</span>
+                  </div>
+                )}
 
                 <hr className="my-3" />
 
@@ -282,36 +312,48 @@ const CartPage = () => {
                   <span className="text-green-600 font-medium">FREE</span>
                 </div>
               ) : (
+                DELIVERY_FEE > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span style={{ color: 'var(--color-text)' }}>
+                      Delivery Fee
+                    </span>
+                    <span style={{ color: 'var(--color-text)' }}>
+                      ₹ {DELIVERY_FEE.toFixed(2)}
+                    </span>
+                  </div>
+                )
+              )}
+
+              {GST_RATE > 0 && gstAmount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span style={{ color: 'var(--color-text)' }}>
-                    Delivery Fee
+                    GST ({charges.gstRate}%)
                   </span>
                   <span style={{ color: 'var(--color-text)' }}>
-                    ₹ {DELIVERY_FEE.toFixed(2)}
+                    ₹ {gstAmount.toFixed(2)}
                   </span>
                 </div>
               )}
 
-              <div className="flex justify-between text-sm">
-                <span style={{ color: 'var(--color-text)' }}>GST (5%)</span>
-                <span style={{ color: 'var(--color-text)' }}>
-                  ₹ {gstAmount.toFixed(2)}
-                </span>
-              </div>
+              {PACKAGING_FEE > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span style={{ color: 'var(--color-text)' }}>Packaging</span>
+                  <span style={{ color: 'var(--color-text)' }}>
+                    ₹ {packagingFee.toFixed(2)}
+                  </span>
+                </div>
+              )}
 
-              <div className="flex justify-between text-sm">
-                <span style={{ color: 'var(--color-text)' }}>Packaging</span>
-                <span style={{ color: 'var(--color-text)' }}>
-                  ₹ {packagingFee.toFixed(2)}
-                </span>
-              </div>
-
-              <div className="flex justify-between text-sm">
-                <span style={{ color: 'var(--color-text)' }}>Platform Fee</span>
-                <span style={{ color: 'var(--color-text)' }}>
-                  ₹ {platformFee.toFixed(2)}
-                </span>
-              </div>
+              {PLATFORM_FEE > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span style={{ color: 'var(--color-text)' }}>
+                    Platform Fee
+                  </span>
+                  <span style={{ color: 'var(--color-text)' }}>
+                    ₹ {platformFee.toFixed(2)}
+                  </span>
+                </div>
+              )}
 
               <hr
                 className="my-1"

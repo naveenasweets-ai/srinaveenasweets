@@ -3,6 +3,7 @@ import Categories from '../../components/app-customize/categories';
 import Hero from '../../components/app-customize/hero';
 import Handpicked from '../../components/app-customize/handpicked';
 import Features from '../../components/app-customize/features';
+import Charges from '../../components/app-customize/charges';
 
 function SectionAccordion({
   title,
@@ -75,6 +76,11 @@ export default function AppCustomize() {
       <SectionAccordion title="Features section">
         <Features />
       </SectionAccordion>
+
+      <SectionAccordion title="Charges">
+        <Charges />
+      </SectionAccordion>
+
     </div>
   );
 }

@@ -66,6 +66,7 @@ const UpdateCatalogue = ({
   const [image, setImage] = useState(product?.image ?? '');
   const [badge, setBadge] = useState(product?.badge ?? '');
   const [inStock, setInStock] = useState(product?.inStock ?? true);
+  const [gstIncluded, setGstIncluded] = useState(product?.gstIncluded ?? false);
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [additionalImages, setAdditionalImages] = useState(
     product?.images ?? [],
@@ -155,6 +156,7 @@ const UpdateCatalogue = ({
       description,
       inStock,
       inventoryType,
+      gstIncluded,
     };
 
     const normalizedOptions = weightOptions.map((option) => ({
@@ -637,6 +639,23 @@ const UpdateCatalogue = ({
                 <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-[#8b1e2d] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
                 <span className="ml-3 min-w-17.5 text-xs font-bold text-[#5f1021]">
                   {inStock ? '✓ In Stock' : '✗ Sold Out'}
+                </span>
+              </label>
+            </div>
+            <div className="sm:col-span-2 flex items-center justify-between rounded-2xl border border-[#f3d48a]/70 bg-[#fffdf7] p-3">
+              <span className="text-xs font-bold text-[#5f1021]">
+                GST included in price
+              </span>
+              <label className="relative inline-flex cursor-pointer items-center">
+                <input
+                  type="checkbox"
+                  checked={gstIncluded}
+                  onChange={(e) => setGstIncluded(e.target.checked)}
+                  className="peer sr-only"
+                />
+                <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-[#8b1e2d] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+                <span className="ml-3 min-w-17.5 text-xs font-bold text-[#5f1021]">
+                  {gstIncluded ? '✓ Included' : ''}
                 </span>
               </label>
             </div>

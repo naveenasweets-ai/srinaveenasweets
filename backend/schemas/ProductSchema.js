@@ -68,6 +68,11 @@ const ProductSchema = new Schema(
       required: false,
       default: null,
     },
+    gstIncluded: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   { timestamps: true },
 );

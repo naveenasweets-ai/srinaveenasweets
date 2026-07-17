@@ -112,6 +112,11 @@ export default function Categories() {
                       </p>
                       <div className="text-sm font-semibold text-[#9f6c2a]">
                         ₹{product.price.toLocaleString('en-IN')}
+                        {product.gstIncluded && (
+                          <span className="ml-1.5 rounded bg-[#fff3e0] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[#9f6c2a]">
+                            + GST
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

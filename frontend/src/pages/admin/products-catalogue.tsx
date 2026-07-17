@@ -176,6 +176,11 @@ const ProductCatalogue = () => {
                     <div className="min-w-0">
                       <span className="block text-base font-bold text-[#8b1e2d] sm:text-lg lg:text-xl">
                         ₹{displayPrice.toLocaleString('en-IN')}/-
+                        {p.gstIncluded && (
+                          <span className="ml-1.5 rounded bg-[#fff3e0] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[#9f6c2a]">
+                            GST
+                          </span>
+                        )}
                       </span>
                       {displayOriginalPrice && (
                         <span className="ml-1 block text-xs text-[#8a6a4a] line-through sm:text-sm">

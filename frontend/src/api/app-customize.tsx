@@ -1,5 +1,10 @@
 import { useStore } from '../context/StoreContext';
-import type { CategoryConfig, FeatureItem, HeroContent } from '../types/appContentTypes';
+import type {
+  CategoryConfig,
+  FeatureItem,
+  HeroContent,
+  ChargesConfig,
+} from '../types/appContentTypes';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const AppCustomApi = () => {
@@ -188,6 +193,31 @@ const AppCustomApi = () => {
     }
   };
 
+  const saveCharges = async (charges: ChargesConfig) => {
+    try {
+      const response = await fetch(`${apiUrl}/api/site-content/charges`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user?.token}`,
+        },
+        body: JSON.stringify(charges),
+      });
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error || 'Failed to save charges');
+      }
+      showToast('Charges updated successfully', 'success');
+      return json.charges as ChargesConfig;
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : 'Failed to save charges',
+        'error',
+      );
+      return null;
+    }
+  };
+
   return {
     saveCategory,
     updateCategory,
@@ -196,6 +226,7 @@ const AppCustomApi = () => {
     saveHeroContent,
     saveHandpickedCategories,
     saveFeatures,
+    saveCharges,
   };
 };
 

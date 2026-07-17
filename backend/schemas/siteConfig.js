@@ -6,6 +6,7 @@ import {
   handpickedDefault,
   bridalImagesDefault,
   videosDefault,
+  chargesDefault,
 } from './siteDefaults.js';
 
 const { Schema } = mongoose;
@@ -111,6 +112,16 @@ const SiteConfigSchema = new Schema(
         },
       ],
       default: videosDefault,
+    },
+    charges: {
+      deliveryFee: { type: Number, default: chargesDefault.deliveryFee },
+      freeDeliveryThreshold: {
+        type: Number,
+        default: chargesDefault.freeDeliveryThreshold,
+      },
+      platformFee: { type: Number, default: chargesDefault.platformFee },
+      packagingFee: { type: Number, default: chargesDefault.packagingFee },
+      gstRate: { type: Number, default: chargesDefault.gstRate },
     },
   },
   { timestamps: true },

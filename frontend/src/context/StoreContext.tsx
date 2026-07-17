@@ -15,6 +15,7 @@ import type {
   CategoryInfoType,
   FeatureItem,
   HeroContent,
+  ChargesConfig,
 } from '../types/appContentTypes';
 import { getSelectedWeightOption } from '../utils/productInventory';
 
@@ -68,6 +69,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
     heroContent: HeroContent | null;
     categoriesInfo: CategoryInfoType;
     features: FeatureItem[];
+    charges: ChargesConfig;
   }>({
     categories: [],
     heroContent: null,
@@ -78,6 +80,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
       selectedCategories: [],
     },
     features: [],
+    charges: {
+      deliveryFee: 40,
+      freeDeliveryThreshold: 499,
+      platformFee: 29,
+      packagingFee: 15,
+      gstRate: 5,
+    },
   });
 
   const handpickedCats = siteContent?.categoriesInfo?.selectedCategories?.map(

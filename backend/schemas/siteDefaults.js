@@ -71,3 +71,11 @@ export const bridalImagesDefault = [
 ];
 
 export const videosDefault = [];
+
+export const chargesDefault = {
+  deliveryFee: 40,
+  freeDeliveryThreshold: 499,
+  platformFee: 29,
+  packagingFee: 15,
+  gstRate: 5,
+};

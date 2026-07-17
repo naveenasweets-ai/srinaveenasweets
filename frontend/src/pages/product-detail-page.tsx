@@ -329,6 +329,11 @@ const ProductDetailPage = () => {
                     ₹{selectedInventoryOption.originalPrice}
                   </div>
                 )}
+                {product.gstIncluded && (
+                  <span className="rounded bg-(--color-surface-alt) px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-(--color-accent-dark)">
+                    + GST
+                  </span>
+                )}
               </div>
               <p className="text-sm text-(--color-success) mt-3 flex items-center gap-2 font-medium">
                 <FiCheck size={16} className="shrink-0" />

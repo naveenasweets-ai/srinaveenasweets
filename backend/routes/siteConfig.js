@@ -20,6 +20,13 @@ router.get('/', async (req, res) => {
       heroContent: siteConfig.hero || null,
       categoriesInfo: siteConfig.categoriesInfo,
       features: siteConfig.features || [],
+      charges: siteConfig.charges || {
+        deliveryFee: 40,
+        freeDeliveryThreshold: 499,
+        platformFee: 29,
+        packagingFee: 15,
+        gstRate: 5,
+      },
       footer: siteConfig.footer || {
         help: [
           {
@@ -77,5 +84,7 @@ router
   .post(requireAdminAuth, siteController.saveHeroContent);
 
 router.route('/features').post(requireAdminAuth, siteController.saveFeatures);
+
+router.route('/charges').post(requireAdminAuth, siteController.saveCharges);
 
 export default router;

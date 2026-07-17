@@ -1,4 +1,10 @@
-import type { CategoryConfig, CategoryInfoType, FeatureItem, HeroContent } from "./appContentTypes";
+import type {
+  CategoryConfig,
+  CategoryInfoType,
+  FeatureItem,
+  HeroContent,
+  ChargesConfig,
+} from "./appContentTypes";
 
 export type User = {
   _id: string;
@@ -37,6 +43,7 @@ export type Product = {
   inStock?: boolean;
   inventoryType?: 'weight' | 'unit';
   availableWeight?: ProductWeightPrice[] | ProductWeightPrice | null;
+  gstIncluded?: boolean;
   updatedAt?: string;
 };
 
@@ -69,6 +76,7 @@ export interface StoreContextType {
       }[];
     };
     features: FeatureItem[];
+    charges: ChargesConfig;
   }
   setSiteContent: React.Dispatch<
     React.SetStateAction<{
@@ -76,6 +84,7 @@ export interface StoreContextType {
       heroContent: HeroContent | null;
       categoriesInfo: CategoryInfoType;
       features: FeatureItem[];
+      charges: ChargesConfig;
     }>
   >;
 

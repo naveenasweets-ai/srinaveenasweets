@@ -200,3 +200,49 @@ export async function saveFeatures(req, res) {
     return res.status(400).json({ success: false, error: error.message });
   }
 }
+
+export async function saveCharges(req, res) {
+  try {
+    const {
+      deliveryFee,
+      freeDeliveryThreshold,
+      platformFee,
+      packagingFee,
+      gstRate,
+    } = req.body || {};
+
+    const siteConfig = await getOrCreateSiteConfig();
+
+    if (deliveryFee !== undefined) {
+      const value = Number(deliveryFee);
+      siteConfig.charges.deliveryFee =
+        value < 0 || Number.isNaN(value) ? 0 : value;
+    }
+    if (freeDeliveryThreshold !== undefined) {
+      const value = Number(freeDeliveryThreshold);
+      siteConfig.charges.freeDeliveryThreshold =
+        value < 0 || Number.isNaN(value) ? 0 : value;
+    }
+    if (platformFee !== undefined) {
+      const value = Number(platformFee);
+      siteConfig.charges.platformFee =
+        value < 0 || Number.isNaN(value) ? 0 : value;
+    }
+    if (packagingFee !== undefined) {
+      const value = Number(packagingFee);
+      siteConfig.charges.packagingFee =
+        value < 0 || Number.isNaN(value) ? 0 : value;
+    }
+    if (gstRate !== undefined) {
+      const value = Number(gstRate);
+      siteConfig.charges.gstRate =
+        value < 0 || Number.isNaN(value) ? 0 : value;
+    }
+
+    await siteConfig.save();
+
+    return res.status(200).json({ success: true, charges: siteConfig.charges });
+  } catch (error) {
+    return res.status(400).json({ success: false, error: error.message });
+  }
+}
