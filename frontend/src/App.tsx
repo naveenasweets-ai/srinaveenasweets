@@ -20,7 +20,7 @@ import ProductDetailPage from './pages/product-detail-page';
 import CustomerApi from './api/customer';
 import CartPage from './pages/customer/cart-page';
 import WishlistPage from './pages/customer/wishlist-page';
-import Checkout from './pages/customer/checkout';
+import Checkout from './pages/customer/checkout-page';
 
 export default function App() {
   const { user, setSiteContent, setProducts } = useStore();

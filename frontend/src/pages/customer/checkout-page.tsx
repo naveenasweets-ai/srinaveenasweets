@@ -1,0 +1,287 @@
+import { useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useStore } from '../../context/StoreContext';
+import { initialFormState, type CheckoutFormState } from '../../types/types';
+import { calculateCheckoutSummary } from '../../utils/checkout';
+import { getSelectedWeightOption } from '../../utils/productInventory';
+import CheckoutShippingForm from '../../components/checkout/CheckoutShippingForm';
+import CheckoutSummary from '../../components/checkout/CheckoutSummary';
+import {
+  initiateCheckoutPayment,
+  loadRazorpayScript,
+  submitCheckoutOrder,
+  verifyRazorpayPayment,
+} from '../../api/checkout';
+
+const CheckoutPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { cart, cartTotal, user, showToast, siteContent, setCart } = useStore();
+  const [form, setForm] = useState<CheckoutFormState>(initialFormState);
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'razorpay'>('cod');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof CheckoutFormState, string>>
+  >({});
+  const [placedOrderId, setPlacedOrderId] = useState<string>('');
+
+  const checkoutState = location.state as {
+    data?: typeof cart;
+    total?: number;
+    subtotal?: number;
+    deliveryFee?: number;
+    gstAmount?: number;
+    packagingFee?: number;
+    platformFee?: number;
+    count?: number;
+  } | null;
+
+  const displayCart = useMemo(() => {
+    if (checkoutState?.data?.length) return checkoutState.data;
+    return cart;
+  }, [cart, checkoutState]);
+
+  const charges = siteContent?.charges || {
+    deliveryFee: 40,
+    freeDeliveryThreshold: 499,
+    platformFee: 29,
+    packagingFee: 15,
+    gstRate: 5,
+  };
+
+  const deliveryFee = checkoutState?.deliveryFee ?? 0;
+  const packagingFee = checkoutState?.packagingFee ?? charges.packagingFee;
+  const platformFee = checkoutState?.platformFee ?? charges.platformFee;
+  const subtotal = checkoutState?.subtotal ?? cartTotal;
+
+  const isEligibleForFreeDelivery = cartTotal >= charges.freeDeliveryThreshold;
+
+  const totals = useMemo(
+    () =>
+      calculateCheckoutSummary({
+        items: displayCart,
+        subtotal,
+        deliveryFee,
+        packagingFee,
+        platformFee,
+        gstRate: charges.gstRate,
+        paymentMethod,
+      }),
+    [
+      charges.gstRate,
+      deliveryFee,
+      displayCart,
+      packagingFee,
+      paymentMethod,
+      platformFee,
+      subtotal,
+    ],
+  );
+
+  const validate = () => {
+    const nextErrors: Partial<Record<keyof CheckoutFormState, string>> = {};
+
+    if (!form.fullName.trim()) nextErrors.fullName = 'Name is required';
+    if (!form.email.trim()) nextErrors.email = 'Email is required';
+    if (!form.phone.trim()) nextErrors.phone = 'Phone is required';
+    if (!form.address.trim()) nextErrors.address = 'Address is required';
+    if (!form.city.trim()) nextErrors.city = 'City is required';
+    if (!form.state.trim()) nextErrors.state = 'State is required';
+    if (!form.pincode.trim()) nextErrors.pincode = 'Pincode is required';
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleChange = (field: keyof CheckoutFormState, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: '' }));
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    if (!displayCart.length) {
+      showToast('Your cart is empty.', 'warning');
+      return;
+    }
+    if (!user.loggedIn) {
+      showToast('Please sign in to place an order.', 'warning');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        customerId: user._id,
+        customerName: form.fullName.trim(),
+        customerEmail: form.email.trim(),
+        customerPhone: form.phone.trim(),
+        shippingAddress: form.address.trim(),
+        city: form.city.trim(),
+        state: form.state.trim(),
+        pincode: form.pincode.trim(),
+        items: displayCart.map((item) => ({
+          productId: item.product._id,
+          name: item.product.name,
+          quantity: item.quantity,
+          weight: item.weight,
+          price:
+            (getSelectedWeightOption(item.product, item.weight)?.price ??
+              item.product.price) * item.quantity,
+        })),
+        subtotal: totals.subtotal,
+        deliveryFee: totals.deliveryFee,
+        packagingFee: totals.packagingFee,
+        platformFee: totals.platformFee,
+        gstRate: totals.gstRate,
+        paymentMethod,
+        notes: `Checkout via ${paymentMethod === 'razorpay' ? 'Razorpay' : 'Cash on Delivery'}`,
+      };
+
+      const { response, data } = await submitCheckoutOrder(payload, user.token);
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Unable to place order.');
+      }
+
+      if (paymentMethod === 'razorpay') {
+        const { response: paymentResponse, data: paymentData } =
+          await initiateCheckoutPayment(
+            data.order._id,
+            totals.grandTotal,
+            user.token,
+            {
+              customerName: form.fullName.trim(),
+              customerEmail: form.email.trim(),
+              customerPhone: form.phone.trim(),
+            },
+          );
+        if (!paymentResponse.ok || !paymentData.success) {
+          throw new Error(paymentData.error || 'Payment initiation failed.');
+        }
+
+        await loadRazorpayScript();
+        const Razorpay = (
+          window as Window &
+            typeof globalThis & {
+              Razorpay?: new (options: Record<string, unknown>) => {
+                open: () => void;
+              };
+            }
+        ).Razorpay;
+        if (!Razorpay) {
+          throw new Error('Razorpay SDK is unavailable right now.');
+        }
+
+        const paymentOptions = {
+          key: paymentData.keyId,
+          amount: paymentData.razorpayOrder?.amount,
+          currency: paymentData.razorpayOrder?.currency || 'INR',
+          order_id: paymentData.razorpayOrder?.id,
+          name: paymentData.name || 'Sri Naveena Sweets',
+          description: paymentData.description || 'Order payment',
+          prefill: paymentData.prefill || {},
+          theme: { color: '#a1282b' },
+          handler: async (response: {
+            razorpay_order_id: string;
+            razorpay_payment_id: string;
+            razorpay_signature: string;
+          }) => {
+            try {
+              setIsSubmitting(true);
+              const { response: verifyResponse, data: verifyData } =
+                await verifyRazorpayPayment(
+                  data.order._id,
+                  response.razorpay_order_id,
+                  response.razorpay_payment_id,
+                  response.razorpay_signature,
+                  totals.grandTotal,
+                  {
+                    customerName: form.fullName.trim(),
+                    customerEmail: form.email.trim(),
+                    customerPhone: form.phone.trim(),
+                    subtotal: totals.subtotal,
+                    deliveryFee: totals.deliveryFee,
+                    packagingFee: totals.packagingFee,
+                    platformFee: totals.platformFee,
+                    gstAmount: totals.gstAmount,
+                    grandTotal: totals.grandTotal,
+                  },
+                  user.token,
+                );
+
+              if (!verifyResponse.ok || !verifyData.success) {
+                throw new Error(
+                  verifyData.error || 'Payment verification failed.',
+                );
+              }
+
+              setPlacedOrderId(verifyData.order?._id || data.order._id);
+              setCart([]);
+              setForm(initialFormState);
+              showToast(
+                'Payment completed and order confirmed successfully.',
+                'success',
+              );
+              navigate('/cart');
+            } catch (verifyError) {
+              const message =
+                verifyError instanceof Error
+                  ? verifyError.message
+                  : 'Payment verification failed.';
+              showToast(message, 'error');
+            } finally {
+              setIsSubmitting(false);
+            }
+          },
+          modal: {
+            ondismiss: () => {
+              showToast('Payment was cancelled.', 'warning');
+            },
+          },
+        };
+
+        const rzp = new Razorpay(paymentOptions);
+        rzp.open();
+        return;
+      }
+
+      showToast(
+        'Order placed successfully. We will confirm it shortly.',
+        'success',
+      );
+      navigate('/cart');
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unexpected error';
+      showToast(message, 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-(--color-background) px-4 py-8 text-(--color-text) sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-6 lg:flex-row">
+        <CheckoutShippingForm
+          form={form}
+          errors={errors}
+          onChange={handleChange}
+          paymentMethod={paymentMethod}
+          onPaymentMethodChange={setPaymentMethod}
+          isSubmitting={isSubmitting}
+          onSubmit={handleSubmit}
+        />
+
+        <CheckoutSummary
+          displayCart={displayCart}
+          totals={totals}
+          charges={charges}
+          isEligibleForFreeDelivery={isEligibleForFreeDelivery}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default CheckoutPage;

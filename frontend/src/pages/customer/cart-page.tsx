@@ -3,7 +3,7 @@ import { useStore } from '../../context/StoreContext';
 import CartItemCard from '../../components/cart/cart-item-card';
 import { Link } from 'react-router-dom';
 import { FiList } from 'react-icons/fi';
-import { getSelectedWeightOption } from '../../utils/productInventory';
+import { calculateCheckoutSummary } from '../../utils/checkout';
 
 const CartPage = () => {
   const { cart, cartTotal, cartCount, siteContent } = useStore();
@@ -20,32 +20,36 @@ const CartPage = () => {
   const FREE_DELIVERY_THRESHOLD = charges.freeDeliveryThreshold;
   const PLATFORM_FEE = charges.platformFee;
   const PACKAGING_FEE = charges.packagingFee;
-  const GST_RATE = charges.gstRate / 100;
 
   const displayCart = useMemo(() => cart, [cart]);
   const hasItems = displayCart.length > 0;
-
-  const gstApplicableItems = displayCart.filter(
-    (item) => item.product.gstIncluded,
-  );
 
   const platformFee = PLATFORM_FEE;
   const packagingFee = PACKAGING_FEE;
   const deliveryFee = cartTotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
 
-  const gstAmount = useMemo(() => {
-    return gstApplicableItems.reduce((sum, item) => {
-      const selectedOption = getSelectedWeightOption(
-        item.product,
-        item.weight,
-      );
-      const price = selectedOption ? selectedOption.price : item.product.price;
-      return sum + price * item.quantity * GST_RATE;
-    }, 0);
-  }, [gstApplicableItems, GST_RATE]);
+  const totals = useMemo(
+    () =>
+      calculateCheckoutSummary({
+        items: displayCart,
+        subtotal: cartTotal,
+        deliveryFee,
+        packagingFee,
+        platformFee,
+        gstRate: charges.gstRate,
+        paymentMethod: 'cod',
+      }),
+    [
+      cartTotal,
+      charges.gstRate,
+      deliveryFee,
+      displayCart,
+      packagingFee,
+      platformFee,
+    ],
+  );
 
-  const total =
-    cartTotal + platformFee + packagingFee + gstAmount + deliveryFee;
+  const total = totals.grandTotal;
 
   const freeDeliveryProgress = Math.min(
     (cartTotal / FREE_DELIVERY_THRESHOLD) * 100,
@@ -117,10 +121,10 @@ const CartPage = () => {
                   )
                 )}
 
-                {GST_RATE > 0 && gstAmount > 0 && (
+                {charges.gstRate > 0 && totals.gstAmount > 0 && (
                   <div className="flex justify-between mb-2 text-sm">
                     <span>GST ({charges.gstRate}%)</span>
-                    <span>₹ {gstAmount.toFixed(2)}</span>
+                    <span>₹ {totals.gstAmount.toFixed(2)}</span>
                   </div>
                 )}
 
@@ -191,7 +195,7 @@ const CartPage = () => {
                     total,
                     subtotal: cartTotal,
                     deliveryFee,
-                    gstAmount,
+                    gstAmount: totals.gstAmount,
                     packagingFee,
                     platformFee,
                     count: cartCount,
@@ -249,7 +253,7 @@ const CartPage = () => {
                   total,
                   subtotal: cartTotal,
                   deliveryFee,
-                  gstAmount,
+                  gstAmount: totals.gstAmount,
                   packagingFee,
                   platformFee,
                   count: cartCount,
@@ -324,13 +328,13 @@ const CartPage = () => {
                 )
               )}
 
-              {GST_RATE > 0 && gstAmount > 0 && (
+              {charges.gstRate > 0 && totals.gstAmount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span style={{ color: 'var(--color-text)' }}>
                     GST ({charges.gstRate}%)
                   </span>
                   <span style={{ color: 'var(--color-text)' }}>
-                    ₹ {gstAmount.toFixed(2)}
+                    ₹ {totals.gstAmount.toFixed(2)}
                   </span>
                 </div>
               )}
