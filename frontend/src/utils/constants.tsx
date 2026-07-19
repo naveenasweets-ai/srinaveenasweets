@@ -1,7 +1,7 @@
 import { MdCelebration, MdOutlineFestival } from 'react-icons/md';
 import { FiShoppingCart } from 'react-icons/fi';
-import { FaRegUser } from 'react-icons/fa';
 import { GrFavorite } from 'react-icons/gr';
+import { VscOpenInProduct } from "react-icons/vsc";
 import { FaBirthdayCake, FaHotdog, FaCookieBite } from 'react-icons/fa';
 import { MdOutlineDashboardCustomize } from 'react-icons/md';
 import { LuDessert } from 'react-icons/lu';
@@ -33,24 +33,19 @@ export const customerMenuItems = [
     icon: <GrFavorite className="text-lg" />,
   },
   { name: 'Cart', to: 'cart', icon: <FiShoppingCart className="text-lg" /> },
-  { name: 'Orders', to: 'my-orders', icon: <VscPackage /> },
+  { name: 'My Orders', to: 'my-orders', icon: <VscPackage /> },
 ];
 
 export const adminMenuItems = [
   {
-    name: 'Dashboard',
-    to: 'admin-dashboard',
-    icon: <FiShoppingCart className="text-lg" />,
-  },
-  {
     name: 'Products',
     to: 'admin-products',
-    icon: <FaRegUser className="text-lg" />,
+    icon: <VscOpenInProduct className="text-lg" />,
   },
   {
     name: 'Orders',
     to: 'admin-orders',
-    icon: <GrFavorite className="text-lg" />,
+    icon: <VscPackage className="text-lg" />,
   },
   {
     name: 'Customize App',

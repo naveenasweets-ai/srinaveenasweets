@@ -17,6 +17,8 @@ const OrderConfirmationPage = () => {
     return () => window.clearTimeout(timer);
   }, []);
 
+  const isPrepaid = state?.paymentMethod === 'razorpay' ? true : false;
+
   return (
     <div className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,rgba(161,40,43,0.12),transparent_55%)] px-4 py-16 text-(--color-text) sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-4xl flex-col items-center rounded-4xl border border-(--color-border) bg-white/80 p-8 text-center shadow-2xl shadow-black/10 backdrop-blur md:p-12">
@@ -30,7 +32,7 @@ const OrderConfirmationPage = () => {
         </div>
 
         <div className="mb-3 inline-flex items-center rounded-full border border-green-200 bg-green-50 px-4 py-2 text-sm font-semibold text-green-700">
-          Order confirmed
+          Order {isPrepaid ? 'Confirmed' : 'Placed'}
         </div>
 
         <h1 className="text-3xl font-semibold sm:text-4xl">
@@ -47,9 +49,7 @@ const OrderConfirmationPage = () => {
               Payment method
             </p>
             <p className="mt-1 font-semibold">
-              {state?.paymentMethod === 'razorpay'
-                ? 'Razorpay'
-                : 'Cash on Delivery'}
+              {isPrepaid ? 'Razorpay' : 'Cash on Delivery'}
             </p>
           </div>
           <div>

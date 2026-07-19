@@ -3,9 +3,11 @@ import { useStore } from '../../context/StoreContext';
 import { fetchCustomerOrders } from '../../api/orders';
 import OrderCard from '../../components/orders/OrderCard';
 import OrderListItem from '../../components/orders/OrderListItem';
+import CustomDropdown from '../../components/CustomDropdown';
+import CustomDatepicker from '../../components/CustomDatepicker';
 import type { Order } from '../../types/types';
 
-type TimeFilter = 'this-week' | 'this-month' | 'later-this-year' | 'all';
+type TimeFilter = 'this-week' | 'this-month' | 'this-year' | 'later' | 'all';
 
 const MyOrdersPage = () => {
   const hasFetchedOrders = useRef(false);
@@ -16,6 +18,7 @@ const MyOrdersPage = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -75,11 +78,30 @@ const MyOrdersPage = () => {
       return orderDate >= startOfMonth;
     }
 
-    if (filter === 'later-this-year') {
-      return orderDate >= new Date(now.getFullYear(), 0, 1);
+    if (filter === 'this-year') {
+      const startOfYear = new Date(now.getFullYear(), 0, 1);
+      return orderDate >= startOfYear;
+    }
+
+    if (filter === 'later') {
+      const startOfYear = new Date(now.getFullYear(), 0, 1);
+      return orderDate < startOfYear;
     }
 
     return true;
+  };
+
+  const matchesDateFilter = (order: Order, date: string) => {
+    if (!date) return true;
+    const orderDate = new Date(order.createdAt || '');
+    if (isNaN(orderDate.getTime())) return false;
+    const orderDay = new Date(
+      orderDate.getFullYear(),
+      orderDate.getMonth(),
+      orderDate.getDate(),
+    );
+    const selectedDay = new Date(date);
+    return orderDay.getTime() === selectedDay.getTime();
   };
 
   const matchesSearch = (order: Order, query: string) => {
@@ -99,7 +121,9 @@ const MyOrdersPage = () => {
 
   const filteredOrders = orders.filter(
     (order) =>
-      matchesTimeFilter(order, timeFilter) && matchesSearch(order, searchQuery),
+      matchesTimeFilter(order, timeFilter) &&
+      matchesDateFilter(order, selectedDate) &&
+      matchesSearch(order, searchQuery),
   );
 
   if (loading) {
@@ -118,6 +142,14 @@ const MyOrdersPage = () => {
     );
   }
 
+  const timeOptions = [
+    { label: 'All Time', value: 'all' },
+    { label: 'This Week', value: 'this-week' },
+    { label: 'This Month', value: 'this-month' },
+    { label: 'This Year', value: 'this-year' },
+    { label: 'Later', value: 'later' },
+  ];
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-bold text-(--color-primary)">My Orders</h1>
@@ -125,35 +157,28 @@ const MyOrdersPage = () => {
         Track and review your past orders
       </p>
 
-      <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-2">
-          {[
-            { label: 'All', value: 'all' },
-            { label: 'This Week', value: 'this-week' },
-            { label: 'This Month', value: 'this-month' },
-            { label: 'Later this year', value: 'later' },
-          ].map((item) => (
-            <button
-              key={item.value}
-              type="button"
-              onClick={() => setTimeFilter(item.value as TimeFilter)}
-              className={`rounded-full border px-4 py-2 text-sm font-semibold transition cursor-pointer ${
-                timeFilter === item.value
-                  ? 'border-(--color-accent) bg-(--color-accent) text-white'
-                  : 'border-(--color-border) bg-(--color-surface) text-(--color-text) hover:border-(--color-accent)'
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-
+      <div className='flex'>
         <input
           type="text"
           placeholder="Search by shipping details, customer, order id..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full rounded-full border border-(--color-border) bg-(--color-surface) px-5 py-2.5 text-sm text-(--color-text) placeholder:text-(--color-muted) focus:border-(--color-accent) focus:outline-none sm:w-80"
+          className="search-input w-full mt-6 rounded-full border border-(--color-border) bg-(--color-surface) px-5 py-2.5 text-sm text-(--color-text) placeholder:text-(--color-muted) focus:border-(--color-accent) focus:outline-none sm:w-80"
+        />
+      </div>
+
+      <div className="mt-4 flex justify-end items-center gap-3">
+        <CustomDatepicker
+          value={selectedDate}
+          onChange={setSelectedDate}
+          placeholder="Select date"
+        />
+
+        <CustomDropdown
+          options={timeOptions}
+          value={timeFilter}
+          onChange={(value) => setTimeFilter(value as TimeFilter)}
+          placeholder="Time filter"
         />
       </div>
 
@@ -172,7 +197,9 @@ const MyOrdersPage = () => {
         <div className="mt-8 space-y-4">
           {filteredOrders.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-(--color-border) p-12 text-center">
-              <p className="text-(--color-muted)">No orders found.</p>
+              <p className="text-(--color-muted)">
+                You haven&apos;t placed any orders yet.
+              </p>
             </div>
           ) : (
             filteredOrders.map((order) => (

@@ -3,6 +3,8 @@ import { useStore } from '../../context/StoreContext';
 import { fetchAllOrders } from '../../api/orders';
 import OrderCard from '../../components/orders/OrderCard';
 import OrderListItem from '../../components/orders/OrderListItem';
+import CustomDropdown from '../../components/CustomDropdown';
+import CustomDatepicker from '../../components/CustomDatepicker';
 import type { Order } from '../../types/types';
 
 type TimeFilter = 'this-week' | 'this-month' | 'this-year' | 'later' | 'all';
@@ -17,6 +19,7 @@ const AllOrders = () => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -92,6 +95,19 @@ const AllOrders = () => {
     return true;
   };
 
+  const matchesDateFilter = (order: Order, date: string) => {
+    if (!date) return true;
+    const orderDate = new Date(order.createdAt || '');
+    if (isNaN(orderDate.getTime())) return false;
+    const orderDay = new Date(
+      orderDate.getFullYear(),
+      orderDate.getMonth(),
+      orderDate.getDate(),
+    );
+    const selectedDay = new Date(date);
+    return orderDay.getTime() === selectedDay.getTime();
+  };
+
   const matchesSearch = (order: Order, query: string) => {
     if (!query.trim()) return true;
     const q = query.toLowerCase();
@@ -107,10 +123,13 @@ const AllOrders = () => {
     );
   };
 
-  const filteredOrders = orders.filter((order) =>
-    matchesTimeFilter(order, timeFilter) &&
-    (statusFilter === 'all' || order.orderStatus.toLowerCase() === statusFilter) &&
-    matchesSearch(order, searchQuery),
+  const filteredOrders = orders.filter(
+    (order) =>
+      matchesTimeFilter(order, timeFilter) &&
+      matchesDateFilter(order, selectedDate) &&
+      (statusFilter === 'all' ||
+        order.orderStatus.toLowerCase() === statusFilter) &&
+      matchesSearch(order, searchQuery),
   );
 
   if (loading) {
@@ -129,6 +148,14 @@ const AllOrders = () => {
     );
   }
 
+  const timeOptions = [
+    { label: 'All Time', value: 'all' },
+    { label: 'This Week', value: 'this-week' },
+    { label: 'This Month', value: 'this-month' },
+    { label: 'This Year', value: 'this-year' },
+    { label: 'Later', value: 'later' },
+  ];
+
   const statusTabs: { label: string; value: StatusFilter }[] = [
     { label: 'All', value: 'all' },
     { label: 'Pending', value: 'pending' },
@@ -138,47 +165,12 @@ const AllOrders = () => {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold text-(--color-primary)">
-        All Orders
-      </h1>
+      <h1 className="text-3xl font-bold text-(--color-primary)">All Orders</h1>
       <p className="mt-2 text-(--color-muted)">
         Manage and track all customer orders
       </p>
 
-      <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-2">
-          {[
-            { label: 'All', value: 'all' },
-            { label: 'This Week', value: 'this-week' },
-            { label: 'This Month', value: 'this-month' },
-            { label: 'This Year', value: 'this-year' },
-            { label: 'Later', value: 'later' },
-          ].map((item) => (
-            <button
-              key={item.value}
-              type="button"
-              onClick={() => setTimeFilter(item.value as TimeFilter)}
-              className={`rounded-full border px-4 py-2 text-sm font-semibold transition cursor-pointer ${
-                timeFilter === item.value
-                  ? 'border-(--color-accent) bg-(--color-accent) text-white'
-                  : 'border-(--color-border) bg-(--color-surface) text-(--color-text) hover:border-(--color-accent)'
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-
-        <input
-          type="text"
-          placeholder="Search by shipping details, customer, order id..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full rounded-full border border-(--color-border) bg-(--color-surface) px-5 py-2.5 text-sm text-(--color-text) placeholder:text-(--color-muted) focus:border-(--color-accent) focus:outline-none sm:w-80"
-        />
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {statusTabs.map((tab) => {
           const count = statusCounts[tab.value] || 0;
           const isActive = statusFilter === tab.value;
@@ -205,6 +197,30 @@ const AllOrders = () => {
             </button>
           );
         })}
+      </div>
+
+      <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <input
+          type="text"
+          placeholder="Search by shipping details, customer, order id..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full search-input rounded-full border border-(--color-border) bg-(--color-surface) px-5 py-2.5 text-sm text-(--color-text) placeholder:text-(--color-muted) focus:border-(--color-accent) focus:outline-none sm:w-80"
+        />
+      </div>
+
+      <div className="mt-4 flex justify-end items-center gap-3">
+        <CustomDatepicker
+          value={selectedDate}
+          onChange={setSelectedDate}
+          placeholder="Select date"
+        />
+        <CustomDropdown
+          options={timeOptions}
+          value={timeFilter}
+          onChange={(value) => setTimeFilter(value as TimeFilter)}
+          placeholder="Time filter"
+        />
       </div>
 
       {selectedOrder ? (
