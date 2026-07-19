@@ -21,6 +21,7 @@ import CustomerApi from './api/customer';
 import CartPage from './pages/customer/cart-page';
 import WishlistPage from './pages/customer/wishlist-page';
 import Checkout from './pages/customer/checkout-page';
+import OrderConfirmationPage from './pages/customer/order-confirmation-page';
 
 export default function App() {
   const { user, setSiteContent, setProducts } = useStore();
@@ -148,6 +149,15 @@ export default function App() {
           <Route
             path="/checkout"
             element={<ProtectedRoute role="customer" element={<Checkout />} />}
+          />
+          <Route
+            path="/order-confirmation"
+            element={
+              <ProtectedRoute
+                role="customer"
+                element={<OrderConfirmationPage />}
+              />
+            }
           />
         </Routes>
       </main>

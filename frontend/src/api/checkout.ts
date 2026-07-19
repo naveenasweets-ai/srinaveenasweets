@@ -56,6 +56,7 @@ export const initiateCheckoutPayment = async (
     token: string,
     customerDetails?: CheckoutCustomerDetails,
 ) => {
+    const roundedAmount = Number((Math.round(Number(amount) * 100) / 100).toFixed(2));
     const response = await fetch(`${apiUrl}/api/orders/payment`, {
         method: 'POST',
         headers: {
@@ -64,7 +65,7 @@ export const initiateCheckoutPayment = async (
         },
         body: JSON.stringify({
             orderId,
-            amount: Math.round(amount),
+            amount: roundedAmount,
             receipt: orderId,
             ...customerDetails,
         }),

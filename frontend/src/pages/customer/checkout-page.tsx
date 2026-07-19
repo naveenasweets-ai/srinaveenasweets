@@ -23,7 +23,6 @@ const CheckoutPage = () => {
   const [errors, setErrors] = useState<
     Partial<Record<keyof CheckoutFormState, string>>
   >({});
-  const [placedOrderId, setPlacedOrderId] = useState<string>('');
 
   const checkoutState = location.state as {
     data?: typeof cart;
@@ -77,7 +76,7 @@ const CheckoutPage = () => {
       subtotal,
     ],
   );
-
+  console.log('totals: ', totals);
   const validate = () => {
     const nextErrors: Partial<Record<keyof CheckoutFormState, string>> = {};
 
@@ -197,6 +196,7 @@ const CheckoutPage = () => {
                   response.razorpay_signature,
                   totals.grandTotal,
                   {
+                    ...payload,
                     customerName: form.fullName.trim(),
                     customerEmail: form.email.trim(),
                     customerPhone: form.phone.trim(),
@@ -204,6 +204,7 @@ const CheckoutPage = () => {
                     deliveryFee: totals.deliveryFee,
                     packagingFee: totals.packagingFee,
                     platformFee: totals.platformFee,
+                    gstRate: totals.gstRate,
                     gstAmount: totals.gstAmount,
                     grandTotal: totals.grandTotal,
                   },
@@ -216,14 +217,20 @@ const CheckoutPage = () => {
                 );
               }
 
-              setPlacedOrderId(verifyData.order?._id || data.order._id);
               setCart([]);
               setForm(initialFormState);
               showToast(
                 'Payment completed and order confirmed successfully.',
                 'success',
               );
-              navigate('/cart');
+              navigate('/order-confirmation', {
+                state: {
+                  orderId: verifyData.order?._id || data.order._id,
+                  paymentMethod: 'razorpay' as const,
+                  message:
+                    'Your payment was successful and your order is confirmed.',
+                },
+              });
             } catch (verifyError) {
               const message =
                 verifyError instanceof Error
@@ -246,11 +253,19 @@ const CheckoutPage = () => {
         return;
       }
 
+      setCart([]);
       showToast(
         'Order placed successfully. We will confirm it shortly.',
         'success',
       );
-      navigate('/cart');
+      navigate('/order-confirmation', {
+        state: {
+          orderId: data.order?._id,
+          paymentMethod: paymentMethod as 'cod' | 'razorpay',
+          message:
+            'Your order has been placed successfully and will be confirmed shortly.',
+        },
+      });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Unexpected error';

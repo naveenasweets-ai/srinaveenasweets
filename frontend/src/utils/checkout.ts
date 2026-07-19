@@ -55,7 +55,7 @@ export const calculateCheckoutSummary = ({
         safePlatformFee +
         gstAmount
     ).toFixed(2));
-
+    console.log('grandTotal: ', grandTotal)
     return {
         subtotal: safeSubtotal,
         deliveryFee: safeDeliveryFee,

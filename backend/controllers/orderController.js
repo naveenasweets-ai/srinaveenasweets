@@ -4,6 +4,18 @@ import { calculateCheckoutTotals } from '../utils/checkout.js';
 
 const normalizeAmount = (value) => Number(Number(value || 0).toFixed(2));
 
+const buildOrderId = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
+  return `OD-${year}${month}${day}${hours}${minutes}${seconds}${milliseconds}`;
+};
+
 const createOrder = async (req, res) => {
   try {
     const {
@@ -66,6 +78,7 @@ const createOrder = async (req, res) => {
     });
 
     const orderPayload = {
+      _id: buildOrderId().toString(),
       customerId,
       customerName: customerName.trim(),
       customerEmail: customerEmail.trim(),
@@ -93,6 +106,19 @@ const createOrder = async (req, res) => {
       grandTotal: normalizeAmount(totals.grandTotal),
       notes,
     };
+
+    if (paymentMethod === 'razorpay') {
+      return res.status(201).json({
+        success: true,
+        order: {
+          _id: orderPayload._id,
+          paymentStatus: 'pending',
+          orderStatus: 'pending',
+        },
+        message:
+          'Order details captured. Awaiting Razorpay payment verification.',
+      });
+    }
 
     const order = await OrderSchema.create(orderPayload);
 
@@ -184,86 +210,6 @@ const createRazorpayOrder = async ({
   return data;
 };
 
-const triggerShiprocketOrderCreation = async (order) => {
-  const apiUrl = process.env.SHIPROCKET_API_URL;
-  const email = process.env.SHIPROCKET_EMAIL;
-  const password = process.env.SHIPROCKET_PASSWORD;
-
-  if (!apiUrl || !email || !password) {
-    console.warn(
-      'Shiprocket is not configured. Skipping Shiprocket order creation.',
-    );
-    return null;
-  }
-
-  const authResponse = await fetch(`${apiUrl}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
-
-  if (!authResponse.ok) {
-    const errorText = await authResponse.text();
-    throw new Error(
-      `Shiprocket auth failed: ${authResponse.status} ${errorText}`,
-    );
-  }
-
-  const authData = await authResponse.json();
-  const token = authData.token;
-  if (!token) {
-    throw new Error('Shiprocket auth token is missing');
-  }
-
-  const shiprocketPayload = {
-    order_id: order._id.toString(),
-    order_date: new Date().toISOString(),
-    pickup_location: 'default',
-    billing_customer_name: order.customerName,
-    billing_last_name: '',
-    billing_address: order.shippingAddress,
-    billing_city: order.city,
-    billing_state: order.state,
-    billing_country: 'India',
-    billing_email: order.customerEmail,
-    billing_phone: order.customerPhone,
-    shipping_is_billing: true,
-    order_items: order.items.map((item) => ({
-      name: item.name,
-      sku: item.productId,
-      units: item.quantity,
-      selling_price: item.price,
-    })),
-    payment_method: 'Prepaid',
-    sub_total: order.subtotal,
-    total_discount: 0,
-    total_tax: order.gstAmount,
-    shipping_charges: order.deliveryFee,
-    length: 0,
-    breadth: 0,
-    height: 0,
-    weight: 1,
-  };
-
-  const createResponse = await fetch(`${apiUrl}/orders/create/adhoc`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(shiprocketPayload),
-  });
-
-  if (!createResponse.ok) {
-    const errorText = await createResponse.text();
-    throw new Error(
-      `Shiprocket order creation failed: ${createResponse.status} ${errorText}`,
-    );
-  }
-
-  return await createResponse.json();
-};
-
 const initiatePayment = async (req, res) => {
   try {
     const {
@@ -349,14 +295,58 @@ const verifyRazorpayPayment = async (req, res) => {
         .json({ success: false, error: 'Invalid Razorpay signature' });
     }
 
-    const order = await OrderSchema.findById(orderId);
+    let order = await OrderSchema.findById(orderId);
     if (!order) {
-      return res.status(404).json({ success: false, error: 'Order not found' });
-    }
+      if (!orderData) {
+        return res.status(400).json({
+          success: false,
+          error: 'Missing order details for Razorpay verification',
+        });
+      }
 
+      const orderPayload = {
+        _id: orderId,
+        customerId: orderData.customerId || '',
+        customerName: orderData.customerName?.trim() || '',
+        customerEmail: orderData.customerEmail?.trim() || '',
+        customerPhone: orderData.customerPhone?.trim() || '',
+        shippingAddress: orderData.shippingAddress?.trim() || '',
+        city: orderData.city?.trim() || '',
+        state: orderData.state?.trim() || '',
+        pincode: orderData.pincode?.trim() || '',
+        paymentMethod: 'razorpay',
+        paymentStatus: 'pending',
+        orderStatus: 'pending',
+        items: Array.isArray(orderData.items)
+          ? orderData.items.map((item) => ({
+              productId: item.productId || item._id || '',
+              name: item.name || item.product?.name || '',
+              quantity: Number(item.quantity) || 1,
+              weight: item.weight || '',
+              price: normalizeAmount(item.price),
+            }))
+          : [],
+        subtotal: normalizeAmount(orderData.subtotal),
+        deliveryFee: normalizeAmount(orderData.deliveryFee),
+        packagingFee: normalizeAmount(orderData.packagingFee),
+        platformFee: normalizeAmount(orderData.platformFee),
+        gstRate: normalizeAmount(orderData.gstRate),
+        gstAmount: normalizeAmount(orderData.gstAmount),
+        grandTotal: normalizeAmount(orderData.grandTotal),
+        notes: orderData.notes || '',
+      };
+
+      order = await OrderSchema.create(orderPayload);
+    }
     const paidAmount = normalizeAmount(Number(amount));
-    const expectedAmount = normalizeAmount(order.grandTotal);
-    console.log('Verifying payment amounts:', paidAmount, expectedAmount);
+    const grandTotal =
+      orderData?.subtotal +
+      orderData?.deliveryFee +
+      orderData?.packagingFee +
+      orderData?.platformFee +
+      orderData?.gstAmount;
+
+    const expectedAmount = normalizeAmount(grandTotal);
     if (paidAmount !== expectedAmount) {
       return res.status(400).json({
         success: false,
@@ -374,12 +364,6 @@ const verifyRazorpayPayment = async (req, res) => {
     }
 
     await order.save();
-
-    try {
-      await triggerShiprocketOrderCreation(order);
-    } catch (shipError) {
-      console.error('Shiprocket order creation failed:', shipError.message);
-    }
 
     return res.status(200).json({
       success: true,
