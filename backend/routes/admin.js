@@ -23,6 +23,7 @@ router.route('/products').post(requireAdminAuth, productController.saveProduct);
 
 router
   .route('/products/:id')
-  .put(requireAdminAuth, productController.updateProduct);
+  .put(requireAdminAuth, productController.updateProduct)
+  .delete(requireAdminAuth, productController.deleteProduct);
 
 export default router;

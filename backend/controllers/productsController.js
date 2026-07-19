@@ -73,7 +73,9 @@ export async function saveProduct(req, res) {
       subcategory: subcategory?.toString().trim() || '',
       price: price !== undefined ? Number(price) : undefined,
       originalPrice:
-        originalPrice !== undefined && originalPrice !== null && originalPrice !== ''
+        originalPrice !== undefined &&
+        originalPrice !== null &&
+        originalPrice !== ''
           ? Number(originalPrice)
           : undefined,
       image: image.toString().trim(),
@@ -152,5 +154,26 @@ export async function updateProduct(req, res) {
     return res.status(200).json({ success: true, product });
   } catch (error) {
     return res.status(400).json({ success: false, error: error.message });
+  }
+}
+
+export async function deleteProduct(req, res) {
+  const { id } = req.params;
+
+  try {
+    const product = await ProductSchema.findByIdAndDelete(id);
+
+    if (!product) {
+      return res
+        .status(404)
+        .json({ error: 'Product not found', success: false });
+    }
+
+    return res.status(200).json({
+      message: 'Product deleted successfully',
+      success: true,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 }

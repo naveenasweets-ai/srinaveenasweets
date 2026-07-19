@@ -14,8 +14,8 @@ import DeleteConfirmModal from '../../components/admin-catalogue/delete-confirma
 import ProductApi from '../../api/product';
 
 const ProductCatalogue = () => {
-  const { products } = useStore();
-  const { deleteProduct } = ProductApi();
+  const { products, setProducts } = useStore();
+  const { fetchProducts, deleteProduct } = ProductApi();
 
   const [productSearch, setProductSearch] = useState('');
   const [actionModal, setActionModal] = useState<'add' | 'edit' | 'none'>(
@@ -239,6 +239,11 @@ const ProductCatalogue = () => {
           onConfirm={() => {
             deleteProduct(deleteConfirm.product._id, () => {
               setDeleteConfirm(null);
+              fetchProducts().then((products) => {
+                if (products && Array.isArray(products)) {
+                  setProducts(products);
+                }
+              });
             });
           }}
           onCancel={() =>
