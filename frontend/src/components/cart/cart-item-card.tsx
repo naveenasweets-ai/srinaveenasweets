@@ -207,12 +207,14 @@ const CartItemCard = () => {
                       </p>
                     </div>
                     <div
-                      className="text-sm font-semibold"
+                      className="text-sm font-semibold flex flex-col items-end"
                       style={{ color: 'var(--color-text)' }}
                     >
-                      ₹ {item.quantity * mobileUnitPrice}.00
+                      <span className="whitespace-nowrap">
+                        ₹ {item.quantity * mobileUnitPrice}.00
+                      </span>
                       {item.product.gstIncluded && (
-                        <span className="ml-1.5 rounded bg-(--color-surface-alt) px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-(--color-accent-dark)">
+                        <span className="ml-1.5 whitespace-nowrap rounded bg-(--color-surface-alt) px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-(--color-accent-dark)">
                           + GST
                         </span>
                       )}
