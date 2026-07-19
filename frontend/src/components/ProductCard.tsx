@@ -6,7 +6,7 @@ import {
   getProductPrice,
   getProductOriginalPrice,
 } from '../utils/productInventory';
-import { generateSlug } from '../utils/utils';
+import { generateSlug, stripHtml } from '../utils/utils';
 import CustomerUtils from '../utils/customer';
 import { getDefaultInventorySelection } from '../utils/productInventory';
 
@@ -146,6 +146,11 @@ export default function ProductCard({ product }: { product: Product }) {
         >
           {product.name}
         </Link>
+        {product.description && (
+          <p className="line-clamp-3 mb-2 text-xs text-(--color-muted) leading-relaxed">
+            {stripHtml(product.description)}
+          </p>
+        )}
 
         {/* Price */}
         <div className="mt-auto flex items-baseline justify-between gap-2 border-t border-(--color-border) pt-2.5">

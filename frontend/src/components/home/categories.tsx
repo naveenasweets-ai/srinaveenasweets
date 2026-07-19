@@ -63,8 +63,11 @@ export default function Categories() {
                     {cat.name}
                   </h3>
                   <p className="text-sm sm:text-base text-[#5f1021]/80 mb-4 hidden lg:flex">
-                    {cat.description ||
-                      'Explore our delicious range of products in this category.'}
+                    {cat.description && (
+                      <p className="line-clamp-3 mb-2 text-xs text-(--color-muted) leading-relaxed">
+                        {stripHtml(cat.description)}
+                      </p>
+                    )}
                   </p>
                   <div className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.24em] text-[#9f6c2a] transition-colors group-hover:text-[#7a1a2d]">
                     EXPLORE
@@ -108,7 +111,11 @@ export default function Categories() {
                         {product.name}
                       </h3>
                       <p className="text-sm sm:text-base text-[#5f1021]/80 mb-4 hidden lg:flex">
-                        {stripHtml(product.description || '')}
+                        {product.description && (
+                          <p className="line-clamp-4 mb-2 text-xs text-(--color-muted) leading-relaxed">
+                            {stripHtml(product.description)}
+                          </p>
+                        )}
                       </p>
                       <div className="text-sm font-semibold text-[#9f6c2a]">
                         ₹{product.price.toLocaleString('en-IN')}
