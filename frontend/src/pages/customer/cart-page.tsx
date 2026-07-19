@@ -75,10 +75,10 @@ const CartPage = () => {
   return hasItems ? (
     <>
       <div
-        className="lg:min-h-[100vh] px-4 py-8 sm:px-6 lg:px-8"
+        className="lg:min-h-screen px-4 py-8 sm:px-6 lg:px-8"
         style={{ backgroundColor: 'var(--color-background)' }}
       >
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto max-w-6xl">
           <div
             className="w-fit rounded-full px-4 py-2 text-sm font-medium"
             style={{

@@ -5,7 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import type { Product } from '../types/contextTypes';
 import { FiHeart, FiShare2, FiCheck, FiChevronLeft } from 'react-icons/fi';
-import { findProductBySlug } from '../utils/utils';
+import { findProductBySlug, sanitizeRichHtml, isRichHtmlEmpty } from '../utils/utils';
 import CustomerUtils from '../utils/customer';
 import {
   getDefaultInventorySelection,
@@ -343,9 +343,18 @@ const ProductDetailPage = () => {
 
             {/* Product Description */}
             <div className="py-6 border-b-2 border-(--color-border)">
-              <p className="text-(--color-muted) leading-relaxed">
-                {product.description}
-              </p>
+              {isRichHtmlEmpty(sanitizeRichHtml(product.description || '')) ? (
+                <p className="text-(--color-muted) leading-relaxed">
+                  {product.description}
+                </p>
+              ) : (
+                <div
+                  className="legal-rich-text text-(--color-muted)"
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeRichHtml(product.description || ''),
+                  }}
+                />
+              )}
             </div>
 
             {/* Weight/Quantity Selection */}
@@ -398,43 +407,6 @@ const ProductDetailPage = () => {
                   </button>
                 </div>
               </div>
-            </div>
-
-            {/* Product Features */}
-            <div className="py-6 border-b-2 border-(--color-border)">
-              <h3 className="text-sm font-bold text-(--color-primary) uppercase tracking-widest mb-4">
-                Product Features
-              </h3>
-              <ul className="space-y-3">
-                <li className="flex items-center gap-3 text-(--color-muted)">
-                  <FiCheck
-                    size={18}
-                    className="text-(--color-success) shrink-0 font-bold"
-                  />
-                  <span>Made with fresh, premium ingredients</span>
-                </li>
-                <li className="flex items-center gap-3 text-(--color-muted)">
-                  <FiCheck
-                    size={18}
-                    className="text-(--color-success) shrink-0 font-bold"
-                  />
-                  <span>No artificial preservatives or colors</span>
-                </li>
-                <li className="flex items-center gap-3 text-(--color-muted)">
-                  <FiCheck
-                    size={18}
-                    className="text-(--color-success) shrink-0 font-bold"
-                  />
-                  <span>Freshly prepared daily</span>
-                </li>
-                <li className="flex items-center gap-3 text-(--color-muted)">
-                  <FiCheck
-                    size={18}
-                    className="text-(--color-success) shrink-0 font-bold"
-                  />
-                  <span>Hygienic packaging</span>
-                </li>
-              </ul>
             </div>
 
             {/* Action Buttons */}

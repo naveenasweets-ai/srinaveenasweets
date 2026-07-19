@@ -21,7 +21,7 @@ export default function LegalPage({ slug }: { slug?: LegalPageSlug }) {
   const contentHtml = sanitizeRichHtml(page?.content || '');
 
   return (
-    <Container sx={{ py: { xs: 4, md: 8 }, maxWidth: '90vw !important' }}>
+    <Container sx={{ py: { xs: 4, md: 8 }, maxWidth: {md: '90vw !important'} }}>
       {page ? (
         <Box
           sx={{

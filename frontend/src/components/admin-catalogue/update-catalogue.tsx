@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // this is a modal to update the catalogue of products in the admin panel as form
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { IoMdAdd } from 'react-icons/io';
 import { IoCloseSharp } from 'react-icons/io5';
 import type { Product } from '../../types/contextTypes';
 import {
   uploadImageToCloudinary,
   uploadImagesToCloudinary,
+  sanitizeRichHtml,
+  isRichHtmlEmpty,
 } from '../../utils/utils';
 import { useStore } from '../../context/StoreContext';
 import {
@@ -15,6 +17,7 @@ import {
 } from '../../utils/productInventory';
 import ProductApi from '../../api/product';
 import { ImageUploadZone } from '../app-customize/image-upload-zone';
+import RichTextEditor from '../app-customize/rich-text-editor';
 
 const UpdateCatalogue = ({
   action,
@@ -92,14 +95,9 @@ const UpdateCatalogue = ({
     ProductWeightPriceOption[]
   >(getInitialWeightOptions(product));
 
-  const editorRef = useRef<HTMLDivElement | null>(null);
-
-  const exec = (cmd: string) => {
-    if (!editorRef.current) return;
-    editorRef.current.focus();
-    document.execCommand(cmd, false as any);
-    setDescription(editorRef.current.innerHTML);
-  };
+  const [descriptionMode, setDescriptionMode] = useState<'edit' | 'view'>(
+    'edit',
+  );
 
   const updateWeightOption = (
     index: number,
@@ -153,7 +151,9 @@ const UpdateCatalogue = ({
       image,
       images: additionalImages,
       badge: badge.trim() || undefined,
-      description,
+      description: isRichHtmlEmpty(description)
+        ? ''
+        : sanitizeRichHtml(description),
       inStock,
       inventoryType,
       gstIncluded,
@@ -660,35 +660,50 @@ const UpdateCatalogue = ({
               </label>
             </div>
             <div className="sm:col-span-2">
-              <label className={`${labelClassName} mb-2`}>Description</label>
-              <div className="mb-2 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => exec('bold')}
-                  title="Bold"
-                  className="rounded-lg border border-[#f3d48a]/70 bg-[#fffdf7] px-3 py-1 text-sm font-bold text-[#5f1021]"
-                >
-                  B
-                </button>
-                <button
-                  type="button"
-                  onClick={() => exec('italic')}
-                  title="Italic"
-                  className="rounded-lg border border-[#f3d48a]/70 bg-[#fffdf7] px-3 py-1 text-sm italic text-[#5f1021]"
-                >
-                  I
-                </button>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <label className={`${labelClassName} mb-0`}>Description</label>
+
+                {/* Edit / View toggle */}
+                <div className="inline-flex rounded-lg border border-[#f3d48a]/70 bg-[#fffdf7] p-0.5">
+                  {(['edit', 'view'] as const).map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setDescriptionMode(option)}
+                      className={`rounded-md px-3 py-1 text-xs font-semibold capitalize transition ${
+                        descriptionMode === option
+                          ? 'bg-[#8b1e2d] text-[#fff8ef]'
+                          : 'text-[#5f1021] hover:bg-[#fef4da]'
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div
-                ref={editorRef}
-                onInput={(e) =>
-                  setDescription((e.target as HTMLDivElement).innerHTML)
-                }
-                contentEditable
-                suppressContentEditableWarning
-                className="min-h-24 w-full rounded-2xl border border-[#f3d48a]/70 bg-[#fffdf7] px-4 py-2.5 text-sm text-[#4d2b1f] shadow-sm outline-none transition focus:border-[#8b1e2d] focus:ring-2 focus:ring-[#f3d48a]/50"
-                dangerouslySetInnerHTML={{ __html: description }}
-              />
+
+              {descriptionMode === 'edit' ? (
+                <RichTextEditor
+                  value={description}
+                  onChange={setDescription}
+                  placeholder="Write the product description. Use the toolbar for bold, italic, links, lists and more."
+                />
+              ) : (
+                <div className="rounded-2xl border border-[#f3d48a]/70 bg-[#fffdf7] p-4">
+                  {isRichHtmlEmpty(sanitizeRichHtml(description)) ? (
+                    <p className="text-sm text-[#b7997a]">
+                      Nothing to preview yet.
+                    </p>
+                  ) : (
+                    <div
+                      className="legal-rich-text text-[#4d2b1f]"
+                      dangerouslySetInnerHTML={{
+                        __html: sanitizeRichHtml(description),
+                      }}
+                    />
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

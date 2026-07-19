@@ -483,3 +483,19 @@ export function isRichHtmlEmpty(html: string): boolean {
     .trim();
   return text.length === 0;
 }
+
+// Strips all HTML tags and returns plain text. Useful for compact list
+// contexts (cards, cart rows) where rendering rich markup is undesirable.
+export function stripHtml(html: string): string {
+  if (!html || typeof html !== 'string') return '';
+  return html
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<\/(p|div|li|h[1-6]|blockquote)>/gi, ' ')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+}

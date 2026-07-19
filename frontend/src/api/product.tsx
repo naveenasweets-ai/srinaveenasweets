@@ -80,10 +80,45 @@ const ProductApi = () => {
     }
   };
 
+  
+  const deleteProduct = async (id: string, onClose: () => void) => {
+    try {
+      const response = await fetch(
+        `${apiUrl}/api/admin/products/${id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${user?.token}`,
+          },
+        },
+      );
+      const json = await response.json();
+
+      if (response.status === 401) {
+        showToast('Unauthorized access. Please log in again.', 'error');
+        return;
+      }
+
+      if (json.success) {
+        showToast('Product deleted!', 'success');
+        onClose();
+      } else {
+        showToast(json.error || 'Failed to delete product', 'error');
+      }
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : 'Failed to delete product',
+        'error',
+      );
+    }
+  };
+
   return {
     fetchProducts,
     saveProduct,
     updateProduct,
+    deleteProduct,
   };
 };
 

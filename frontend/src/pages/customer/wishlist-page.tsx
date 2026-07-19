@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useStore } from '../../context/StoreContext';
 import CustomerUtils from '../../utils/customer';
-import { generateSlug } from '../../utils/utils';
+import { generateSlug, stripHtml } from '../../utils/utils';
 
 const WishlistPage = () => {
   const { products, wishlist } = useStore();
@@ -54,10 +54,10 @@ const WishlistPage = () => {
                   {item.name}
                 </h2>
                 <p
-                  className="mt-2 max-w-2xl text-sm"
+                  className="mt-2 max-w-2xl text-sm truncate"
                   style={{ color: 'var(--color-muted)' }}
                 >
-                  {item.description}
+                  {stripHtml(item.description)}
                 </p>
                 <p
                   className="mt-4 text-lg font-semibold"
@@ -123,10 +123,10 @@ const WishlistPage = () => {
                     {item.name}
                   </h2>
                   <p
-                    className="mt-1 text-sm"
+                    className="mt-1 text-sm truncate"
                     style={{ color: 'var(--color-muted)' }}
                   >
-                    {item.description}
+                    {stripHtml(item.description)}
                   </p>
                 </div>
 

@@ -5,12 +5,17 @@ import { IoMdAdd } from 'react-icons/io';
 import { CiEdit } from 'react-icons/ci';
 import { FaRegTrashAlt } from 'react-icons/fa';
 import type { Product } from '../../types/contextTypes';
-import { getProductPrice, getProductOriginalPrice } from '../../utils/productInventory';
+import {
+  getProductPrice,
+  getProductOriginalPrice,
+} from '../../utils/productInventory';
 import UpdateCatalogue from '../../components/admin-catalogue/update-catalogue';
 import DeleteConfirmModal from '../../components/admin-catalogue/delete-confirmation';
+import ProductApi from '../../api/product';
 
 const ProductCatalogue = () => {
   const { products } = useStore();
+  const { deleteProduct } = ProductApi();
 
   const [productSearch, setProductSearch] = useState('');
   const [actionModal, setActionModal] = useState<'add' | 'edit' | 'none'>(
@@ -23,7 +28,7 @@ const ProductCatalogue = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<{
     product: Product;
     isOpen: boolean;
-  }>({
+  } | null>({
     product: {
       _id: '',
       name: '',
@@ -228,13 +233,13 @@ const ProductCatalogue = () => {
         />
       )}
 
-      {deleteConfirm.isOpen && (
+      {deleteConfirm?.isOpen && (
         <DeleteConfirmModal
           product={deleteConfirm.product}
           onConfirm={() => {
-            // deleteProduct(deleteConfirm.product._id, () => {
-            //   setDeleteConfirm(null);
-            // });
+            deleteProduct(deleteConfirm.product._id, () => {
+              setDeleteConfirm(null);
+            });
           }}
           onCancel={() =>
             setDeleteConfirm({

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useNavigate } from 'react-router-dom';
 import SectionHeader from '../SectionHeader';
-import { generateSlug, slugify } from '../../utils/utils';
+import { generateSlug, slugify, stripHtml } from '../../utils/utils';
 import { useStore } from '../../context/StoreContext';
 import { FaChevronRight } from 'react-icons/fa';
 
@@ -108,7 +108,7 @@ export default function Categories() {
                         {product.name}
                       </h3>
                       <p className="text-sm sm:text-base text-[#5f1021]/80 mb-4 hidden lg:flex">
-                        {product.description || ''}
+                        {stripHtml(product.description || '')}
                       </p>
                       <div className="text-sm font-semibold text-[#9f6c2a]">
                         ₹{product.price.toLocaleString('en-IN')}

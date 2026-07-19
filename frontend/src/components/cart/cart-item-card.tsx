@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import type { CartItem } from '../../types/contextTypes';
 import { useStore } from '../../context/StoreContext';
 import CustomerUtils from '../../utils/customer';
-import { generateSlug } from '../../utils/utils';
+import { generateSlug, stripHtml } from '../../utils/utils';
 import {
   getSelectedWeightOption,
   getOptionPrice,
@@ -76,7 +76,7 @@ const CartItemCard = () => {
                             alt=""
                           />
                         </Link>
-                        <div>
+                        <div className="min-w-0 max-w-[24rem]">
                           <p
                             className="font-semibold"
                             style={{ color: 'var(--color-primary)' }}
@@ -84,10 +84,10 @@ const CartItemCard = () => {
                             {item.product.name}
                           </p>
                           <p
-                            className="text-xs"
+                            className="text-xs truncate"
                             style={{ color: 'var(--color-muted)' }}
                           >
-                            {item.product.description}
+                            {stripHtml(item.product.description)}
                           </p>
                           <p
                             className="text-xs"
@@ -190,9 +190,9 @@ const CartItemCard = () => {
                     alt=""
                   />
                 </Link>
-                <div className="flex-1">
-                  <div className="flex justify-between items-start">
-                    <div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="min-w-0">
                       <p
                         className="font-semibold"
                         style={{ color: 'var(--color-primary)' }}
@@ -200,10 +200,10 @@ const CartItemCard = () => {
                         {item.product.name}
                       </p>
                       <p
-                        className="text-xs mt-1"
+                        className="text-xs mt-1 truncate"
                         style={{ color: 'var(--color-muted)' }}
                       >
-                        {item.product.description}
+                        {stripHtml(item.product.description)}
                       </p>
                     </div>
                     <div
