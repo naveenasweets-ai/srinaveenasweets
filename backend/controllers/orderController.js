@@ -238,6 +238,30 @@ const getOrderById = async (req, res) => {
   }
 };
 
+const getAllOrders = async (req, res) => {
+  try {
+    const orders = await OrderSchema.find().sort({ createdAt: -1 });
+    return res.status(200).json({ success: true, orders });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const getCustomerOrders = async (req, res) => {
+  try {
+    const { customerId } = req.params;
+    if (req.user?._id !== customerId) {
+      return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+    const orders = await OrderSchema
+      .find({ customerId })
+      .sort({ createdAt: -1 });
+    return res.status(200).json({ success: true, orders });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 const buildRazorpayPayload = ({
   amount,
   receipt,
@@ -545,6 +569,8 @@ const verifyRazorpayPayment = async (req, res) => {
 export {
   createOrder,
   getOrderById,
+  getAllOrders,
+  getCustomerOrders,
   initiatePayment,
   sendOtp,
   verifyOtp,

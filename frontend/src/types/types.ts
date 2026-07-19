@@ -72,6 +72,43 @@ export type CheckoutShippingFormProps = {
 };
 
 
+export type OrderItem = {
+  productId: string;
+  name: string;
+  quantity: number;
+  weight: string;
+  price: number;
+};
+
+export type Order = {
+  _id: string;
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  shippingAddress: string;
+  city: string;
+  state: string;
+  pincode: string;
+  paymentMethod: 'cod' | 'razorpay';
+  paymentStatus: string;
+  orderStatus: string;
+  items: OrderItem[];
+  subtotal: number;
+  deliveryFee: number;
+  packagingFee: number;
+  platformFee: number;
+  gstRate: number;
+  gstAmount: number;
+  grandTotal: number;
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
+  razorpaySignature?: string;
+  notes: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 export type CheckoutSummaryProps = {
   displayCart: CartItem[];
   totals: CheckoutSummary;

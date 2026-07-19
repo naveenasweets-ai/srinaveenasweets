@@ -261,9 +261,7 @@ const CartItemCard = () => {
                         {item.quantity}{' '}
                         {item.product.inventoryType === 'weight' ? 'x' : ''}{' '}
                         {item.weight}{' '}
-                        {item.product.inventoryType === 'unit'
-                          ? 'unit(s)'
-                          : 'g'}
+                        {item.product.inventoryType === 'weight' ? 'g' : ''}
                       </div>
                       <div
                         className="text-xs font-semibold cursor-pointer"

@@ -23,7 +23,7 @@ const CheckoutShippingForm = ({
       onSubmit={onSubmit}
       className="w-full lg:w-2/3 rounded-2xl border border-(--color-border) bg-(--color-surface) p-6 shadow-sm"
     >
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex items-start justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-(--color-accent)">
             Checkout

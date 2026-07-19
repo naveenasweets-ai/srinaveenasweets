@@ -22,6 +22,8 @@ import CartPage from './pages/customer/cart-page';
 import WishlistPage from './pages/customer/wishlist-page';
 import Checkout from './pages/customer/checkout-page';
 import OrderConfirmationPage from './pages/customer/order-confirmation-page';
+import MyOrdersPage from './pages/customer/my-orders-page';
+import AllOrders from './pages/admin/all-orders';
 import type { User } from './types/contextTypes';
 
 const ProtectedRoute = ({
@@ -159,6 +161,26 @@ export default function App() {
               <ProtectedRoute
                 role="customer"
                 element={<OrderConfirmationPage />}
+                user={user}
+              />
+            }
+          />
+          <Route
+            path="/my-orders"
+            element={
+              <ProtectedRoute
+                role="customer"
+                element={<MyOrdersPage />}
+                user={user}
+              />
+            }
+          />
+          <Route
+            path="/admin-orders"
+            element={
+              <ProtectedRoute
+                role="admin"
+                element={<AllOrders />}
                 user={user}
               />
             }

@@ -5,8 +5,9 @@ import { GrFavorite } from 'react-icons/gr';
 import { FaBirthdayCake, FaHotdog, FaCookieBite } from 'react-icons/fa';
 import { MdOutlineDashboardCustomize } from 'react-icons/md';
 import { LuDessert } from 'react-icons/lu';
-import { MdDeliveryDining } from "react-icons/md";
-import { RiSecurePaymentFill, RiCake3Fill } from "react-icons/ri";
+import { MdDeliveryDining } from 'react-icons/md';
+import { RiSecurePaymentFill, RiCake3Fill } from 'react-icons/ri';
+import { VscPackage } from 'react-icons/vsc';
 
 export const allNavItems = [
   { title: 'Sweets', linkTo: 'sweets', itemIcon: <LuDessert /> },
@@ -26,13 +27,13 @@ export const allNavItems = [
 ];
 
 export const customerMenuItems = [
-  { name: 'Profile', to: 'profile', icon: <FaRegUser className="text-lg" /> },
   {
     name: 'Favorites',
     to: 'favorites',
     icon: <GrFavorite className="text-lg" />,
   },
   { name: 'Cart', to: 'cart', icon: <FiShoppingCart className="text-lg" /> },
+  { name: 'Orders', to: 'my-orders', icon: <VscPackage /> },
 ];
 
 export const adminMenuItems = [
@@ -61,7 +62,7 @@ export const adminMenuItems = [
 export const ICON_SET = [
   {
     name: 'Fast Delivery',
-    svg: <MdDeliveryDining />
+    svg: <MdDeliveryDining />,
   },
   {
     name: 'Secure Payments',
