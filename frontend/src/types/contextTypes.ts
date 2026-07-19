@@ -4,6 +4,7 @@ import type {
   FeatureItem,
   HeroContent,
   ChargesConfig,
+  LegalPage,
 } from "./appContentTypes";
 
 export type User = {
@@ -77,6 +78,7 @@ export interface StoreContextType {
     };
     features: FeatureItem[];
     charges: ChargesConfig;
+    legalPages: LegalPage[];
   }
   setSiteContent: React.Dispatch<
     React.SetStateAction<{
@@ -85,6 +87,7 @@ export interface StoreContextType {
       categoriesInfo: CategoryInfoType;
       features: FeatureItem[];
       charges: ChargesConfig;
+      legalPages: LegalPage[];
     }>
   >;
 

@@ -1,5 +1,8 @@
 import { getOrCreateSiteConfig } from '../utils/utils.js';
 import ProductSchema from '../schemas/ProductSchema.js';
+import { legalPagesDefault } from '../schemas/siteDefaults.js';
+
+const LEGAL_PAGE_SLUGS = legalPagesDefault.map((page) => page.slug);
 
 export async function createCategory(req, res) {
   const { name, description, parentId, type, order } = req.body;
@@ -36,12 +39,11 @@ export async function createCategory(req, res) {
     siteConfig.categories.push(category);
     await siteConfig.save();
 
-    return res.status(201).json({ success: true, category });
+    return res.status(200).json({ success: true, charges: siteConfig.charges });
   } catch (error) {
     return res.status(400).json({ success: false, error: error.message });
   }
 }
-
 export async function updateCategory(req, res) {
   const { id } = req.params;
   const { name, description, parentId, type, order, isActive, image } =
@@ -242,6 +244,50 @@ export async function saveCharges(req, res) {
     await siteConfig.save();
 
     return res.status(200).json({ success: true, charges: siteConfig.charges });
+  } catch (error) {
+    return res.status(400).json({ success: false, error: error.message });
+  }
+}
+
+export async function saveLegalPages(req, res) {
+  try {
+    const { legalPages } = req.body || {};
+
+    if (!Array.isArray(legalPages)) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'legalPages must be an array' });
+    }
+
+    const siteConfig = await getOrCreateSiteConfig();
+
+    // The 4 legal pages are fixed: they cannot be added or removed. We only
+    // allow updating the title/description/content of the known slugs and
+    // always rebuild the array from the fixed default slugs.
+    const incomingBySlug = new Map(
+      legalPages
+        .filter((page) => page && LEGAL_PAGE_SLUGS.includes(page.slug))
+        .map((page) => [page.slug, page]),
+    );
+
+    siteConfig.legalPages = legalPagesDefault.map((preset) => {
+      const incoming = incomingBySlug.get(preset.slug);
+      return {
+        slug: preset.slug,
+        title:
+          incoming?.title !== undefined && incoming.title.trim() !== ''
+            ? incoming.title.trim()
+            : preset.title,
+        description: incoming?.description ?? preset.description,
+        content: incoming?.content ?? preset.content,
+      };
+    });
+
+    await siteConfig.save();
+
+    return res
+      .status(200)
+      .json({ success: true, legalPages: siteConfig.legalPages });
   } catch (error) {
     return res.status(400).json({ success: false, error: error.message });
   }

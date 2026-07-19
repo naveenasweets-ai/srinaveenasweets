@@ -7,6 +7,7 @@ import {
   bridalImagesDefault,
   videosDefault,
   chargesDefault,
+  legalPagesDefault,
 } from './siteDefaults.js';
 
 const { Schema } = mongoose;
@@ -123,8 +124,18 @@ const SiteConfigSchema = new Schema(
       packagingFee: { type: Number, default: chargesDefault.packagingFee },
       gstRate: { type: Number, default: chargesDefault.gstRate },
     },
+    legalPages: {
+      type: [
+        {
+          slug: { type: String, required: true, trim: true },
+          title: { type: String, default: '' },
+          description: { type: String, default: '' },
+          content: { type: String, default: '' },
+        },
+      ],
+      default: legalPagesDefault,
+    },
   },
   { timestamps: true },
 );
-
 export default mongoose.model('SiteConfig', SiteConfigSchema);

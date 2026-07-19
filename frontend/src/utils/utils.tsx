@@ -1,5 +1,58 @@
-import type { FeatureItem } from '../types/appContentTypes';
+import type { FeatureItem, LegalPage } from '../types/appContentTypes';
 import { ICON_SET } from './constants';
+
+// Fixed legal / policy pages. These 4 slugs are fixed and cannot be
+// added to or removed. Only their content can be edited by the admin.
+// `content` is rich HTML rendered on the public page.
+export const getDefaultLegalPages = (): LegalPage[] => [
+  {
+    slug: 'terms-and-conditions',
+    title: 'Terms and Conditions',
+    description:
+      'The terms and conditions governing the use of our website and services.',
+    content:
+      '<p>Welcome to <strong>Sri Naveena Sweets</strong>. By accessing or using our website and placing an order, you agree to be bound by these Terms and Conditions. Please read them carefully before using our services.</p><p>All products are subject to availability, and prices are subject to change without prior notice.</p>',
+  },
+  {
+    slug: 'privacy-policy',
+    title: 'Privacy Policy',
+    description: 'How we collect, use, and protect your personal information.',
+    content:
+      '<p>At <strong>Sri Naveena Sweets</strong>, we value your privacy and are committed to protecting your personal information. We collect only the information necessary to process your orders and improve your experience.</p><p>Your data is never sold to third parties and is handled in accordance with applicable data protection laws.</p>',
+  },
+  {
+    slug: 'return-cancellations',
+    title: 'Returns / Cancellations',
+    description: 'Our policy on returns, cancellations, and refunds.',
+    content:
+      '<p>As our products are perishable food items, returns are generally not accepted once the order has been delivered. Cancellations are only possible before the order has been dispatched.</p><p>If you receive a damaged or incorrect item, please contact us within <strong>24 hours</strong> of delivery and we will do our best to resolve the issue.</p>',
+  },
+  {
+    slug: 'shipping-policy',
+    title: 'Shipping Policy',
+    description:
+      'Information about our shipping methods, timelines, and charges.',
+    content:
+      '<p>We carefully package and dispatch all orders to ensure freshness upon arrival. Delivery timelines vary based on your location and the selected shipping option.</p><p>Shipping charges, if applicable, are calculated at checkout. You will receive updates regarding the status of your order until it reaches your doorstep.</p>',
+  },
+];
+
+// Merges saved legal pages onto the fixed defaults, always keeping the 4
+// fixed slugs and their order intact.
+export const normalizeLegalPages = (saved?: LegalPage[] | null): LegalPage[] => {
+  const savedBySlug = new Map(
+    (Array.isArray(saved) ? saved : []).map((page) => [page.slug, page]),
+  );
+  return getDefaultLegalPages().map((preset) => {
+    const match = savedBySlug.get(preset.slug);
+    return {
+      slug: preset.slug,
+      title: match?.title?.trim() || preset.title,
+      description: match?.description ?? preset.description,
+      content: match?.content ?? preset.content,
+    };
+  });
+};
 
 export function generateSlug(id: string, name: string): string {
   const slugifiedName = name
@@ -329,4 +382,104 @@ export function findProductBySlug<T extends { _id: string; name: string }>(
   return products.find(
     (p) => generateSlug(p._id, p.name) === slug.toLowerCase(),
   );
+}
+
+// Whitelist of tags and per-tag attributes allowed in admin-authored rich
+// text (policy pages). Anything else is stripped to keep rendering safe.
+const ALLOWED_TAGS = new Set([
+  'P',
+  'BR',
+  'B',
+  'STRONG',
+  'I',
+  'EM',
+  'U',
+  'S',
+  'STRIKE',
+  'DEL',
+  'H1',
+  'H2',
+  'H3',
+  'H4',
+  'UL',
+  'OL',
+  'LI',
+  'BLOCKQUOTE',
+  'A',
+  'SPAN',
+  'DIV',
+]);
+
+const ALLOWED_ATTRS: Record<string, string[]> = {
+  A: ['href', 'target', 'rel'],
+};
+
+const SAFE_URL = /^(https?:|mailto:|tel:|\/|#)/i;
+
+// Sanitizes an HTML string so only whitelisted tags/attributes remain.
+// Returns a string safe to pass to dangerouslySetInnerHTML.
+export function sanitizeRichHtml(html: string): string {
+  if (!html || typeof html !== 'string') return '';
+  if (typeof window === 'undefined' || !window.DOMParser) return '';
+
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+
+  const clean = (node: Node) => {
+    // Iterate over a static copy because we mutate the tree.
+    const children = Array.from(node.childNodes);
+    for (const child of children) {
+      if (child.nodeType === Node.COMMENT_NODE) {
+        child.parentNode?.removeChild(child);
+        continue;
+      }
+      if (child.nodeType !== Node.ELEMENT_NODE) continue;
+
+      const el = child as HTMLElement;
+      const tag = el.tagName.toUpperCase();
+
+      if (!ALLOWED_TAGS.has(tag)) {
+        // Unwrap disallowed elements: keep their (cleaned) children.
+        clean(el);
+        while (el.firstChild) {
+          el.parentNode?.insertBefore(el.firstChild, el);
+        }
+        el.parentNode?.removeChild(el);
+        continue;
+      }
+
+      const allowedAttrs = ALLOWED_ATTRS[tag] || [];
+      for (const attr of Array.from(el.attributes)) {
+        const name = attr.name.toLowerCase();
+        if (!allowedAttrs.includes(name)) {
+          el.removeAttribute(attr.name);
+          continue;
+        }
+        if (name === 'href' && !SAFE_URL.test(attr.value.trim())) {
+          el.removeAttribute(attr.name);
+        }
+      }
+
+      // Force safe external links.
+      if (tag === 'A' && el.getAttribute('href')) {
+        el.setAttribute('target', '_blank');
+        el.setAttribute('rel', 'noreferrer noopener');
+      }
+
+      clean(el);
+    }
+  };
+
+  clean(doc.body);
+  return doc.body.innerHTML;
+}
+
+// Returns true when the HTML contains only whitespace/empty markup.
+export function isRichHtmlEmpty(html: string): boolean {
+  if (!html) return true;
+  const text = html
+    .replace(/<br\s*\/?>/gi, '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .trim();
+  return text.length === 0;
 }

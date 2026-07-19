@@ -2,6 +2,7 @@ import { Router } from 'express';
 import SiteConfig from '../schemas/siteConfig.js';
 import { requireAdminAuth } from '../middleware/requireAuth.js';
 import * as siteController from '../controllers/siteConfigController.js';
+import { legalPagesDefault } from '../schemas/siteDefaults.js';
 
 const router = Router();
 
@@ -11,7 +12,12 @@ router.get('/', async (req, res) => {
     if (!siteConfig) {
       return res
         .status(200)
-        .json({ success: true, categories: [], heroContent: null });
+        .json({
+          success: true,
+          categories: [],
+          heroContent: null,
+          legalPages: legalPagesDefault,
+        });
     }
 
     return res.status(200).json({
@@ -27,6 +33,10 @@ router.get('/', async (req, res) => {
         packagingFee: 15,
         gstRate: 5,
       },
+      legalPages:
+        Array.isArray(siteConfig.legalPages) && siteConfig.legalPages.length
+          ? siteConfig.legalPages
+          : legalPagesDefault,
       footer: siteConfig.footer || {
         help: [
           {
@@ -86,5 +96,9 @@ router
 router.route('/features').post(requireAdminAuth, siteController.saveFeatures);
 
 router.route('/charges').post(requireAdminAuth, siteController.saveCharges);
+
+router
+  .route('/legal-pages')
+  .post(requireAdminAuth, siteController.saveLegalPages);
 
 export default router;

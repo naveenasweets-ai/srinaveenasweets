@@ -4,6 +4,7 @@ import type {
   FeatureItem,
   HeroContent,
   ChargesConfig,
+  LegalPage,
 } from '../types/appContentTypes';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -218,6 +219,31 @@ const AppCustomApi = () => {
     }
   };
 
+  const saveLegalPages = async (legalPages: LegalPage[]) => {
+    try {
+      const response = await fetch(`${apiUrl}/api/site-content/legal-pages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user?.token}`,
+        },
+        body: JSON.stringify({ legalPages }),
+      });
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error || 'Failed to save policy pages');
+      }
+      showToast('Policy pages updated successfully', 'success');
+      return json;
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : 'Failed to save policy pages',
+        'error',
+      );
+      return null;
+    }
+  };
+
   return {
     saveCategory,
     updateCategory,
@@ -227,6 +253,7 @@ const AppCustomApi = () => {
     saveHandpickedCategories,
     saveFeatures,
     saveCharges,
+    saveLegalPages,
   };
 };
 

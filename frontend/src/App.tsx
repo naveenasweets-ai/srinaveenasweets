@@ -14,8 +14,7 @@ import { useEffect, useRef } from 'react';
 import AppCustomApi from './api/app-customize';
 import ProductCatalogue from './pages/admin/products-catalogue';
 import ProductApi from './api/product';
-import { getDefaultFeatures } from './utils/utils';
-import CategoryPage from './pages/category-page';
+import { getDefaultFeatures, normalizeLegalPages } from './utils/utils';import CategoryPage from './pages/category-page';
 import ProductDetailPage from './pages/product-detail-page';
 import CustomerApi from './api/customer';
 import CartPage from './pages/customer/cart-page';
@@ -24,6 +23,7 @@ import Checkout from './pages/customer/checkout-page';
 import OrderConfirmationPage from './pages/customer/order-confirmation-page';
 import MyOrdersPage from './pages/customer/my-orders-page';
 import AllOrders from './pages/admin/all-orders';
+import LegalPage from './pages/legal-page';
 import type { User } from './types/contextTypes';
 
 const ProtectedRoute = ({
@@ -85,6 +85,7 @@ export default function App() {
           packagingFee: 15,
           gstRate: 5,
         },
+        legalPages: normalizeLegalPages(content.legalPages),
       }),
     );
   }, []);
@@ -140,6 +141,23 @@ export default function App() {
           <Route path="/category/:slug" element={<CategoryPage />} />
 
           <Route path="/product/:slug" element={<ProductDetailPage />} />
+
+          <Route
+            path="/terms-and-conditions"
+            element={<LegalPage slug="terms-and-conditions" />}
+          />
+          <Route
+            path="/privacy-policy"
+            element={<LegalPage slug="privacy-policy" />}
+          />
+          <Route
+            path="/return-cancellations"
+            element={<LegalPage slug="return-cancellations" />}
+          />
+          <Route
+            path="/shipping-policy"
+            element={<LegalPage slug="shipping-policy" />}
+          />
 
           <Route
             path="/cart"

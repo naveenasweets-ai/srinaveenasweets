@@ -72,6 +72,40 @@ export const bridalImagesDefault = [
 
 export const videosDefault = [];
 
+// Fixed legal / policy pages. These 4 items cannot be added to or removed.
+// The `slug` is the stable identifier used for routing and must not change.
+// `content` is rich HTML rendered on the public page.
+export const legalPagesDefault = [
+  {
+    slug: 'terms-and-conditions',
+    title: 'Terms and Conditions',
+    description: 'The terms and conditions governing the use of our website and services.',
+    content:
+      '<p>Welcome to <strong>Sri Naveena Sweets</strong>. By accessing or using our website and placing an order, you agree to be bound by these Terms and Conditions. Please read them carefully before using our services.</p><p>All products are subject to availability, and prices are subject to change without prior notice.</p>',
+  },
+  {
+    slug: 'privacy-policy',
+    title: 'Privacy Policy',
+    description: 'How we collect, use, and protect your personal information.',
+    content:
+      '<p>At <strong>Sri Naveena Sweets</strong>, we value your privacy and are committed to protecting your personal information. We collect only the information necessary to process your orders and improve your experience.</p><p>Your data is never sold to third parties and is handled in accordance with applicable data protection laws.</p>',
+  },
+  {
+    slug: 'return-cancellations',
+    title: 'Returns / Cancellations',
+    description: 'Our policy on returns, cancellations, and refunds.',
+    content:
+      '<p>As our products are perishable food items, returns are generally not accepted once the order has been delivered. Cancellations are only possible before the order has been dispatched.</p><p>If you receive a damaged or incorrect item, please contact us within <strong>24 hours</strong> of delivery and we will do our best to resolve the issue.</p>',
+  },
+  {
+    slug: 'shipping-policy',
+    title: 'Shipping Policy',
+    description: 'Information about our shipping methods, timelines, and charges.',
+    content:
+      '<p>We carefully package and dispatch all orders to ensure freshness upon arrival. Delivery timelines vary based on your location and the selected shipping option.</p><p>Shipping charges, if applicable, are calculated at checkout. You will receive updates regarding the status of your order until it reaches your doorstep.</p>',
+  },
+];
+
 export const chargesDefault = {
   deliveryFee: 40,
   freeDeliveryThreshold: 499,

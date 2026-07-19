@@ -16,8 +16,10 @@ import type {
   FeatureItem,
   HeroContent,
   ChargesConfig,
+  LegalPage,
 } from '../types/appContentTypes';
 import { getSelectedWeightOption } from '../utils/productInventory';
+import { getDefaultLegalPages } from '../utils/utils';
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
@@ -70,6 +72,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
     categoriesInfo: CategoryInfoType;
     features: FeatureItem[];
     charges: ChargesConfig;
+    legalPages: LegalPage[];
   }>({
     categories: [],
     heroContent: null,
@@ -87,6 +90,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
       packagingFee: 15,
       gstRate: 5,
     },
+    legalPages: getDefaultLegalPages(),
   });
 
   const handpickedCats = siteContent?.categoriesInfo?.selectedCategories?.map(

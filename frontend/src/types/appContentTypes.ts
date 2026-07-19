@@ -52,3 +52,17 @@ export type ChargesConfig = {
   packagingFee: number;
   gstRate: number;
 };
+
+export type LegalPageSlug =
+  | 'terms-and-conditions'
+  | 'privacy-policy'
+  | 'return-cancellations'
+  | 'shipping-policy';
+
+export type LegalPage = {
+  _id?: string;
+  slug: LegalPageSlug;
+  title: string;
+  description: string;
+  content: string;
+};

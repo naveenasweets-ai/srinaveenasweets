@@ -2,50 +2,47 @@ import { Box, Typography, Container } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { FaInstagram } from 'react-icons/fa';
 import logo_path from '../../assets/Logo.png';
-
-import { SiMongodb, SiExpress, SiReact, SiNodedotjs } from 'react-icons/si';
+import { useStore } from '../../context/StoreContext';
 
 const Footer = () => {
-  const allNavItems = [
-    { title: 'Sweets', linkTo: 'sweets' },
-    { title: 'Cakes', linkTo: 'cakes' },
-    { title: 'Hot Items', linkTo: 'hot_items' },
-    { title: 'Biscuits', linkTo: 'biscuits' },
-  ];
+  const { siteContent } = useStore();
 
+  const allNavItems = (siteContent?.categoriesInfo?.selectedCategories ?? [])
+    
+  console.log('allNavItems: ', allNavItems)
   return (
     <Box
       sx={{
         bgcolor: 'var(--color-surface)',
         color: 'var(--color-text)',
-        py: 6,
+        pt: 6,
+        pb: 2,
         borderTop: '1px solid',
         borderColor: 'var(--color-accent-light)',
-        pb: { xs: '2em', md: 0 },
       }}
     >
       <Container sx={{ width: '100%' }}>
-        <div className="flex lg:flex-row relative flex-col gap-4 w-full">
+        <div className="flex lg:flex-row relative flex-col w-full">
           <Link to="/" className="flex w-[10em] lg:absolute">
             <img src={logo_path} alt="" className="w-full h-full" />
           </Link>
 
-          <div className="w-full flex lg:flex-col justify-between lg:justify-start px-6 gap-4">
-            <div className="flex flex-col lg:flex-row justify-center lg:gap-12">
+          <div className="w-full flex lg:flex-col justify-between lg:justify-start px-6 lg:pl-[12em] py-2 gap-6">
+            <div className="flex flex-col lg:flex-row justify-center lg:gap-12 gap-2">
               {allNavItems.map((item, i) => {
                 return (
                   <Link
                     key={i}
-                    to={`/${item.linkTo}`}
+                    to={`/category/${item.slug}`}
                     className="no-underline text-[var(--color-text)] w-fit hover:text-[var(--color-primary-dark)] hover:underline"
                   >
-                    {item.title}
+                    {item.name}
                   </Link>
                 );
               })}
             </div>
 
-            <div className="flex flex-col lg:flex-row justify-center lg:gap-12">
+            <div className="flex flex-col lg:flex-row justify-center lg:gap-12 gap-2">
               <Link
                 to="/terms-and-conditions"
                 className="no-underline text-[var(--color-text)] w-fit hover:text-[var(--color-primary-dark)] hover:underline"
@@ -76,11 +73,16 @@ const Footer = () => {
             </div>
           </div>
         </div>
-        <div className="w-full flex flex-col items-center justify-center gap-3 my-3">
+        <div className="w-full flex flex-col items-center justify-center gap-3 mt-6 mb-2">
           <Typography
             component="p"
             variant="body1"
-            sx={{ display: 'flex', gap: '4px', color: 'var(--color-text)' }}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              color: 'var(--color-text)',
+            }}
           >
             Follow us on
             <a
@@ -99,7 +101,7 @@ const Footer = () => {
             align="center"
             sx={{ color: 'var(--color-text)' }}
           >
-            Sri Naveena Sweets and Bakery
+            - Sri Naveena Sweets and Bakery -
           </Typography>
 
           <hr className="w-full border-[#c8a96b]" />
@@ -108,20 +110,14 @@ const Footer = () => {
             component="p"
             variant="body1"
             className="flex justify-center gap-2 items-center"
-            sx={{ color: 'var(--color-text)' }}
+            sx={{ color: 'var(--color-text)', pt: 2 }}
           >
-            made with
-            <span className="flex gap-1 text-[var(--color-accent-dark)]">
-              <SiMongodb />
-              <SiExpress />
-              <SiReact />
-              <SiNodedotjs />
-            </span>
+            visit dev -
             <a
-              href="https://vamshidharonline.com/"
+              href="https://vamshidhar.dev/"
               target="_blank"
               rel="noreferrer"
-              className="hover:text-[var(--color-accent-dark)]"
+              className="text-[var(--color-accent-dark)] no-underline hover:underline"
             >
               vamshidhar dawoor
             </a>

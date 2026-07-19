@@ -37,3 +37,83 @@ body {
 .search-input{
   width: 100%;
 }
+
+/* Rich text content (policy pages + admin preview/editor) */
+.legal-rich-text {
+  line-height: 1.8;
+  word-break: break-word;
+}
+.legal-rich-text p {
+  margin: 0 0 1rem;
+}
+.legal-rich-text p:last-child {
+  margin-bottom: 0;
+}
+.legal-rich-text h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 1.5rem 0 0.75rem;
+  color: var(--color-primary-dark);
+}
+.legal-rich-text h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 1.4rem 0 0.6rem;
+  color: var(--color-primary-dark);
+}
+.legal-rich-text h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 1.2rem 0 0.5rem;
+  color: var(--color-primary-dark);
+}
+.legal-rich-text h4 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+  color: var(--color-primary-dark);
+}
+.legal-rich-text strong,
+.legal-rich-text b {
+  font-weight: 700;
+}
+.legal-rich-text em,
+.legal-rich-text i {
+  font-style: italic;
+}
+.legal-rich-text u {
+  text-decoration: underline;
+}
+.legal-rich-text s,
+.legal-rich-text strike,
+.legal-rich-text del {
+  text-decoration: line-through;
+}
+.legal-rich-text a {
+  color: var(--color-accent-dark);
+  text-decoration: underline;
+}
+.legal-rich-text a:hover {
+  color: var(--color-primary-dark);
+}
+.legal-rich-text ul,
+.legal-rich-text ol {
+  margin: 0 0 1rem;
+  padding-left: 1.5rem;
+}
+.legal-rich-text ul {
+  list-style: disc;
+}
+.legal-rich-text ol {
+  list-style: decimal;
+}
+.legal-rich-text li {
+  margin: 0.25rem 0;
+}
+.legal-rich-text blockquote {
+  margin: 0 0 1rem;
+  padding: 0.5rem 0 0.5rem 1rem;
+  border-left: 3px solid var(--color-accent-light);
+  color: var(--color-muted);
+  font-style: italic;
+}
