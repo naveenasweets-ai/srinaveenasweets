@@ -75,6 +75,34 @@ export const initiateCheckoutPayment = async (
     return { response, data };
 };
 
+export const sendCheckoutOtp = async (phone: string, token: string) => {
+    const response = await fetch(`${apiUrl}/api/orders/otp/send`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ phone }),
+    });
+
+    const data = await response.json();
+    return { response, data };
+};
+
+export const verifyCheckoutOtp = async (phone: string, otp: string, token: string) => {
+    const response = await fetch(`${apiUrl}/api/orders/otp/verify`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ phone, otp }),
+    });
+
+    const data = await response.json();
+    return { response, data };
+};
+
 export const verifyRazorpayPayment = async (
     orderId: string,
     razorpay_order_id: string,

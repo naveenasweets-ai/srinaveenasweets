@@ -18,7 +18,7 @@ export type CheckoutSummaryInput = {
     packagingFee?: number;
     platformFee?: number;
     gstRate?: number;
-    paymentMethod?: 'cod' | 'razorpay';
+    paymentMethod?: 'cod' | 'razorpay' | '';
 };
 
 export const calculateCheckoutSummary = ({

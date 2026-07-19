@@ -4,6 +4,23 @@ import { calculateCheckoutTotals } from '../utils/checkout.js';
 
 const normalizeAmount = (value) => Number(Number(value || 0).toFixed(2));
 
+const otpStore = new Map();
+const OTP_TTL_MS = 2 * 60 * 1000; // 2 minutes
+
+const normalizePhone = (phone) =>
+  String(phone || '')
+    .replace(/\D/g, '')
+    .slice(-10);
+
+const generateOtp = () =>
+  Math.floor(100000 + Math.random() * 900000).toString();
+
+const toE164 = (phone) => {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (digits.length === 10) return `+91${digits}`;
+  return digits ? `+${digits}` : '';
+};
+
 const buildOrderId = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -14,6 +31,77 @@ const buildOrderId = () => {
   const seconds = String(now.getSeconds()).padStart(2, '0');
   const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
   return `OD-${year}${month}${day}${hours}${minutes}${seconds}${milliseconds}`;
+};
+
+const sendOtpViaTwilio = async (phone, otp) => {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
+  const fromNumber = process.env.TWILIO_FROM_NUMBER;
+
+  if (!accountSid || !authToken || (!messagingServiceSid && !fromNumber)) {
+    return { success: false, mocked: true, message: 'Failed to send OTP via Twilio.' };
+  }
+
+  const payload = {
+    To: toE164(phone),
+    Body: `Verification code for placing your order at Sri Naveena Sweets is: ${otp}. This code will expire in 2 minutes. Don't share this code with anyone; our employees will never ask for the code.`,
+  };
+
+  if (messagingServiceSid) {
+    payload.MessagingServiceSid = messagingServiceSid;
+  } else if (fromNumber) {
+    payload.From = fromNumber;
+  }
+
+  const response = await fetch(
+    `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams(payload).toString(),
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || 'Failed to send OTP via Twilio.');
+  }
+
+  return { success: true, mocked: true, message: 'OTP sent successfully'};
+};
+
+const verifyOtpViaTwilio = async (phone, otp) => {
+  const normalizedPhone = normalizePhone(phone);
+  const otpCode = String(otp || '').trim();
+
+  if (!normalizedPhone || normalizedPhone.length !== 10) {
+    return { success: false, message: 'Invalid phone number.' };
+  }
+
+  if (!/^\d{6}$/.test(otpCode)) {
+    return { success: false, message: 'Invalid OTP format.' };
+  }
+
+  const storedOtpEntry = otpStore.get(normalizedPhone);
+  if (!storedOtpEntry) {
+    return { success: false, message: 'OTP expired or not found.' };
+  }
+
+  if (Date.now() - storedOtpEntry.createdAt > OTP_TTL_MS) {
+    otpStore.delete(normalizedPhone);
+    return { success: false, message: 'OTP expired.' };
+  }
+
+  if (storedOtpEntry.otp !== otpCode) {
+    return { success: false, message: 'Invalid OTP.' };
+  }
+
+  otpStore.delete(normalizedPhone);
+  return { success: true, message: 'OTP verified successfully.' };
 };
 
 const createOrder = async (req, res) => {
@@ -35,6 +123,8 @@ const createOrder = async (req, res) => {
       platformFee = 0,
       gstRate = 0,
       notes = '',
+      otpVerified = false,
+      otpCode = '',
     } = req.body || {};
 
     if (!customerName?.trim()) {
@@ -66,6 +156,13 @@ const createOrder = async (req, res) => {
       return res
         .status(400)
         .json({ success: false, error: 'Cart items are required' });
+    }
+
+    if (paymentMethod === 'cod' && !otpVerified) {
+      return res.status(400).json({
+        success: false,
+        error: 'OTP verification is required for cash on delivery orders',
+      });
     }
 
     const totals = calculateCheckoutTotals({
@@ -171,7 +268,6 @@ const createRazorpayOrder = async ({
   const keyId = process.env.RAZORPAY_KEY_ID;
   const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
-  console.log('Creating Razorpay order with amount:', keyId, keySecret);
   if (!keyId || !keySecret) {
     throw new Error('Razorpay keys are not configured');
   }
@@ -247,6 +343,77 @@ const initiatePayment = async (req, res) => {
         email: customerEmail,
         contact: customerPhone,
       },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const sendOtp = async (req, res) => {
+  try {
+    const { phone = '' } = req.body || {};
+    if (!phone?.trim()) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'Phone number is required' });
+    }
+
+    const otp = generateOtp();
+    const result = await sendOtpViaTwilio(phone, otp);
+    otpStore.set(phone, { otp, createdAt: Date.now() });
+    return res.status(200).json({ success: true, ...result });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const verifyOtp = async (req, res) => {
+  try {
+    const phone = normalizePhone(req.body.phone);
+    const otp = String(req.body.otp || '').trim();
+
+    if (!phone || phone.length !== 10) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid 10-digit phone number.',
+      });
+    }
+
+    if (!/^\d{6}$/.test(otp)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid 6-digit OTP.',
+      });
+    }
+
+    const storedOtpEntry = otpStore.get(phone);
+    if (!storedOtpEntry) {
+      return res.status(400).json({
+        success: false,
+        message: 'OTP expired or not found. Please request a new one.',
+      });
+    }
+
+    if (Date.now() - storedOtpEntry.createdAt > OTP_TTL_MS) {
+      otpStore.delete(phone);
+      return res.status(400).json({
+        success: false,
+        message: 'OTP expired. Please request a new one.',
+      });
+    }
+
+    if (storedOtpEntry.otp !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid OTP. Please try again.',
+      });
+    }
+
+    otpStore.delete(phone);
+
+    return res.json({
+      success: true,
+      message: 'OTP verified successfully.',
     });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
@@ -375,4 +542,11 @@ const verifyRazorpayPayment = async (req, res) => {
   }
 };
 
-export { createOrder, getOrderById, initiatePayment, verifyRazorpayPayment };
+export {
+  createOrder,
+  getOrderById,
+  initiatePayment,
+  sendOtp,
+  verifyOtp,
+  verifyRazorpayPayment,
+};

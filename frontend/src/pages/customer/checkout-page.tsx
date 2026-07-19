@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '../../context/StoreContext';
 import { initialFormState, type CheckoutFormState } from '../../types/types';
@@ -9,17 +10,30 @@ import CheckoutSummary from '../../components/checkout/CheckoutSummary';
 import {
   initiateCheckoutPayment,
   loadRazorpayScript,
+  sendCheckoutOtp,
   submitCheckoutOrder,
+  verifyCheckoutOtp,
   verifyRazorpayPayment,
 } from '../../api/checkout';
+import CustomerUtils from '../../utils/customer';
 
 const CheckoutPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { cart, cartTotal, user, showToast, siteContent, setCart } = useStore();
+  const { clearCart } = CustomerUtils();
   const [form, setForm] = useState<CheckoutFormState>(initialFormState);
-  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'razorpay'>('cod');
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'razorpay' | ''>(
+    '',
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpMessage, setOtpMessage] = useState('');
+  const [otpTimerSeconds, setOtpTimerSeconds] = useState(0);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [errors, setErrors] = useState<
     Partial<Record<keyof CheckoutFormState, string>>
   >({});
@@ -76,7 +90,7 @@ const CheckoutPage = () => {
       subtotal,
     ],
   );
-  console.log('totals: ', totals);
+
   const validate = () => {
     const nextErrors: Partial<Record<keyof CheckoutFormState, string>> = {};
 
@@ -92,12 +106,84 @@ const CheckoutPage = () => {
     return Object.keys(nextErrors).length === 0;
   };
 
+  useEffect(() => {
+    if (otpTimerSeconds <= 0) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setOtpTimerSeconds((prev) => {
+        if (prev <= 1) {
+          window.clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [otpTimerSeconds]);
+
   const handleChange = (field: keyof CheckoutFormState, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: '' }));
+
+    if (field === 'phone') {
+      setOtpCode('');
+      setOtpSent(false);
+      setOtpVerified(false);
+      setOtpMessage('');
+      setOtpTimerSeconds(0);
+    }
   };
 
-  const handleSubmit = async () => {
+  const handleSendOtp = async () => {
+    if (!form.phone.trim()) {
+      showToast(
+        'Please enter your phone number to receive the OTP.',
+        'warning',
+      );
+      return;
+    }
+
+    setIsSendingOtp(true);
+    setOtpMessage('');
+    setOtpCode('');
+
+    try {
+      const { response, data } = await sendCheckoutOtp(
+        form.phone.trim(),
+        user.token,
+      );
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Unable to send OTP.');
+      }
+
+      setOtpSent(true);
+      setOtpVerified(false);
+      setOtpTimerSeconds(120);
+      setOtpMessage(
+        'OTP sent successfully. Please enter the code you received.',
+      );
+      showToast('OTP sent successfully.', 'success');
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unable to send OTP.';
+      setOtpMessage(message);
+      showToast(message, 'error');
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+
+    if (paymentMethod === '') {
+      showToast('Please select the payment method', 'warning');
+      return;
+    }
+
     if (!validate()) return;
     if (!displayCart.length) {
       showToast('Your cart is empty.', 'warning');
@@ -111,6 +197,54 @@ const CheckoutPage = () => {
     setIsSubmitting(true);
 
     try {
+      let verifiedNow = false;
+
+      if (paymentMethod === 'cod' && otpSent && !otpVerified) {
+        if (!otpCode.trim()) {
+          showToast('Please enter the OTP received on your phone.', 'warning');
+          setIsSubmitting(false);
+          return;
+        }
+
+        setIsVerifyingOtp(true);
+        try {
+          const { response, data } = await verifyCheckoutOtp(
+            form.phone.trim(),
+            otpCode.trim(),
+            user.token,
+          );
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.error || 'OTP verification failed.');
+          }
+
+          verifiedNow = true;
+          setOtpVerified(true);
+          setOtpMessage('Phone verification completed successfully.');
+          showToast('OTP verified successfully.', 'success');
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : 'OTP verification failed.';
+          setOtpVerified(false);
+          setOtpMessage(message);
+          showToast(message, 'error');
+          setIsVerifyingOtp(false);
+          setIsSubmitting(false);
+          return;
+        } finally {
+          setIsVerifyingOtp(false);
+        }
+      }
+
+      if (paymentMethod === 'cod' && !otpVerified && !verifiedNow) {
+        showToast(
+          'Please verify the OTP sent to your phone before placing the order.',
+          'warning',
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
       const payload = {
         customerId: user._id,
         customerName: form.fullName.trim(),
@@ -136,6 +270,9 @@ const CheckoutPage = () => {
         gstRate: totals.gstRate,
         paymentMethod,
         notes: `Checkout via ${paymentMethod === 'razorpay' ? 'Razorpay' : 'Cash on Delivery'}`,
+        otpVerified:
+          paymentMethod === 'cod' ? otpVerified || verifiedNow : undefined,
+        otpCode: paymentMethod === 'cod' ? otpCode.trim() : undefined,
       };
 
       const { response, data } = await submitCheckoutOrder(payload, user.token);
@@ -218,6 +355,7 @@ const CheckoutPage = () => {
               }
 
               setCart([]);
+              clearCart();
               setForm(initialFormState);
               showToast(
                 'Payment completed and order confirmed successfully.',
@@ -254,6 +392,7 @@ const CheckoutPage = () => {
       }
 
       setCart([]);
+      clearCart();
       showToast(
         'Order placed successfully. We will confirm it shortly.',
         'success',
@@ -285,6 +424,15 @@ const CheckoutPage = () => {
           paymentMethod={paymentMethod}
           onPaymentMethodChange={setPaymentMethod}
           isSubmitting={isSubmitting}
+          otpCode={otpCode}
+          otpSent={otpSent}
+          otpVerified={otpVerified}
+          otpMessage={otpMessage}
+          otpTimerSeconds={otpTimerSeconds}
+          isSendingOtp={isSendingOtp}
+          isVerifyingOtp={isVerifyingOtp}
+          onOtpCodeChange={setOtpCode}
+          onSendOtp={handleSendOtp}
           onSubmit={handleSubmit}
         />
 

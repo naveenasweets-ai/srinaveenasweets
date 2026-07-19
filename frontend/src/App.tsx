@@ -22,6 +22,19 @@ import CartPage from './pages/customer/cart-page';
 import WishlistPage from './pages/customer/wishlist-page';
 import Checkout from './pages/customer/checkout-page';
 import OrderConfirmationPage from './pages/customer/order-confirmation-page';
+import type { User } from './types/contextTypes';
+
+const ProtectedRoute = ({
+  role,
+  element,
+  user,
+}: {
+  role: string;
+  element: any;
+  user: User;
+}) => {
+  return user.loggedIn && user.role === role ? element : <AccessDenied />;
+};
 
 export default function App() {
   const { user, setSiteContent, setProducts } = useStore();
@@ -96,16 +109,6 @@ export default function App() {
     getUserData();
   }, [user]);
 
-  const ProtectedRoute = ({
-    role,
-    element,
-  }: {
-    role: string;
-    element: any;
-  }) => {
-    return user.loggedIn && user.role === role ? element : <AccessDenied />;
-  };
-
   return (
     <div className="min-h-screen bg-(--color-background) text-(--color-text) flex flex-col justify-between font-sans selection:bg-(--color-accent-light) selection:text-(--color-text)">
       <Header />
@@ -118,18 +121,18 @@ export default function App() {
           <Route
             path="/admin-dashboard"
             element={
-              <ProtectedRoute role="admin" element={<AdminDashboard />} />
+              <ProtectedRoute role="admin" element={<AdminDashboard />} user={user} />
             }
           />
           <Route
             path="/admin-products"
             element={
-              <ProtectedRoute role="admin" element={<ProductCatalogue />} />
+              <ProtectedRoute role="admin" element={<ProductCatalogue />} user={user} />
             }
           />
           <Route
             path="/app-customize"
-            element={<ProtectedRoute role="admin" element={<AppCustomize />} />}
+            element={<ProtectedRoute role="admin" element={<AppCustomize />} user={user} />}
           />
 
           <Route path="/category/:slug" element={<CategoryPage />} />
@@ -138,17 +141,17 @@ export default function App() {
 
           <Route
             path="/cart"
-            element={<ProtectedRoute role="customer" element={<CartPage />} />}
+            element={<ProtectedRoute role="customer" element={<CartPage />} user={user} />}
           />
           <Route
             path="/favorites"
             element={
-              <ProtectedRoute role="customer" element={<WishlistPage />} />
+              <ProtectedRoute role="customer" element={<WishlistPage />} user={user} />
             }
           />
           <Route
             path="/checkout"
-            element={<ProtectedRoute role="customer" element={<Checkout />} />}
+            element={<ProtectedRoute role="customer" element={<Checkout />} user={user} />}
           />
           <Route
             path="/order-confirmation"
@@ -156,6 +159,7 @@ export default function App() {
               <ProtectedRoute
                 role="customer"
                 element={<OrderConfirmationPage />}
+                user={user}
               />
             }
           />
