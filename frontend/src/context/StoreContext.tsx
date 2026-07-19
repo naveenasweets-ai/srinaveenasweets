@@ -124,7 +124,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
     },
     0,
   );
-  console.log('availableCartItems', availableCartItems);
+
   const cartCount = availableCartItems.reduce(
     (sum, item) => sum + item.quantity,
     0,

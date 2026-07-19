@@ -35,7 +35,7 @@ const UpdateCatalogue = ({
 
   const getDefaultCategoryId = (currentProduct?: Product) => {
     const matchingCategory = categoryOptions.find(
-      (cat) => cat._id === currentProduct?.category,
+      (cat) => cat.name === currentProduct?.category,
     );
     return matchingCategory?._id ?? categoryOptions[0]?._id ?? '';
   };
@@ -180,7 +180,7 @@ const UpdateCatalogue = ({
 
     return payload;
   };
-  console.log('makeProductPayload: ', makeProductPayload());
+
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
 

@@ -7,9 +7,8 @@ import { useStore } from '../../context/StoreContext';
 const Footer = () => {
   const { siteContent } = useStore();
 
-  const allNavItems = (siteContent?.categoriesInfo?.selectedCategories ?? [])
-    
-  console.log('allNavItems: ', allNavItems)
+  const allNavItems = siteContent?.categoriesInfo?.selectedCategories ?? [];
+
   return (
     <Box
       sx={{
