@@ -99,13 +99,12 @@ const AllOrders = () => {
     if (!date) return true;
     const orderDate = new Date(order.createdAt || '');
     if (isNaN(orderDate.getTime())) return false;
-    const orderDay = new Date(
-      orderDate.getFullYear(),
-      orderDate.getMonth(),
-      orderDate.getDate(),
+    const [year, month, day] = date.split('-').map(Number);
+    return (
+      orderDate.getFullYear() === year &&
+      orderDate.getMonth() === month - 1 &&
+      orderDate.getDate() === day
     );
-    const selectedDay = new Date(date);
-    return orderDay.getTime() === selectedDay.getTime();
   };
 
   const matchesSearch = (order: Order, query: string) => {

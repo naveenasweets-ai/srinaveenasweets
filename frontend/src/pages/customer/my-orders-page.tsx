@@ -95,13 +95,12 @@ const MyOrdersPage = () => {
     if (!date) return true;
     const orderDate = new Date(order.createdAt || '');
     if (isNaN(orderDate.getTime())) return false;
-    const orderDay = new Date(
-      orderDate.getFullYear(),
-      orderDate.getMonth(),
-      orderDate.getDate(),
+    const [year, month, day] = date.split('-').map(Number);
+    return (
+      orderDate.getFullYear() === year &&
+      orderDate.getMonth() === month - 1 &&
+      orderDate.getDate() === day
     );
-    const selectedDay = new Date(date);
-    return orderDay.getTime() === selectedDay.getTime();
   };
 
   const matchesSearch = (order: Order, query: string) => {
@@ -157,7 +156,7 @@ const MyOrdersPage = () => {
         Track and review your past orders
       </p>
 
-      <div className='flex'>
+      <div className="flex">
         <input
           type="text"
           placeholder="Search by shipping details, customer, order id..."
