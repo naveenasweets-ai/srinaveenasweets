@@ -5,6 +5,7 @@ import type {
   HeroContent,
   ChargesConfig,
   LegalPage,
+  DeliverablePincodesConfig,
 } from "./appContentTypes";
 
 export type User = {
@@ -67,18 +68,11 @@ export interface StoreContextType {
   siteContent: {
     categories: CategoryConfig[];
     heroContent: HeroContent | null;
-    categoriesInfo: {
-      title: string;
-      description: string;
-      selectedCategories: {
-        name: string,
-        slug: string,
-        selectedProducts: [string],
-      }[];
-    };
+    categoriesInfo: CategoryInfoType;
     features: FeatureItem[];
     charges: ChargesConfig;
     legalPages: LegalPage[];
+    deliverablePincodes: DeliverablePincodesConfig;
   }
   setSiteContent: React.Dispatch<
     React.SetStateAction<{
@@ -88,6 +82,7 @@ export interface StoreContextType {
       features: FeatureItem[];
       charges: ChargesConfig;
       legalPages: LegalPage[];
+      deliverablePincodes: DeliverablePincodesConfig;
     }>
   >;
 

@@ -237,8 +237,7 @@ export async function saveCharges(req, res) {
     }
     if (gstRate !== undefined) {
       const value = Number(gstRate);
-      siteConfig.charges.gstRate =
-        value < 0 || Number.isNaN(value) ? 0 : value;
+      siteConfig.charges.gstRate = value < 0 || Number.isNaN(value) ? 0 : value;
     }
 
     await siteConfig.save();
@@ -288,6 +287,31 @@ export async function saveLegalPages(req, res) {
     return res
       .status(200)
       .json({ success: true, legalPages: siteConfig.legalPages });
+  } catch (error) {
+    return res.status(400).json({ success: false, error: error.message });
+  }
+}
+
+export async function saveDeliverablePincodes(req, res) {
+  try {
+    const { pincodes } = req.body || {};
+
+    if (!Array.isArray(pincodes)) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'pincodes must be an array' });
+    }
+
+    const siteConfig = await getOrCreateSiteConfig();
+    siteConfig.deliverablePincodes = pincodes
+      .filter((p) => typeof p === 'string' && p.trim() !== '')
+      .map((p) => p.trim());
+    await siteConfig.save();
+
+    return res.status(200).json({
+      success: true,
+      deliverablePincodes: siteConfig.deliverablePincodes,
+    });
   } catch (error) {
     return res.status(400).json({ success: false, error: error.message });
   }

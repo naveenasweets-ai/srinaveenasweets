@@ -17,6 +17,7 @@ router.get('/', async (req, res) => {
           categories: [],
           heroContent: null,
           legalPages: legalPagesDefault,
+          deliverablePincodes: [],
         });
     }
 
@@ -37,6 +38,7 @@ router.get('/', async (req, res) => {
         Array.isArray(siteConfig.legalPages) && siteConfig.legalPages.length
           ? siteConfig.legalPages
           : legalPagesDefault,
+      deliverablePincodes: siteConfig.deliverablePincodes || [],
       footer: siteConfig.footer || {
         help: [
           {
@@ -100,5 +102,9 @@ router.route('/charges').post(requireAdminAuth, siteController.saveCharges);
 router
   .route('/legal-pages')
   .post(requireAdminAuth, siteController.saveLegalPages);
+
+router
+  .route('/deliverable-pincodes')
+  .post(requireAdminAuth, siteController.saveDeliverablePincodes);
 
 export default router;

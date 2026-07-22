@@ -66,3 +66,5 @@ export type LegalPage = {
   description: string;
   content: string;
 };
+
+export type DeliverablePincodesConfig = string[];

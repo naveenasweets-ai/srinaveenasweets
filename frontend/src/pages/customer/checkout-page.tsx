@@ -69,6 +69,12 @@ const CheckoutPage = () => {
     gstRate: 5,
   };
 
+  const deliverablePincodes = siteContent?.deliverablePincodes || [];
+  const isPincodeDeliverable =
+    !form.pincode.trim() || deliverablePincodes.length === 0
+      ? true
+      : deliverablePincodes.includes(form.pincode.trim());
+
   const deliveryFee = checkoutState?.deliveryFee ?? 0;
   const packagingFee = checkoutState?.packagingFee ?? charges.packagingFee;
   const platformFee = checkoutState?.platformFee ?? charges.platformFee;
@@ -108,6 +114,8 @@ const CheckoutPage = () => {
     if (!form.city.trim()) nextErrors.city = 'City is required';
     if (!form.state.trim()) nextErrors.state = 'State is required';
     if (!form.pincode.trim()) nextErrors.pincode = 'Pincode is required';
+    if (form.lat === 0) nextErrors.lat = 'Location is required';
+    if (form.lng === 0) nextErrors.lng = 'Location is required';
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -133,7 +141,7 @@ const CheckoutPage = () => {
 
   const handleChange = (
     field: keyof CheckoutFormState,
-    value: string | number
+    value: string | number,
   ) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: '' }));
@@ -144,6 +152,17 @@ const CheckoutPage = () => {
       setOtpVerified(false);
       setOtpMessage('');
       setOtpTimerSeconds(0);
+    }
+
+    if (field === 'pincode') {
+      const trimmed = typeof value === 'string' ? value.trim() : String(value);
+      const nextDeliverable =
+        !trimmed || deliverablePincodes.length === 0
+          ? true
+          : deliverablePincodes.includes(trimmed);
+      if (!nextDeliverable && paymentMethod !== '') {
+        setPaymentMethod('');
+      }
     }
   };
 
@@ -283,6 +302,8 @@ const CheckoutPage = () => {
         city: form.city.trim(),
         state: form.state.trim(),
         pincode: form.pincode.trim(),
+        longitude: form.lng,
+        latitude: form.lat,
         items: displayCart.map((item) => ({
           productId: item.product._id,
           name: item.product.name,
@@ -464,6 +485,8 @@ const CheckoutPage = () => {
           onOtpCodeChange={setOtpCode}
           onSendOtp={handleSendOtp}
           onSubmit={handleSubmit}
+          deliverablePincodes={deliverablePincodes}
+          isPincodeDeliverable={isPincodeDeliverable}
         />
 
         <CheckoutSummary

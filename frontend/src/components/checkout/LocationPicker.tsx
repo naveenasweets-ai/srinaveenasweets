@@ -38,7 +38,8 @@ const LocationPicker = ({
   lat = 16.314209,
   lng = 80.435028,
   onAddressSelect,
-}: LocationPickerProps) => {
+  onClose,
+}: LocationPickerProps & { onClose?: () => void }) => {
   const { showToast } = useStore();
   const [position, setPosition] = useState<[number, number]>([
     Number.isFinite(lat) ? lat : DEFAULT_POSITION[0],
@@ -87,6 +88,7 @@ const LocationPicker = ({
         'Address details filled from the selected location.',
         'success',
       );
+      onClose?.();
     } catch {
       showToast('Unable to fetch location details right now.', 'error');
     } finally {

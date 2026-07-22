@@ -40,7 +40,11 @@ const sendOtpViaTwilio = async (phone, otp) => {
   const fromNumber = process.env.TWILIO_FROM_NUMBER;
 
   if (!accountSid || !authToken || (!messagingServiceSid && !fromNumber)) {
-    return { success: false, mocked: true, message: 'Failed to send OTP via Twilio.' };
+    return {
+      success: false,
+      mocked: true,
+      message: 'Failed to send OTP via Twilio.',
+    };
   }
 
   const payload = {
@@ -71,7 +75,7 @@ const sendOtpViaTwilio = async (phone, otp) => {
     throw new Error(errorText || 'Failed to send OTP via Twilio.');
   }
 
-  return { success: true, mocked: true, message: 'OTP sent successfully'};
+  return { success: true, mocked: true, message: 'OTP sent successfully' };
 };
 
 const verifyOtpViaTwilio = async (phone, otp) => {
@@ -123,6 +127,8 @@ const createOrder = async (req, res) => {
       platformFee = 0,
       gstRate = 0,
       notes = '',
+      longitude,
+      latitude,
       otpVerified = false,
       otpCode = '',
     } = req.body || {};
@@ -186,6 +192,8 @@ const createOrder = async (req, res) => {
       pincode: pincode.trim(),
       paymentMethod,
       paymentStatus: paymentMethod === 'razorpay' ? 'pending' : 'cod',
+      longitude: longitude,
+      latitude: latitude,
       orderStatus: 'pending',
       items: items.map((item) => ({
         productId: item.productId || item._id || '',
@@ -253,9 +261,9 @@ const getCustomerOrders = async (req, res) => {
     if (req.user?._id !== customerId) {
       return res.status(403).json({ success: false, error: 'Access denied' });
     }
-    const orders = await OrderSchema
-      .find({ customerId })
-      .sort({ createdAt: -1 });
+    const orders = await OrderSchema.find({ customerId }).sort({
+      createdAt: -1,
+    });
     return res.status(200).json({ success: true, orders });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
@@ -508,6 +516,8 @@ const verifyRazorpayPayment = async (req, res) => {
         paymentMethod: 'razorpay',
         paymentStatus: 'pending',
         orderStatus: 'pending',
+        longitude: orderData.longitude.trim(),
+        latitude: orderData.lattitute.trim(),
         items: Array.isArray(orderData.items)
           ? orderData.items.map((item) => ({
               productId: item.productId || item._id || '',

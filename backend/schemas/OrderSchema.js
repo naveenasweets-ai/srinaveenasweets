@@ -16,6 +16,8 @@ const OrderSchema = new Schema(
     paymentMethod: { type: String, required: true, enum: ['cod', 'razorpay'] },
     paymentStatus: { type: String, required: true, default: 'pending' },
     orderStatus: { type: String, required: true, default: 'pending' },
+    longitude: { type: String, required: false, default: '' },
+    latitude: { type: String, required: false, default: '' },
     items: [
       {
         productId: { type: String, required: true },

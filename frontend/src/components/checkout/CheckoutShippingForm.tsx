@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import type { CheckoutShippingFormProps } from '../../types/types';
 import LocationPicker from './LocationPicker';
@@ -21,11 +21,13 @@ const CheckoutShippingForm = ({
   onOtpCodeChange,
   onSendOtp,
   onSubmit,
+  isPincodeDeliverable,
 }: CheckoutShippingFormProps) => {
+  const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
   const handleAddressSelect = useCallback(
     (data: any) => {
       onChange('address', data.address);
-      onChange('city', data.city );
+      onChange('city', data.city);
       onChange('state', data.state);
       onChange('pincode', data.pincode);
       onChange('lat', data.lat);
@@ -114,12 +116,49 @@ const CheckoutShippingForm = ({
         </div>
 
         <div className="col-span-2">
-          <LocationPicker
-            lat={form.lat}
-            lng={form.lng}
-            onAddressSelect={handleAddressSelect}
-          />
+          <button
+            type="button"
+            onClick={() => setIsLocationPickerOpen(true)}
+            className="w-full rounded-lg border border-(--color-border) bg-(--color-surface) px-3 py-2 text-left text-sm font-medium text-(--color-muted) hover:border-(--color-accent) transition"
+          >
+            {form.lat !== 0 || form.lng !== 0 ? (
+              `Location selected`
+            ) : errors.lat || errors.lng ? (
+              <p className="mt-1 text-sm text-red-500">{errors.lat}</p>
+            ) : (
+              'Click to select exact location on map'
+            )}
+          </button>
         </div>
+
+        {isLocationPickerOpen && (
+          <div className="col-span-2">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+              <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-(--color-border) bg-(--color-surface) shadow-2xl">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-(--color-border)">
+                  <h3 className="text-lg font-semibold">
+                    Select location on map
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setIsLocationPickerOpen(false)}
+                    className="text-sm text-(--color-muted) hover:text-white transition"
+                  >
+                    Close
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4">
+                  <LocationPicker
+                    lat={form.lat}
+                    lng={form.lng}
+                    onAddressSelect={handleAddressSelect}
+                    onClose={() => setIsLocationPickerOpen(false)}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-3 grid-cols-1 gap-2 col-span-2">
           <div>
@@ -156,6 +195,11 @@ const CheckoutShippingForm = ({
             )}
           </div>
         </div>
+        {!isPincodeDeliverable && form.pincode.length === 6 && (
+          <p className="col-span-2 lg:text-end text-sm text-red-500">
+            Delivery to this pincode is currently unavailable.
+          </p>
+        )}
       </div>
 
       {paymentMethod === 'cod' && otpSent && (
@@ -183,7 +227,7 @@ const CheckoutShippingForm = ({
         <h2 className="text-lg font-semibold">Payment method</h2>
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <label
-            className={`flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 ${paymentMethod === 'cod' ? 'border-(--color-accent) bg-(--color-accent-light)' : 'border-(--color-border)'}`}
+            className={`flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 ${paymentMethod === 'cod' ? 'border-(--color-accent) bg-(--color-accent-light)' : 'border-(--color-border)'} ${!isPincodeDeliverable ? 'opacity-60' : ''}`}
           >
             <div>
               <p className="font-medium">Cash on delivery</p>
@@ -196,11 +240,12 @@ const CheckoutShippingForm = ({
               name="paymentMethod"
               className="h-4 w-4"
               checked={paymentMethod === 'cod'}
+              disabled={!isPincodeDeliverable}
               onChange={() => onPaymentMethodChange('cod')}
             />
           </label>
           <label
-            className={`flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 ${paymentMethod === 'razorpay' ? 'border-(--color-accent) bg-(--color-accent-light)' : 'border-(--color-border)'}`}
+            className={`flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 ${paymentMethod === 'razorpay' ? 'border-(--color-accent) bg-(--color-accent-light)' : 'border-(--color-border)'} ${!isPincodeDeliverable ? 'opacity-60' : ''}`}
           >
             <div>
               <p className="font-medium">Razorpay</p>
@@ -213,6 +258,7 @@ const CheckoutShippingForm = ({
               name="paymentMethod"
               className="h-4 w-4"
               checked={paymentMethod === 'razorpay'}
+              disabled={!isPincodeDeliverable}
               onChange={() => onPaymentMethodChange('razorpay')}
             />
           </label>
@@ -221,7 +267,7 @@ const CheckoutShippingForm = ({
 
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || !isPincodeDeliverable}
         className="mt-8 w-full cursor-pointer rounded-lg bg-(--color-accent) px-4 py-3 font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
       >
         {isSubmitting

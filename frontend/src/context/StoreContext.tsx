@@ -17,6 +17,7 @@ import type {
   HeroContent,
   ChargesConfig,
   LegalPage,
+  DeliverablePincodesConfig,
 } from '../types/appContentTypes';
 import { getSelectedWeightOption } from '../utils/productInventory';
 import { getDefaultLegalPages } from '../utils/utils';
@@ -73,6 +74,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
     features: FeatureItem[];
     charges: ChargesConfig;
     legalPages: LegalPage[];
+    deliverablePincodes: DeliverablePincodesConfig;
   }>({
     categories: [],
     heroContent: null,
@@ -91,6 +93,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
       gstRate: 5,
     },
     legalPages: getDefaultLegalPages(),
+    deliverablePincodes: [],
   });
 
   const handpickedCats = siteContent?.categoriesInfo?.selectedCategories?.map(

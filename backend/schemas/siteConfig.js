@@ -135,6 +135,10 @@ const SiteConfigSchema = new Schema(
       ],
       default: legalPagesDefault,
     },
+    deliverablePincodes: {
+      type: [String],
+      default: [],
+    },
   },
   { timestamps: true },
 );

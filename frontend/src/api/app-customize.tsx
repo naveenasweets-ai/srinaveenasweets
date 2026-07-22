@@ -5,6 +5,7 @@ import type {
   HeroContent,
   ChargesConfig,
   LegalPage,
+  DeliverablePincodesConfig,
 } from '../types/appContentTypes';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -244,6 +245,31 @@ const AppCustomApi = () => {
     }
   };
 
+  const saveDeliverablePincodes = async (pincodes: DeliverablePincodesConfig) => {
+    try {
+      const response = await fetch(`${apiUrl}/api/site-content/deliverable-pincodes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user?.token}`,
+        },
+        body: JSON.stringify({ pincodes }),
+      });
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error || 'Failed to save deliverable pincodes');
+      }
+      showToast('Deliverable pincodes updated successfully', 'success');
+      return json;
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : 'Failed to save deliverable pincodes',
+        'error',
+      );
+      return null;
+    }
+  };
+
   return {
     saveCategory,
     updateCategory,
@@ -254,6 +280,7 @@ const AppCustomApi = () => {
     saveFeatures,
     saveCharges,
     saveLegalPages,
+    saveDeliverablePincodes,
   };
 };
 

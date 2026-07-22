@@ -22,8 +22,8 @@ export const initialFormState: CheckoutFormState = {
   city: '',
   state: '',
   pincode: '',
-  lat: 16.314209,
-  lng: 80.435028,
+  lat: 0,
+  lng: 0,
 };
 
 
@@ -41,6 +41,7 @@ export type LocationPickerProps = {
     lat: number;
     lng: number;
   }) => void;
+  onClose?: () => void;
 };
 
 export type PaymentMethod = 'cod' | 'razorpay' | '';
@@ -98,6 +99,8 @@ export type CheckoutShippingFormProps = {
   onOtpCodeChange: (value: string) => void;
   onSendOtp: () => void;
   onSubmit: (e: any) => void;
+  deliverablePincodes: string[];
+  isPincodeDeliverable: boolean;
 };
 
 

@@ -5,6 +5,7 @@ import Handpicked from '../../components/app-customize/handpicked';
 import Features from '../../components/app-customize/features';
 import Charges from '../../components/app-customize/charges';
 import LegalPages from '../../components/app-customize/legal-pages';
+import DeliverablePincodes from '../../components/app-customize/deliverable-pincodes';
 
 function SectionAccordion({
   title,
@@ -82,10 +83,13 @@ export default function AppCustomize() {
         <Charges />
       </SectionAccordion>
 
+      <SectionAccordion title="Deliverable Pincodes">
+        <DeliverablePincodes />
+      </SectionAccordion>
+
       <SectionAccordion title="Policy pages (Terms, Privacy, Returns, Shipping)">
         <LegalPages />
       </SectionAccordion>
-
     </div>
   );
 }
