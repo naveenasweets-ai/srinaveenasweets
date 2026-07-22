@@ -1,10 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import type { CheckoutShippingFormProps } from '../../types/types';
+import LocationPicker from './LocationPicker';
 
 const CheckoutShippingForm = ({
   form,
   errors,
   onChange,
+  onAddressSelect,
   paymentMethod,
   onPaymentMethodChange,
   isSubmitting,
@@ -18,6 +22,19 @@ const CheckoutShippingForm = ({
   onSendOtp,
   onSubmit,
 }: CheckoutShippingFormProps) => {
+  const handleAddressSelect = useCallback(
+    (data: any) => {
+      onChange('address', data.address);
+      onChange('city', data.city );
+      onChange('state', data.state);
+      onChange('pincode', data.pincode);
+      onChange('lat', data.lat);
+      onChange('lng', data.lng);
+      onAddressSelect(data);
+    },
+    [onChange, onAddressSelect],
+  );
+
   return (
     <form
       onSubmit={onSubmit}
@@ -45,18 +62,6 @@ const CheckoutShippingForm = ({
           />
           {errors.fullName && (
             <p className="mt-1 text-sm text-red-500">{errors.fullName}</p>
-          )}
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Email</label>
-          <input
-            type="email"
-            value={form.email}
-            onChange={(event) => onChange('email', event.target.value)}
-            className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
-          />
-          {errors.email && (
-            <p className="mt-1 text-sm text-red-500">{errors.email}</p>
           )}
         </div>
         <div>
@@ -95,18 +100,8 @@ const CheckoutShippingForm = ({
             <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
           )}
         </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Pincode</label>
-          <input
-            value={form.pincode}
-            onChange={(event) => onChange('pincode', event.target.value)}
-            className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
-          />
-          {errors.pincode && (
-            <p className="mt-1 text-sm text-red-500">{errors.pincode}</p>
-          )}
-        </div>
-        <div className="md:col-span-2">
+
+        <div className="col-span-2">
           <label className="mb-1 block text-sm font-medium">Address</label>
           <textarea
             value={form.address}
@@ -117,27 +112,49 @@ const CheckoutShippingForm = ({
             <p className="mt-1 text-sm text-red-500">{errors.address}</p>
           )}
         </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">City</label>
-          <input
-            value={form.city}
-            onChange={(event) => onChange('city', event.target.value)}
-            className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
+
+        <div className="col-span-2">
+          <LocationPicker
+            lat={form.lat}
+            lng={form.lng}
+            onAddressSelect={handleAddressSelect}
           />
-          {errors.city && (
-            <p className="mt-1 text-sm text-red-500">{errors.city}</p>
-          )}
         </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">State</label>
-          <input
-            value={form.state}
-            onChange={(event) => onChange('state', event.target.value)}
-            className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
-          />
-          {errors.state && (
-            <p className="mt-1 text-sm text-red-500">{errors.state}</p>
-          )}
+
+        <div className="grid lg:grid-cols-3 grid-cols-1 gap-2 col-span-2">
+          <div>
+            <label className="mb-1 block text-sm font-medium">City</label>
+            <input
+              value={form.city}
+              onChange={(event) => onChange('city', event.target.value)}
+              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
+            />
+            {errors.city && (
+              <p className="mt-1 text-sm text-red-500">{errors.city}</p>
+            )}
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium">State</label>
+            <input
+              value={form.state}
+              onChange={(event) => onChange('state', event.target.value)}
+              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
+            />
+            {errors.state && (
+              <p className="mt-1 text-sm text-red-500">{errors.state}</p>
+            )}
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium">Pincode</label>
+            <input
+              value={form.pincode}
+              onChange={(event) => onChange('pincode', event.target.value)}
+              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
+            />
+            {errors.pincode && (
+              <p className="mt-1 text-sm text-red-500">{errors.pincode}</p>
+            )}
+          </div>
         </div>
       </div>
 

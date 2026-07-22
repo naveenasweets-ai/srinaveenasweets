@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -23,6 +24,12 @@ const CheckoutPage = () => {
   const { cart, cartTotal, user, showToast, siteContent, setCart } = useStore();
   const { clearCart } = CustomerUtils();
   const [form, setForm] = useState<CheckoutFormState>(initialFormState);
+
+  useEffect(() => {
+    if (user.loggedIn && user.email && !form.email) {
+      setForm((prev) => ({ ...prev, email: user.email }));
+    }
+  }, [user.loggedIn, user.email, form.email]);
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'razorpay' | ''>(
     '',
   );
@@ -124,7 +131,10 @@ const CheckoutPage = () => {
     return () => window.clearInterval(timer);
   }, [otpTimerSeconds]);
 
-  const handleChange = (field: keyof CheckoutFormState, value: string) => {
+  const handleChange = (
+    field: keyof CheckoutFormState,
+    value: string | number
+  ) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: '' }));
 
@@ -135,6 +145,25 @@ const CheckoutPage = () => {
       setOtpMessage('');
       setOtpTimerSeconds(0);
     }
+  };
+
+  const handleAddressSelect = (data: {
+    address: string;
+    city: string;
+    state: string;
+    pincode: string;
+    lat: number;
+    lng: number;
+  }) => {
+    setForm((prev) => ({
+      ...prev,
+      address: data.address,
+      city: data.city,
+      state: data.state,
+      pincode: data.pincode,
+      lat: data.lat,
+      lng: data.lng,
+    }));
   };
 
   const handleSendOtp = async () => {
@@ -421,6 +450,7 @@ const CheckoutPage = () => {
           form={form}
           errors={errors}
           onChange={handleChange}
+          onAddressSelect={handleAddressSelect}
           paymentMethod={paymentMethod}
           onPaymentMethodChange={setPaymentMethod}
           isSubmitting={isSubmitting}

@@ -10,6 +10,8 @@ export type CheckoutFormState = {
   city: string;
   state: string;
   pincode: string;
+  lat: number;
+  lng: number;
 };
 
 export const initialFormState: CheckoutFormState = {
@@ -20,6 +22,25 @@ export const initialFormState: CheckoutFormState = {
   city: '',
   state: '',
   pincode: '',
+  lat: 16.314209,
+  lng: 80.435028,
+};
+
+
+export const DEFAULT_POSITION: [number, number] = [16.314209, 80.435028];
+
+export type LocationPickerProps = {
+  lat?: number;
+  lng?: number;
+  onAddressSelect: (data: {
+    address: string;
+    city: string;
+    state: string;
+    pincode: string;
+    state_district?: string
+    lat: number;
+    lng: number;
+  }) => void;
 };
 
 export type PaymentMethod = 'cod' | 'razorpay' | '';
@@ -55,7 +76,15 @@ export type CheckoutOrderPayload = {
 export type CheckoutShippingFormProps = {
   form: CheckoutFormState;
   errors: Partial<Record<keyof CheckoutFormState, string>>;
-  onChange: (field: keyof CheckoutFormState, value: string) => void;
+  onChange: (field: keyof CheckoutFormState, value: string | number) => void;
+  onAddressSelect: (data: {
+    address: string;
+    city: string;
+    state: string;
+    pincode: string;
+    lat: number;
+    lng: number;
+  }) => void;
   paymentMethod: 'cod' | 'razorpay' | '';
   onPaymentMethodChange: (value: 'cod' | 'razorpay') => void;
   isSubmitting: boolean;
