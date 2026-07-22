@@ -54,7 +54,7 @@ const CheckoutShippingForm = ({
         </Link>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="lg:grid gap-4 md:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-medium">Full name</label>
           <input
