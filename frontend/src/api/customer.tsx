@@ -150,10 +150,99 @@ const CustomerApi = () => {
     }
   };
 
+  const getSavedAddresses = async (token: string) => {
+    const response = await fetch(`${apiUrl}/api/customer/addresses`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+    return { response, data };
+  };
+
+  const addSavedAddress = async (
+    token: string,
+    address: {
+      fullname: string;
+      mobile: string;
+      fullAddress: string;
+      city: string;
+      state: string;
+      pincode: string;
+      lat: number;
+      lng: number;
+    },
+  ) => {
+    const response = await fetch(`${apiUrl}/api/customer/addresses`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(address),
+    });
+
+    const data = await response.json();
+    return { response, data };
+  };
+
+  const updateSavedAddress = async (
+    token: string,
+    addressId: string,
+    address: {
+      fullname: string;
+      mobile: string;
+      fullAddress: string;
+      city: string;
+      state: string;
+      pincode: string;
+      lat: number;
+      lng: number;
+    },
+  ) => {
+    const response = await fetch(
+      `${apiUrl}/api/customer/addresses/${addressId}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(address),
+      },
+    );
+
+    const data = await response.json();
+    return { response, data };
+  };
+
+  const deleteSavedAddress = async (token: string, addressId: string) => {
+    const response = await fetch(
+      `${apiUrl}/api/customer/addresses/${addressId}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const data = await response.json();
+    return { response, data };
+  };
+
   return {
     getCustomerData,
     updateCart,
     updateWishlist,
+    getSavedAddresses,
+    addSavedAddress,
+    updateSavedAddress,
+    deleteSavedAddress,
   };
 };
 

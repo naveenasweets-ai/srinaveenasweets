@@ -101,8 +101,23 @@ export type CheckoutShippingFormProps = {
   onSubmit: (e: any) => void;
   deliverablePincodes: string[];
   isPincodeDeliverable: boolean;
+  savedAddress?: SavedAddress | null;
+  hasSavedAddresses?: boolean;
+  onChangeAddress?: () => void;
 };
 
+export type SavedAddress = {
+  _id: string;
+  fullname: string;
+  mobile: string;
+  fullAddress: string;
+  email: string;
+  city: string;
+  state: string;
+  pincode: string;
+  lat: number;
+  lng: number;
+};
 
 export type OrderItem = {
   productId: string;

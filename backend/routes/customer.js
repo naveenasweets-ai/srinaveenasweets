@@ -16,4 +16,14 @@ router
   .route('/updateWishlist')
   .post(requireCustomerAuth, customerController.updateWishlist);
 
+router
+  .route('/addresses')
+  .get(requireCustomerAuth, customerController.getAddresses)
+  .post(requireCustomerAuth, customerController.addAddress);
+
+router
+  .route('/addresses/:addressId')
+  .delete(requireCustomerAuth, customerController.deleteAddress)
+  .put(requireCustomerAuth, customerController.updateAddress);
+
 export default router;

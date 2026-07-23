@@ -516,8 +516,8 @@ const verifyRazorpayPayment = async (req, res) => {
         paymentMethod: 'razorpay',
         paymentStatus: 'pending',
         orderStatus: 'pending',
-        longitude: orderData.longitude.trim(),
-        latitude: orderData.lattitute.trim(),
+        longitude: orderData.longitude,
+        latitude: orderData.lattitute,
         items: Array.isArray(orderData.items)
           ? orderData.items.map((item) => ({
               productId: item.productId || item._id || '',

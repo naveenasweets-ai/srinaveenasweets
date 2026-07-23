@@ -3,11 +3,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '../../context/StoreContext';
-import { initialFormState, type CheckoutFormState } from '../../types/types';
+import {
+  initialFormState,
+  type CheckoutFormState,
+  type SavedAddress,
+} from '../../types/types';
 import { calculateCheckoutSummary } from '../../utils/checkout';
 import { getSelectedWeightOption } from '../../utils/productInventory';
 import CheckoutShippingForm from '../../components/checkout/CheckoutShippingForm';
 import CheckoutSummary from '../../components/checkout/CheckoutSummary';
+import SavedAddressSelection from '../../components/checkout/SavedAddressSelection';
 import {
   initiateCheckoutPayment,
   loadRazorpayScript,
@@ -17,19 +22,159 @@ import {
   verifyRazorpayPayment,
 } from '../../api/checkout';
 import CustomerUtils from '../../utils/customer';
+import CustomerApi from '../../api/customer';
 
 const CheckoutPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { cart, cartTotal, user, showToast, siteContent, setCart } = useStore();
   const { clearCart } = CustomerUtils();
+  const {
+    addSavedAddress,
+    updateSavedAddress,
+    deleteSavedAddress,
+    getSavedAddresses,
+  } = CustomerApi();
   const [form, setForm] = useState<CheckoutFormState>(initialFormState);
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<
+    string | null
+  >(null);
+  const [addressStep, setAddressStep] = useState<'select' | 'checkout'>(
+    'select',
+  );
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
 
   useEffect(() => {
     if (user.loggedIn && user.email && !form.email) {
       setForm((prev) => ({ ...prev, email: user.email }));
     }
   }, [user.loggedIn, user.email, form.email]);
+
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      if (!user.loggedIn || !user.token) return;
+      setIsLoadingAddresses(true);
+      try {
+        const { data } = await getSavedAddresses(user.token);
+        if (data?.success) {
+          setSavedAddresses(data.data || []);
+        }
+      } catch {
+        // silently ignore fetch errors
+      } finally {
+        setIsLoadingAddresses(false);
+      }
+    };
+    fetchAddresses();
+  }, [user.loggedIn, user.token]);
+
+  const handleSelectAddressAndContinue = async (address: SavedAddress) => {
+    setSelectedSavedAddressId(address._id);
+    setForm((prev) => ({
+      ...prev,
+      fullName: address.fullname || prev.fullName,
+      phone: address.mobile || prev.phone,
+      address: address.fullAddress || prev.address,
+      city: address.city || prev.city,
+      state: address.state || prev.state,
+      pincode: address.pincode || prev.pincode,
+      lat: address.lat ?? prev.lat,
+      lng: address.lng ?? prev.lng,
+    }));
+    setAddressStep('checkout');
+  };
+
+  const handleAddNewAddressAndContinue = async (address: {
+    fullname: string;
+    mobile: string;
+    fullAddress: string;
+    city: string;
+    state: string;
+    pincode: string;
+    lat: number;
+    lng: number;
+  }) => {
+    if (!user.token) return;
+    try {
+      const { data } = await addSavedAddress(user.token, address);
+      if (data?.success) {
+        setSavedAddresses(data.data || []);
+        const newAddress = (data.data || []).slice(-1)[0];
+        if (newAddress) {
+          setSelectedSavedAddressId(newAddress._id);
+        }
+        setForm((prev) => ({
+          ...prev,
+          fullName: address.fullname || prev.fullName,
+          phone: address.mobile || prev.phone,
+          address: address.fullAddress || prev.address,
+          city: address.city || prev.city,
+          state: address.state || prev.state,
+          pincode: address.pincode || prev.pincode,
+          lat: address.lat ?? prev.lat,
+          lng: address.lng ?? prev.lng,
+        }));
+        setAddressStep('checkout');
+      }
+    } catch {
+      showToast('Failed to save address', 'error');
+    }
+  };
+
+  const handleDeleteAddress = async (addressId: string) => {
+    if (!user.token) return;
+    try {
+      const { data } = await deleteSavedAddress(user.token, addressId);
+      if (data?.success) {
+        setSavedAddresses(data.data || []);
+        if (selectedSavedAddressId === addressId) {
+          setSelectedSavedAddressId(null);
+        }
+        showToast('Address removed', 'success');
+      }
+    } catch {
+      showToast('Failed to remove address', 'error');
+    }
+  };
+
+  const saveCurrentAddressIfNew = async () => {
+    if (!user.token) return;
+    const addressPayload = {
+      fullname: form.fullName.trim(),
+      mobile: form.phone.trim(),
+      fullAddress: form.address.trim(),
+      city: form.city.trim(),
+      state: form.state.trim(),
+      pincode: form.pincode.trim(),
+      lat: form.lat,
+      lng: form.lng,
+    };
+    try {
+      if (selectedSavedAddressId) {
+        const { data } = await updateSavedAddress(
+          user.token,
+          selectedSavedAddressId,
+          addressPayload,
+        );
+        if (data?.success) {
+          setSavedAddresses(data.data || []);
+        }
+      } else {
+        const { data } = await addSavedAddress(user.token, addressPayload);
+        if (data?.success) {
+          setSavedAddresses(data.data || []);
+        }
+      }
+    } catch {
+      // silent fail - order already placed
+    }
+  };
+
+  const handleBackToAddressSelection = () => {
+    setAddressStep('select');
+  };
+
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'razorpay' | ''>(
     '',
   );
@@ -144,6 +289,7 @@ const CheckoutPage = () => {
     value: string | number,
   ) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+    setSelectedSavedAddressId(null);
     setErrors((prev) => ({ ...prev, [field]: '' }));
 
     if (field === 'phone') {
@@ -404,6 +550,7 @@ const CheckoutPage = () => {
                 );
               }
 
+              saveCurrentAddressIfNew();
               setCart([]);
               clearCart();
               setForm(initialFormState);
@@ -441,6 +588,7 @@ const CheckoutPage = () => {
         return;
       }
 
+      await saveCurrentAddressIfNew();
       setCart([]);
       clearCart();
       showToast(
@@ -464,30 +612,50 @@ const CheckoutPage = () => {
     }
   };
 
+  const selectedSavedAddress =
+    savedAddresses.find((addr) => addr._id === selectedSavedAddressId) || null;
+
   return (
     <div className="min-h-screen bg-(--color-background) px-4 py-8 text-(--color-text) sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-6 lg:flex-row">
-        <CheckoutShippingForm
-          form={form}
-          errors={errors}
-          onChange={handleChange}
-          onAddressSelect={handleAddressSelect}
-          paymentMethod={paymentMethod}
-          onPaymentMethodChange={setPaymentMethod}
-          isSubmitting={isSubmitting}
-          otpCode={otpCode}
-          otpSent={otpSent}
-          otpVerified={otpVerified}
-          otpMessage={otpMessage}
-          otpTimerSeconds={otpTimerSeconds}
-          isSendingOtp={isSendingOtp}
-          isVerifyingOtp={isVerifyingOtp}
-          onOtpCodeChange={setOtpCode}
-          onSendOtp={handleSendOtp}
-          onSubmit={handleSubmit}
-          deliverablePincodes={deliverablePincodes}
-          isPincodeDeliverable={isPincodeDeliverable}
-        />
+        {isLoadingAddresses ? (
+          'Your Addresses are Loading...'
+        ) : addressStep === 'select' ? (
+          <SavedAddressSelection
+            savedAddresses={savedAddresses}
+            selectedAddressId={selectedSavedAddressId}
+            onSelectAddress={handleSelectAddressAndContinue}
+            onAddAddress={handleAddNewAddressAndContinue}
+            onDeleteAddress={handleDeleteAddress}
+            onContinue={() => {}}
+            isSubmitting={isSubmitting}
+          />
+        ) : (
+          <CheckoutShippingForm
+            form={form}
+            errors={errors}
+            onChange={handleChange}
+            onAddressSelect={handleAddressSelect}
+            paymentMethod={paymentMethod}
+            onPaymentMethodChange={setPaymentMethod}
+            isSubmitting={isSubmitting}
+            otpCode={otpCode}
+            otpSent={otpSent}
+            otpVerified={otpVerified}
+            otpMessage={otpMessage}
+            otpTimerSeconds={otpTimerSeconds}
+            isSendingOtp={isSendingOtp}
+            isVerifyingOtp={isVerifyingOtp}
+            onOtpCodeChange={setOtpCode}
+            onSendOtp={handleSendOtp}
+            onSubmit={handleSubmit}
+            deliverablePincodes={deliverablePincodes}
+            isPincodeDeliverable={isPincodeDeliverable}
+            savedAddress={selectedSavedAddress}
+            hasSavedAddresses={savedAddresses.length > 0}
+            onChangeAddress={handleBackToAddressSelection}
+          />
+        )}
 
         <CheckoutSummary
           displayCart={displayCart}

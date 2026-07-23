@@ -22,6 +22,9 @@ const CheckoutShippingForm = ({
   onSendOtp,
   onSubmit,
   isPincodeDeliverable,
+  savedAddress,
+  hasSavedAddresses,
+  onChangeAddress,
 }: CheckoutShippingFormProps) => {
   const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
   const handleAddressSelect = useCallback(
@@ -48,10 +51,26 @@ const CheckoutShippingForm = ({
             Checkout
           </p>
           <h1 className="text-2xl font-semibold">Shipping and payment</h1>
+          {savedAddress && (
+            <p className="text-sm text-(--color-muted)">
+              Selected: {savedAddress.fullname}, {savedAddress.fullAddress}
+            </p>
+          )}
         </div>
-        <Link to="/cart" className="text-sm font-medium text-(--color-accent)">
-          Back to cart
-        </Link>
+        <div className="flex items-center gap-3 whitespace-nowrap">
+          {hasSavedAddresses && onChangeAddress && (
+            <button
+              type="button"
+              onClick={onChangeAddress}
+              className="text-sm font-medium text-(--color-accent)"
+            >
+              Change address
+            </button>
+          )}
+          <Link to="/cart" className="text-sm font-medium text-(--color-accent)">
+            Back to cart
+          </Link>
+        </div>
       </div>
 
       <div className="lg:grid flex flex-col gap-4 lg:grid-cols-2">
