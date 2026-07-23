@@ -7,13 +7,15 @@ import { useRef, useState, useEffect } from 'react';
 import { CgProfile } from 'react-icons/cg';
 import { customerMenuItems, adminMenuItems } from '../../utils/constants';
 import AuthApi from '../../api/auth';
-import { FiChevronDown, FiLogOut } from 'react-icons/fi';
+import { FiChevronDown, FiLogOut, FiShoppingCart } from 'react-icons/fi';
 import { slugify } from '../../utils/utils';
 import type { CategoryConfig } from '../../types/appContentTypes';
+import { GrFavorite } from 'react-icons/gr';
 import { FaChevronRight } from 'react-icons/fa';
 
 const Header = () => {
-  const { user, siteContent, setSelectedCategory } = useStore();
+  const { user, siteContent, setSelectedCategory, wishlistCount, cartCount } =
+    useStore();
   const { loginWithGoogle, logout } = AuthApi();
   const navigate = useNavigate();
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
@@ -37,6 +39,11 @@ const Header = () => {
     null,
   );
   const menuItems = user.role === 'admin' ? adminMenuItems : customerMenuItems;
+  const dropdownMenuItems = user.loggedIn
+    ? menuItems.filter(
+        (item) => item.name !== 'Favorites' && item.name !== 'Cart',
+      )
+    : [];
 
   const handleNav = (name: string, slug: string = 'all') => {
     setSelectedCategory(name);
@@ -241,45 +248,82 @@ const Header = () => {
             )}
             <div className="flex flex-col lg:gap-1 lg:justify-between items-end justify-end font-normal ">
               {user.loggedIn ? (
-                <div ref={profileMenuRef} className="relative flex text-center">
-                  <button
-                    type="button"
-                    onClick={toggleMenu}
-                    aria-haspopup="true"
-                    aria-expanded={isMenuOpen ? 'true' : undefined}
-                    className="ml-2 rounded-full bg-transparent! p-2 text-gray-700 transition hover:bg-gray-50"
-                  >
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full text-2xl text-gray-800">
-                      <CgProfile />
-                    </span>
-                  </button>
-
-                  {isMenuOpen && (
-                    <div className="absolute right-0 top-full z-50 mt-2 min-w-45 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
-                      {menuItems.map((item) => (
-                        <Link
-                          key={item.name}
-                          to={`/${item.to}`}
-                          onClick={closeMenu}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 transition hover:bg-gray-100"
-                        >
-                          <span className="min-w-6 text-lg">{item.icon}</span>
-                          <span className="flex-1 text-left">{item.name}</span>
-                        </Link>
-                      ))}
-
-                      <button
-                        type="button"
-                        onClick={logout}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 transition hover:bg-gray-100"
+                <div className="relative flex text-center items-center gap-1">
+                  {user.role === 'customer' && (
+                    <>
+                      <Link
+                        to="/favorites"
+                        className="ml-2 rounded-full bg-transparent! p-2 text-gray-700 transition hover:bg-gray-50"
                       >
-                        <span className="min-w-6 text-lg">
-                          <FiLogOut />
+                        <span className="flex h-9 w-9 relative items-center justify-center rounded-full text-2xl">
+                          <GrFavorite />
+                          {wishlistCount > 0 && (
+                            <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full text-white bg-red-500 text-[8px] flex items-center justify-center font-bold">
+                              {wishlistCount}
+                            </span>
+                          )}
                         </span>
-                        Logout
-                      </button>
-                    </div>
+                      </Link>
+                      <Link
+                        to="/cart"
+                        className="ml-2 rounded-full bg-transparent! p-2 text-gray-700 transition hover:bg-gray-50"
+                      >
+                        <span className="flex h-9 w-9 relative items-center justify-center rounded-full text-2xl ">
+                          <FiShoppingCart />
+                          {cartCount > 0 && (
+                            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full text-white bg-red-500 text-[9px] sm:text-[10px] font-bold flex items-center justify-center">
+                              {cartCount}
+                            </span>
+                          )}
+                        </span>
+                      </Link>
+                    </>
                   )}
+                  <div
+                    ref={profileMenuRef}
+                    className="relative flex text-center"
+                  >
+                    <button
+                      type="button"
+                      onClick={toggleMenu}
+                      aria-haspopup="true"
+                      aria-expanded={isMenuOpen ? 'true' : undefined}
+                      className="ml-2 rounded-full bg-transparent! p-2 text-gray-700 transition hover:bg-gray-50"
+                    >
+                      <span className="flex h-9 w-9 items-center justify-center rounded-full text-2xl">
+                        <CgProfile />
+                      </span>
+                    </button>
+
+                    {isMenuOpen && (
+                      <div className="absolute right-0 top-full z-50 mt-2 min-w-45 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
+                        {dropdownMenuItems.map((item) => (
+                          <Link
+                            key={item.name}
+                            to={`/${item.to}`}
+                            onClick={closeMenu}
+                            className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 transition hover:bg-gray-100"
+                          >
+                            <span className="min-w-6 text-lg">{item.icon}</span>
+                            <span className="flex-1 text-left">
+                              {item.name}
+                            </span>
+                          </Link>
+                        ))}
+
+                        <button
+                          type="button"
+                          onClick={logout}
+                          className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 transition hover:bg-gray-100"
+                        >
+                          <span className="min-w-6 text-lg">
+                            <FiLogOut />
+                          </span>
+                          Logout
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <button

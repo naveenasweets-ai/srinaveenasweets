@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import type { Product } from '../types/contextTypes';
@@ -5,6 +6,7 @@ import {
   getProductInventoryState,
   getProductPrice,
   getProductOriginalPrice,
+  getWeightOptions,
 } from '../utils/productInventory';
 import { generateSlug, stripHtml } from '../utils/utils';
 import CustomerUtils from '../utils/customer';
@@ -26,6 +28,17 @@ export default function ProductCard({ product }: { product: Product }) {
   const outOfStock = inventoryState.isOutOfStock;
   const isAdmin = user.role === 'admin';
   const productUrl = `/product/${generateSlug(product._id, product.name)}`;
+  const weightOptions = getWeightOptions(product);
+  const defaultWeight = getDefaultInventorySelection(product);
+  const [quantity, setQuantity] = useState(1);
+  const [selectedWeight, setSelectedWeight] = useState<string>(defaultWeight);
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    if (user.role === 'admin') return;
+    e.preventDefault();
+    e.stopPropagation();
+    addToCart(product, quantity, selectedWeight);
+  };
 
   return (
     <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-(--color-border) bg-(--color-surface) shadow-[0_10px_30px_rgba(95,16,33,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-(--color-accent) hover:shadow-[0_22px_48px_-24px_rgba(26,15,15,0.35)]">
@@ -94,37 +107,127 @@ export default function ProductCard({ product }: { product: Product }) {
             </button>
           )}
 
-          {/* Quick add on hover for larger screens */}
+          {/* Quantity & weight controls on hover for larger screens */}
           {!outOfStock && !isAdmin && (
-            <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 hidden p-3 transition-transform duration-300 group-hover:translate-y-0 md:pointer-events-auto md:flex md:translate-y-full">
-              <button
-                onClick={(e) => {
-                  if (user.role === 'admin') return;
-                  e.preventDefault();
-                  e.stopPropagation();
-                  addToCart(product, 1, getDefaultInventorySelection(product));
-                }}
-                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] px-3 py-2.5 text-xs font-bold uppercase tracking-[0.24em] text-(--color-accent-light) shadow-lg transition-all hover:brightness-110 active:scale-[0.97] sm:py-3"
-              >
-                ADD TO BAG
-              </button>
+            <div
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 hidden p-3 transition-transform duration-300 group-hover:translate-y-0 md:pointer-events-auto md:flex md:translate-y-full"
+            >
+              <div className="grid grid-cols-2 w-full items-center gap-2 rounded-xl bg-(--color-surface)/95 backdrop-blur-sm border border-(--color-border) p-1.5">
+                {product.inventoryType === 'weight' &&
+                  weightOptions.length > 0 && (
+                    <select
+                      value={selectedWeight}
+                      onChange={(e) => setSelectedWeight(e.target.value)}
+                      className="h-9 rounded-lg border border-(--color-border) bg-(--color-surface) px-2 text-xs font-semibold text-(--color-primary-dark) focus:border-(--color-accent) focus:outline-none"
+                    >
+                      {weightOptions.map((option) => (
+                        <option
+                          key={`${option.value}${option.unit}`}
+                          value={String(option.value)}
+                        >
+                          {option.value} g
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                <div className="flex items-center border border-(--color-border) rounded-lg">
+                  <button
+                    onClick={(e) => {
+                      if (user.role === 'admin') return;
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setQuantity((q) => Math.max(1, q - 1));
+                    }}
+                    className="h-9 w-9 cursor-pointer items-center justify-center rounded-l-lg text-(--color-primary-dark) transition hover:bg-(--color-surface-alt) hover:text-(--color-accent) active:scale-95"
+                  >
+                    −
+                  </button>
+                  <span className="min-w-[2.25rem] text-center text-sm font-bold text-(--color-primary-dark)">
+                    {quantity}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      if (user.role === 'admin') return;
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setQuantity((q) => q + 1);
+                    }}
+                    className="h-9 w-9 cursor-pointer items-center justify-center rounded-r-lg text-(--color-primary-dark) transition hover:bg-(--color-surface-alt) hover:text-(--color-accent) active:scale-95"
+                  >
+                    +
+                  </button>
+                </div>
+                <button
+                  onClick={handleAddToCart}
+                  className={`flex h-9 flex-1 cursor-pointer items-center justify-center rounded-lg bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] px-3 py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-(--color-accent-light) shadow-md transition-all hover:brightness-110 active:scale-[0.97] ${product.inventoryType === 'weight' ? 'col-span-2' : ''}`}
+                >
+                  ADD TO BAG
+                </button>
+              </div>
             </div>
           )}
         </Link>
 
         {!outOfStock && !isAdmin && (
           <div className="px-3 pb-3 pt-3 md:hidden">
-            <button
-              onClick={(e) => {
-                if (user.role === 'admin') return;
-                e.preventDefault();
-                e.stopPropagation();
-                addToCart(product, 1, getDefaultInventorySelection(product));
-              }}
-              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] px-3 py-2.5 text-xs font-bold uppercase tracking-[0.24em] text-(--color-accent-light) shadow-lg transition-all hover:brightness-110 active:scale-[0.97]"
-            >
-              ADD TO BAG
-            </button>
+            <div className="grid grid-cols-2 w-full items-center gap-2">
+              {product.inventoryType === 'weight' &&
+                weightOptions.length > 0 && (
+                  <select
+                    value={selectedWeight}
+                    onChange={(e) => setSelectedWeight(e.target.value)}
+                    className="h-10 rounded-lg border border-(--color-border) bg-(--color-surface) px-2 text-xs font-semibold text-(--color-primary-dark) focus:border-(--color-accent) focus:outline-none"
+                  >
+                    {weightOptions.map((option) => (
+                      <option
+                        key={`${option.value}${option.unit}`}
+                        value={String(option.value)}
+                      >
+                        {option.value} g
+                      </option>
+                    ))}
+                  </select>
+                )}
+              <div
+                className={`flex items-center justify-between border border-(--color-border) rounded-lg ${product.inventoryType === 'weight' ? '' : 'col-span-2'}`}
+              >
+                <button
+                  onClick={(e) => {
+                    if (user.role === 'admin') return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setQuantity((q) => Math.max(1, q - 1));
+                  }}
+                  className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-l-lg text-(--color-primary-dark) transition hover:bg-(--color-surface-alt) hover:text-(--color-accent) active:scale-95 font-bold"
+                >
+                  −
+                </button>
+                <span className="flex min-w-[2.5rem] items-center justify-center text-sm font-bold text-(--color-primary-dark)">
+                  {quantity}
+                </span>
+                <button
+                  onClick={(e) => {
+                    if (user.role === 'admin') return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setQuantity((q) => q + 1);
+                  }}
+                  className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-r-lg text-(--color-primary-dark) transition hover:bg-(--color-surface-alt) hover:text-(--color-accent) active:scale-95 font-bold"
+                >
+                  +
+                </button>
+              </div>
+              <button
+                onClick={handleAddToCart}
+                className="flex col-span-2 h-10 flex-1 cursor-pointer items-center justify-center rounded-xl bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] text-(--color-accent-light) shadow-lg transition-all hover:brightness-110 active:scale-[0.97]"
+              >
+                ADD TO BAG
+              </button>
+            </div>
           </div>
         )}
       </div>

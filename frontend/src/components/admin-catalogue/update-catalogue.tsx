@@ -55,7 +55,7 @@ const UpdateCatalogue = ({
     if (existing.length) return existing;
     return inventoryType === 'unit'
       ? [{ value: 1, unit: 'unit', price: 0, originalPrice: undefined }]
-      : [{ value: 250, unit: 'g', price: 0, originalPrice: undefined }];
+      : [{ value: 250, unit: '', price: 0, originalPrice: undefined }];
   };
 
   const [productId, setProductId] = useState(product?._id ?? '');
@@ -129,7 +129,7 @@ const UpdateCatalogue = ({
       ...prev,
       inventoryType === 'unit'
         ? { value: 1, unit: 'unit', price: 0, originalPrice: undefined }
-        : { value: 250, unit: 'g', price: 0, originalPrice: undefined },
+        : { value: 250, unit: '', price: 0, originalPrice: undefined },
     ]);
   };
 
@@ -540,78 +540,94 @@ const UpdateCatalogue = ({
                     {weightOptions.map((option, index) => (
                       <div
                         key={index}
-                        className="flex items-end gap-3 rounded-2xl border border-[#f3d48a]/60 bg-[#fffdf7] p-3 sm:grid-cols-[90px_90px_1fr_1fr_36px]"
+                        className="flex flex-col lg:flex-row items-end gap-3 rounded-2xl border border-[#f3d48a]/60 bg-[#fffdf7] p-3 sm:grid-cols-[90px_90px_1fr_1fr_36px]"
                       >
-                        <div>
-                          <label className="mb-1 whitespace-nowrap block text-[10px] font-bold uppercase tracking-wider text-[#5f1021]">
-                            Avl Weight (gms)
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            value={option.value}
-                            onChange={(e) =>
-                              updateWeightOption(index, 'value', e.target.value)
-                            }
-                            className={inputClassName}
-                          />
+                        <div className="flex gap-3">
+                          <div>
+                            <label className="mb-1 whitespace-nowrap block text-[10px] font-bold uppercase tracking-wider text-[#5f1021]">
+                              Avl Weight (gms)
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={option.value}
+                              onChange={(e) =>
+                                updateWeightOption(
+                                  index,
+                                  'value',
+                                  e.target.value,
+                                )
+                              }
+                              className={inputClassName}
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#5f1021]">
+                              Avl Unit
+                            </label>
+                            <input
+                              type="text"
+                              value={option.unit}
+                              onChange={(e) =>
+                                updateWeightOption(
+                                  index,
+                                  'unit',
+                                  e.target.value,
+                                )
+                              }
+                              placeholder=""
+                              className={inputClassName}
+                            />
+                          </div>
                         </div>
-                        <div>
-                          <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#5f1021]">
-                            Avl Unit
-                          </label>
-                          <input
-                            type="text"
-                            value={option.unit}
-                            onChange={(e) =>
-                              updateWeightOption(index, 'unit', e.target.value)
-                            }
-                            placeholder="g"
-                            className={inputClassName}
-                          />
+                        <div className="flex gap-3 items-end">
+                          <div>
+                            <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#5f1021]">
+                              Selling Price (₹)
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={option.price}
+                              onChange={(e) =>
+                                updateWeightOption(
+                                  index,
+                                  'price',
+                                  e.target.value,
+                                )
+                              }
+                              className={inputClassName}
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#5f1021]">
+                              Orig. Price
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={option.originalPrice ?? ''}
+                              onChange={(e) =>
+                                updateWeightOption(
+                                  index,
+                                  'originalPrice',
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="Optional"
+                              className={inputClassName}
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeWeightOption(index)}
+                            disabled={weightOptions.length === 1}
+                            className="flex h-10.5 w-10.5 items-center justify-center rounded-xl border border-[#f3d48a]/70 bg-[#fff8ef] text-lg text-[#8b1e2d] transition hover:bg-[#fef4da] disabled:cursor-not-allowed disabled:opacity-40"
+                            aria-label="Remove weight option"
+                          >
+                            ×
+                          </button>
                         </div>
-                        <div>
-                          <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#5f1021]">
-                            Selling Price (₹)
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            value={option.price}
-                            onChange={(e) =>
-                              updateWeightOption(index, 'price', e.target.value)
-                            }
-                            className={inputClassName}
-                          />
-                        </div>
-                        <div>
-                          <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#5f1021]">
-                            Orig. Price
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            value={option.originalPrice ?? ''}
-                            onChange={(e) =>
-                              updateWeightOption(
-                                index,
-                                'originalPrice',
-                                e.target.value,
-                              )
-                            }
-                            placeholder="Optional"
-                            className={inputClassName}
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeWeightOption(index)}
-                          disabled={weightOptions.length === 1}
-                          className="flex h-10.5 w-10.5 items-center justify-center rounded-xl border border-[#f3d48a]/70 bg-[#fff8ef] text-lg text-[#8b1e2d] transition hover:bg-[#fef4da] disabled:cursor-not-allowed disabled:opacity-40"
-                          aria-label="Remove weight option"
-                        >
-                          ×
-                        </button>
                       </div>
                     ))}
                   </div>

@@ -47,6 +47,36 @@ const LocationPicker = ({
   ]);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [pincodeInput, setPincodeInput] = useState('');
+
+  const handlePincodeSearch = async () => {
+    if (!pincodeInput.trim() || !/^\d{5,6}$/.test(pincodeInput.trim())) {
+      showToast('Please enter a valid pincode.', 'error');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=jsonv2&postalcode=${encodeURIComponent(pincodeInput.trim())}&country=India&limit=1`,
+      );
+      const data = await response.json();
+
+      if (data && data[0]) {
+        const nextPosition: [number, number] = [
+          parseFloat(data[0].lat),
+          parseFloat(data[0].lon),
+        ];
+        setPosition(nextPosition);
+      } else {
+        showToast('No location found for this pincode.', 'error');
+      }
+    } catch {
+      showToast('Unable to fetch location for this pincode.', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handlePositionChange = useCallback((value: [number, number]) => {
     setPosition(value);
@@ -70,7 +100,7 @@ const LocationPicker = ({
       ].filter(Boolean);
 
       const addressLine = addressParts.join(', ');
-      console.log('data: ', data);
+
       onAddressSelect({
         address: addressLine,
         city:
@@ -147,6 +177,32 @@ const LocationPicker = ({
             onPositionChange={handlePositionChange}
           />
         </MapContainer>
+      </div>
+
+      <div className="flex gap-2">
+        <input
+          type="text"
+          inputMode="numeric"
+          pattern="\d*"
+          placeholder="Enter pincode"
+          value={pincodeInput}
+          onChange={(e) => setPincodeInput(e.target.value.replace(/\D/g, ''))}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handlePincodeSearch();
+            }
+          }}
+          className="flex-1 rounded-2xl border border-(--color-border) bg-(--color-surface) px-4 py-2.5 text-sm outline-none transition focus:border-(--color-accent)"
+        />
+        <button
+          type="button"
+          onClick={handlePincodeSearch}
+          className="rounded-2xl bg-(--color-accent) px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+          disabled={isLoading}
+        >
+          Search
+        </button>
       </div>
 
       <div className="flex gap-3">
