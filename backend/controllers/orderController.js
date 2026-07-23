@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import OrderSchema from '../schemas/OrderSchema.js';
 import { calculateCheckoutTotals } from '../utils/checkout.js';
+import { capitalizeFirstLetter } from '../utils/utils.js';
 
 const normalizeAmount = (value) => Number(Number(value || 0).toFixed(2));
 
@@ -33,52 +34,41 @@ const buildOrderId = () => {
   return `OD-${year}${month}${day}${hours}${minutes}${seconds}${milliseconds}`;
 };
 
-const sendOtpViaTwilio = async (phone, otp) => {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
-  const fromNumber = process.env.TWILIO_FROM_NUMBER;
+const sendOtpViaWhatsapp = async (phone, otp) => {
+  const whatsappToken = process.env.WHATSAPP_TOKEN;
 
-  if (!accountSid || !authToken || (!messagingServiceSid && !fromNumber)) {
-    return {
-      success: false,
-      mocked: true,
-      message: 'Failed to send OTP via Twilio.',
-    };
+  if (!whatsappToken) {
+    console.log(
+      '360 Messenger credentials not configured. OTP generated locally:',
+    );
+    return { success: false, mocked: true };
   }
 
   const payload = {
-    To: toE164(phone),
-    Body: `Verification code for placing your order at Sri Naveena Sweets is: ${otp}. This code will expire in 2 minutes. Don't share this code with anyone; our employees will never ask for the code.`,
+    phonenumber: toE164(phone),
+    text: `Sri Naveena Sweets - Your OTP for verifying the COD order is ${otp}.
+    
+Please enter this code to confirm your purchase. Do not share this code with anyone.`,
   };
 
-  if (messagingServiceSid) {
-    payload.MessagingServiceSid = messagingServiceSid;
-  } else if (fromNumber) {
-    payload.From = fromNumber;
-  }
-
-  const response = await fetch(
-    `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams(payload).toString(),
+  const response = await fetch(`https://api.360messenger.com/v2/sendMessage`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${whatsappToken}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
     },
-  );
+    body: new URLSearchParams(payload).toString(),
+  });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(errorText || 'Failed to send OTP via Twilio.');
+    throw new Error(errorText || 'Failed to send OTP via Whatsapp.');
   }
 
   return { success: true, mocked: true, message: 'OTP sent successfully' };
 };
 
-const verifyOtpViaTwilio = async (phone, otp) => {
+const verifyOtpViaWhatsapp = async (phone, otp) => {
   const normalizedPhone = normalizePhone(phone);
   const otpCode = String(otp || '').trim();
 
@@ -106,6 +96,100 @@ const verifyOtpViaTwilio = async (phone, otp) => {
 
   otpStore.delete(normalizedPhone);
   return { success: true, message: 'OTP verified successfully.' };
+};
+
+const sendOrderNotification = async (order) => {
+  const adminPhone = process.env.ADMIN_PHONE;
+  const whatsappToken = process.env.WHATSAPP_TOKEN;
+  console.log('adminPhone: ', adminPhone, whatsappToken);
+  console.log('order: ', order);
+  if (!adminPhone || !whatsappToken) {
+    console.warn(
+      'Admin phone or WhatsApp token not configured. Skipping order notification.',
+    );
+    return;
+  }
+
+  const mapsUrl =
+    order.latitude && order.longitude
+      ? `https://www.google.com/maps?q=${order.latitude},${order.longitude}`
+      : 'Not provided';
+
+  const itemsList = (order.items || [])
+    .map(
+      (item) =>
+        `- ${item.name || 'Unknown'}${item.weight !== 'unit' ? ` ${item.weight} gms` : ''} x ${item.quantity} = ₹${item.price}`,
+    )
+    .join('\n');
+
+  const feeLines = [];
+
+  if (order.deliveryFee > 0) {
+    feeLines.push(`Delivery Fee: ₹${order.deliveryFee}`);
+  }
+  if (order.packagingFee > 0) {
+    feeLines.push(`Packaging Fee: ₹${order.packagingFee}`);
+  }
+  if (order.platformFee > 0) {
+    feeLines.push(`Platform Fee: ₹${order.platformFee}`);
+  }
+  if (order.gstAmount > 0) {
+    feeLines.push(`GST (${order.gstRate}%): ₹${order.gstAmount}`);
+  }
+
+  const feesText = feeLines.join('\n');
+
+  const message = `*New Order Received!*
+
+Order ID: ${order._id}
+
+Customer: ${order.customerName}
+Phone: ${order.customerPhone}
+Email: ${order.customerEmail}
+
+Address:
+${order.shippingAddress}, ${order.city}, ${order.state} - ${order.pincode}
+
+Payment Method: ${order.paymentMethod === 'razorpay' ? 'Prepaid' : 'Cash on Delivery'}
+Payment Status: ${capitalizeFirstLetter(order.paymentStatus)}
+Order Status: ${capitalizeFirstLetter(order.orderStatus)}
+
+Items:
+${itemsList || 'No items'}
+
+Subtotal: ₹${order.subtotal}
+${feesText}
+Grand Total: ₹${order.grandTotal}
+
+Notes: ${order.notes || 'None'}
+
+Location Map: ${mapsUrl}`;
+
+  try {
+    const payload = {
+      phonenumber: toE164(adminPhone),
+      text: message,
+    };
+
+    const response = await fetch(
+      `https://api.360messenger.com/v2/sendMessage`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${whatsappToken}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams(payload).toString(),
+      },
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Failed to send order notification:', errorText);
+    }
+  } catch (error) {
+    console.error('Error sending order notification:', error);
+  }
 };
 
 const createOrder = async (req, res) => {
@@ -226,6 +310,8 @@ const createOrder = async (req, res) => {
     }
 
     const order = await OrderSchema.create(orderPayload);
+
+    await sendOrderNotification(order);
 
     return res.status(201).json({ success: true, order });
   } catch (error) {
@@ -391,7 +477,7 @@ const sendOtp = async (req, res) => {
     }
 
     const otp = generateOtp();
-    const result = await sendOtpViaTwilio(phone, otp);
+    const result = await sendOtpViaWhatsapp(phone, otp);
     otpStore.set(phone, { otp, createdAt: Date.now() });
     return res.status(200).json({ success: true, ...result });
   } catch (error) {
@@ -517,7 +603,7 @@ const verifyRazorpayPayment = async (req, res) => {
         paymentStatus: 'pending',
         orderStatus: 'pending',
         longitude: orderData.longitude,
-        latitude: orderData.lattitute,
+        latitude: orderData.latitude,
         items: Array.isArray(orderData.items)
           ? orderData.items.map((item) => ({
               productId: item.productId || item._id || '',
@@ -565,6 +651,8 @@ const verifyRazorpayPayment = async (req, res) => {
     }
 
     await order.save();
+
+    await sendOrderNotification(order);
 
     return res.status(200).json({
       success: true,
