@@ -82,8 +82,19 @@ const CheckoutPage = () => {
       lat: address.lat ?? prev.lat,
       lng: address.lng ?? prev.lng,
     }));
-    setAddressStep('checkout');
   };
+
+  useEffect(() => {
+    if (
+      savedAddresses.length > 0 &&
+      !selectedSavedAddressId &&
+      addressStep === 'select'
+    ) {
+      const defaultAddr =
+        savedAddresses.find((addr) => addr.isDefault) || savedAddresses[0];
+      handleSelectAddressAndContinue(defaultAddr);
+    }
+  }, [savedAddresses, selectedSavedAddressId, addressStep]);
 
   const handleAddNewAddressAndContinue = async (address: {
     fullname: string;
@@ -135,6 +146,32 @@ const CheckoutPage = () => {
       }
     } catch {
       showToast('Failed to remove address', 'error');
+    }
+  };
+
+  const handleSetDefaultAddress = async (addressId: string) => {
+    if (!user.token) return;
+    try {
+      const { data } = await updateSavedAddress(
+        user.token,
+        addressId,
+        savedAddresses.find((a) => a._id === addressId) || ({} as any),
+        true,
+      );
+      if (data?.success) {
+        setSavedAddresses(data.data || []);
+        showToast('Default address updated', 'success');
+        if (!selectedSavedAddressId) {
+          const defaultAddr = (data.data || []).find(
+            (a: SavedAddress) => a.isDefault,
+          );
+          if (defaultAddr) {
+            setSelectedSavedAddressId(defaultAddr._id);
+          }
+        }
+      }
+    } catch {
+      showToast('Failed to update default address', 'error');
     }
   };
 
@@ -627,7 +664,10 @@ const CheckoutPage = () => {
             onSelectAddress={handleSelectAddressAndContinue}
             onAddAddress={handleAddNewAddressAndContinue}
             onDeleteAddress={handleDeleteAddress}
-            onContinue={() => {}}
+            onSetDefaultAddress={handleSetDefaultAddress}
+            onContinue={() => {
+              setAddressStep('checkout');
+            }}
             isSubmitting={isSubmitting}
           />
         ) : (

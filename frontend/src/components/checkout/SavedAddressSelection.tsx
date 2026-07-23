@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useCallback } from 'react';
 import type { SavedAddress } from '../../types/types';
@@ -274,6 +275,7 @@ type SavedAddressSelectionProps = {
   onSelectAddress: (address: SavedAddress) => void;
   onAddAddress: (address: AddressFormData) => Promise<void>;
   onDeleteAddress: (addressId: string) => Promise<void>;
+  onSetDefaultAddress?: (addressId: string) => Promise<void>;
   onContinue: () => void;
   isSubmitting: boolean;
 };
@@ -283,11 +285,13 @@ const SavedAddressCard = ({
   selected,
   onSelect,
   onDelete,
+  onSetDefault,
 }: {
   address: SavedAddress;
   selected: boolean;
   onSelect: () => void;
   onDelete?: () => void;
+  onSetDefault?: () => void;
 }) => {
   const displayAddress = [
     address.fullAddress,
@@ -300,7 +304,7 @@ const SavedAddressCard = ({
 
   return (
     <label
-      className={`cursor-pointer rounded-xl border p-4 flex gap-3 ${
+      className={`cursor-pointer rounded-xl border p-4 flex gap-3 relative ${
         selected
           ? 'border-(--color-accent) bg-(--color-accent-light)'
           : 'border-(--color-border)'
@@ -314,24 +318,51 @@ const SavedAddressCard = ({
         className="mt-1"
       />
       <div className="flex-1">
-        <p className="font-medium">{address.fullname}</p>
+        <div className="flex items-center gap-2">
+          <p className="font-medium pb-2">{address.fullname}</p>
+          {address.isDefault && (
+            <span className="rounded-full bg-(--color-accent) px-2 py-0.5 text-xs font-semibold text-white">
+              Default
+            </span>
+          )}
+        </div>
         <p className="text-sm text-(--color-muted)">{displayAddress}</p>
         {address.mobile && (
           <p className="text-sm text-(--color-muted)">{address.mobile}</p>
         )}
       </div>
-      {onDelete && (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            onDelete();
-          }}
-          className="self-start rounded-lg px-2 py-1 text-sm text-red-500 hover:text-red-700"
-        >
-          Delete
-        </button>
-      )}
+      <div className="flex items-end gap-2 absolute right-4">
+        {!address.isDefault && onSetDefault && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onSetDefault();
+            }}
+            className={`rounded-lg px-2 py-1 text-xs font-medium border border-(--color-border) hover:border-(--color-accent) transition ${
+              selected ? 'bg-(--color-on-primary)' : ''
+            }`}
+          >
+            Set as default
+          </button>
+        )}
+        {onDelete && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete();
+            }}
+            className={`rounded-lg px-2 py-1 text-xs font-medium border border-(--color-border) hover:border-(--color-accent) transition text-red-500 hover:text-red-700 ${
+              selected ? 'bg-(--color-on-primary)' : ''
+            }`}
+          >
+            Delete
+          </button>
+        )}
+      </div>
     </label>
   );
 };
@@ -342,6 +373,7 @@ export default function SavedAddressSelection({
   onSelectAddress,
   onAddAddress,
   onDeleteAddress,
+  onSetDefaultAddress,
   onContinue,
   isSubmitting,
 }: SavedAddressSelectionProps) {
@@ -365,7 +397,7 @@ export default function SavedAddressSelection({
 
       {savedAddresses.length > 0 ? (
         <div className="flex flex-col gap-3 mb-6">
-          {savedAddresses.map((addr) => (
+          {savedAddresses.map((addr: any) => (
             <SavedAddressCard
               key={addr._id}
               address={addr}
@@ -374,6 +406,11 @@ export default function SavedAddressSelection({
               onDelete={
                 selectedAddressId === addr._id
                   ? () => onDeleteAddress(addr._id)
+                  : undefined
+              }
+              onSetDefault={
+                onSetDefaultAddress && !addr.isDefault
+                  ? () => onSetDefaultAddress(addr._id)
                   : undefined
               }
             />

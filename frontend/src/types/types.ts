@@ -117,6 +117,7 @@ export type SavedAddress = {
   pincode: string;
   lat: number;
   lng: number;
+  isDefault: boolean;
 };
 
 export type OrderItem = {

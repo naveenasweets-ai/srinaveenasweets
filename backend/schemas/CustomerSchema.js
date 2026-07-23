@@ -54,6 +54,7 @@ const CustomerSchema = new Schema({
       pincode: { type: String, required: true },
       lat: { type: Number, required: true },
       lng: { type: Number, required: true },
+      isDefault: { type: Boolean, default: false },
     },
   ],
   loggedInAtIST: {

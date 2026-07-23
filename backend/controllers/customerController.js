@@ -121,6 +121,9 @@ export async function addAddress(req, res) {
       pincode,
       lat: Number(lat),
       lng: Number(lng),
+      isDefault:
+        customer.addresses.length === 0 ||
+        !customer.addresses.some((addr) => addr.isDefault),
     };
 
     customer.addresses.push(newAddress);
@@ -151,6 +154,7 @@ export async function updateAddress(req, res) {
     pincode,
     lat,
     lng,
+    isDefault,
   } = req.body;
 
   try {
@@ -168,6 +172,16 @@ export async function updateAddress(req, res) {
         message: 'Address not found',
         success: false,
       });
+    }
+
+    if (isDefault) {
+      customer.addresses.forEach((addr) => {
+        addr.isDefault = addr._id.toString() === addressId;
+      });
+    } else {
+      address.isDefault = customer.addresses.some(
+        (addr) => addr._id.toString() !== addressId && addr.isDefault,
+      );
     }
 
     address.fullname = fullname;
@@ -207,7 +221,15 @@ export async function deleteAddress(req, res) {
       });
     }
 
+    const removed = customer.addresses.id(addressId);
+    const wasDefault = removed?.isDefault;
+
     customer.addresses.remove(customer.addresses.id(addressId));
+
+    if (wasDefault && customer.addresses.length > 0) {
+      customer.addresses[0].isDefault = true;
+    }
+
     await customer.save();
 
     return res.status(200).json({

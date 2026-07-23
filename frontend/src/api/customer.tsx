@@ -202,6 +202,7 @@ const CustomerApi = () => {
       lat: number;
       lng: number;
     },
+    isDefault?: boolean,
   ) => {
     const response = await fetch(
       `${apiUrl}/api/customer/addresses/${addressId}`,
@@ -211,7 +212,7 @@ const CustomerApi = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(address),
+        body: JSON.stringify({ ...address, isDefault }),
       },
     );
 
