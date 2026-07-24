@@ -164,7 +164,7 @@ const CheckoutShippingForm = ({
                   <button
                     type="button"
                     onClick={() => setIsLocationPickerOpen(false)}
-                    className="text-sm text-(--color-muted) hover:text-white transition"
+                    className="text-sm text-(--color-muted) hover:text-(--color-primary-dark) transition"
                   >
                     Close
                   </button>

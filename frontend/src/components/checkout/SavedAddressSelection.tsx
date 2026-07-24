@@ -138,50 +138,10 @@ const AddressForm = ({
             <p className="mt-1 text-sm text-red-500">{errors.fullAddress}</p>
           )}
         </div>
-        <div className="col-span-2 lg:grid grid-cols-3 gap-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium">City</label>
-            <input
-              value={form.city}
-              onChange={(event) => handleChange('city', event.target.value)}
-              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
-            />
-            {errors.city && (
-              <p className="mt-1 text-sm text-red-500">{errors.city}</p>
-            )}
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium">State</label>
-            <input
-              value={form.state}
-              onChange={(event) => handleChange('state', event.target.value)}
-              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
-            />
-            {errors.state && (
-              <p className="mt-1 text-sm text-red-500">{errors.state}</p>
-            )}
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium">Pincode</label>
-            <input
-              value={form.pincode}
-              onChange={(event) => handleChange('pincode', event.target.value)}
-              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
-            />
-            {errors.pincode && (
-              <p className="mt-1 text-sm text-red-500">{errors.pincode}</p>
-            )}
-          </div>
-          {!isPincodeDeliverable && form.pincode.length === 6 && (
-            <p className="col-span-3 lg:text-end text-sm text-red-500">
-              Delivery to this pincode is currently unavailable.
-            </p>
-          )}
-        </div>
+
         <div className="md:col-span-2">
           <button
             type="button"
-            disabled={!isPincodeDeliverable}
             onClick={() => setIsLocationPickerOpen(true)}
             className="w-full rounded-lg border border-(--color-border) bg-(--color-surface) px-3 py-2 text-left text-sm font-medium text-(--color-muted) hover:border-(--color-accent) transition"
           >
@@ -192,6 +152,50 @@ const AddressForm = ({
           {(errors.lat || errors.lng) && (
             <p className="mt-1 text-sm text-red-500">
               {errors.lat || errors.lng}
+            </p>
+          )}
+        </div>
+
+        <div className="col-span-2 lg:grid grid-cols-3 gap-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium">City</label>
+            <input
+              value={form.city}
+              disabled
+              onChange={(event) => handleChange('city', event.target.value)}
+              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+            />
+            {errors.city && (
+              <p className="mt-1 text-sm text-red-500">{errors.city}</p>
+            )}
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium">State</label>
+            <input
+              value={form.state}
+              disabled
+              onChange={(event) => handleChange('state', event.target.value)}
+              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+            />
+            {errors.state && (
+              <p className="mt-1 text-sm text-red-500">{errors.state}</p>
+            )}
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium">Pincode</label>
+            <input
+              value={form.pincode}
+              disabled
+              onChange={(event) => handleChange('pincode', event.target.value)}
+              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+            />
+            {errors.pincode && (
+              <p className="mt-1 text-sm text-red-500">{errors.pincode}</p>
+            )}
+          </div>
+          {!isPincodeDeliverable && form.pincode.length === 6 && (
+            <p className="col-span-3 lg:text-end text-sm text-red-500">
+              Delivery to this pincode is currently unavailable.
             </p>
           )}
         </div>
@@ -208,7 +212,7 @@ const AddressForm = ({
                 <button
                   type="button"
                   onClick={() => setIsLocationPickerOpen(false)}
-                  className="text-sm text-(--color-muted) hover:text-white transition"
+                  className="text-sm text-(--color-muted) hover:text-(--color-primary-dark)  transition"
                 >
                   Close
                 </button>
@@ -324,21 +328,21 @@ const SavedAddressCard = ({
             Set as default
           </button>
         )}
-        {onDelete && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (onDelete) {
               onDelete();
-            }}
-            className={`rounded-lg px-2 py-1 text-xs font-medium border border-(--color-border) hover:border-(--color-accent) transition text-red-500 hover:text-red-700 ${
-              selected ? 'bg-(--color-on-primary)' : ''
-            }`}
-          >
-            Delete
-          </button>
-        )}
+            }
+          }}
+          className={`rounded-lg px-2 py-1 text-xs font-medium border border-(--color-border) hover:border-(--color-accent) transition text-red-500 hover:text-red-700 ${
+            selected ? 'bg-(--color-on-primary)' : ''
+          }`}
+        >
+          Delete
+        </button>
       </div>
     </label>
   );
@@ -380,11 +384,7 @@ export default function SavedAddressSelection({
               address={addr}
               selected={selectedAddressId === addr._id}
               onSelect={() => onSelectAddress(addr)}
-              onDelete={
-                selectedAddressId === addr._id
-                  ? () => onDeleteAddress(addr._id)
-                  : undefined
-              }
+              onDelete={() => onDeleteAddress(addr._id)}
               onSetDefault={
                 onSetDefaultAddress && !addr.isDefault
                   ? () => onSetDefaultAddress(addr._id)

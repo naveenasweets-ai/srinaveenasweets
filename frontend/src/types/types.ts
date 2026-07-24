@@ -99,7 +99,6 @@ export type CheckoutShippingFormProps = {
   onOtpCodeChange: (value: string) => void;
   onSendOtp: () => void;
   onSubmit: (e: any) => void;
-  deliverablePincodes: string[];
   isPincodeDeliverable: boolean;
   savedAddress?: SavedAddress | null;
   hasSavedAddresses?: boolean;

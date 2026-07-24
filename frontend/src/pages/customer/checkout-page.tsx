@@ -255,7 +255,6 @@ const CheckoutPage = () => {
     gstRate: 5,
   };
 
-  const deliverablePincodes = siteContent?.deliverablePincodes || [];
   const isPincodeDeliverable =
     getDistanceInKm(
       outletLocation.lat,
@@ -342,17 +341,6 @@ const CheckoutPage = () => {
       setOtpVerified(false);
       setOtpMessage('');
       setOtpTimerSeconds(0);
-    }
-
-    if (field === 'pincode') {
-      const trimmed = typeof value === 'string' ? value.trim() : String(value);
-      const nextDeliverable =
-        !trimmed || deliverablePincodes.length === 0
-          ? true
-          : deliverablePincodes.includes(trimmed);
-      if (!nextDeliverable && paymentMethod !== '') {
-        setPaymentMethod('');
-      }
     }
   };
 
@@ -696,7 +684,6 @@ const CheckoutPage = () => {
             onOtpCodeChange={setOtpCode}
             onSendOtp={handleSendOtp}
             onSubmit={handleSubmit}
-            deliverablePincodes={deliverablePincodes}
             isPincodeDeliverable={isPincodeDeliverable}
             savedAddress={selectedSavedAddress}
             hasSavedAddresses={savedAddresses.length > 0}
