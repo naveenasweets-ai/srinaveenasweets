@@ -1,126 +1,111 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { useState, useCallback, useEffect } from 'react';
-import { MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
-import { DEFAULT_POSITION, type LocationPickerProps } from '../../types/types';
-import { MapController } from '../../utils/customer';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { GoogleMap, OverlayView, useJsApiLoader } from '@react-google-maps/api';
+import { type LocationPickerProps } from '../../types/types';
 import { useStore } from '../../context/StoreContext';
+import { FaLocationDot } from 'react-icons/fa6';
 
-const redMarkerIcon = L.divIcon({
-  className: 'red-marker-icon',
-  html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ef4444" width="40" height="40"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="#fff"/></svg>`,
-  iconSize: [40, 40],
-  iconAnchor: [20, 40],
-  popupAnchor: [0, -40],
-});
-
-
-function LocationMarker({
-  position,
-  onPositionChange,
-}: {
-  position: [number, number];
-  onPositionChange: (pos: [number, number]) => void;
-}) {
-  const map = useMapEvents({
-    dragend() {
-      onPositionChange([map.getCenter().lat, map.getCenter().lng]);
-    },
-    moveend() {
-      onPositionChange([map.getCenter().lat, map.getCenter().lng]);
-    },
-  });
-
-  return <Marker position={position} icon={redMarkerIcon} />;
-}
+const mapContainerStyle = {
+  width: '100%',
+  height: '100%',
+};
 
 const LocationPicker = ({
-  lat = 16.314209,
-  lng = 80.435028,
+  lat,
+  lng,
   onAddressSelect,
   onClose,
-}: LocationPickerProps & { onClose?: () => void }) => {
+}: LocationPickerProps & {
+  onClose?: () => void;
+}) => {
   const { showToast } = useStore();
-  const [position, setPosition] = useState<[number, number]>([
-    Number.isFinite(lat) ? lat : DEFAULT_POSITION[0],
-    Number.isFinite(lng) ? lng : DEFAULT_POSITION[1],
-  ]);
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const geocoderRef = useRef<google.maps.Geocoder | null>(null);
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey,
+  });
+
+  const [position, setPosition] = useState<{ lat: number; lng: number }>({
+    lat,
+    lng,
+  });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [pincodeInput, setPincodeInput] = useState('');
 
-  const handlePincodeSearch = async () => {
-    if (!pincodeInput.trim() || !/^\d{5,6}$/.test(pincodeInput.trim())) {
-      showToast('Please enter a valid pincode.', 'error');
+  useEffect(() => {
+    if (isLoaded && window.google) {
+      geocoderRef.current = new window.google.maps.Geocoder();
+    }
+  }, [isLoaded]);
+
+  const handlePositionChange = useCallback(
+    (newPosition: google.maps.LatLng) => {
+      setPosition({
+        lat: newPosition.lat(),
+        lng: newPosition.lng(),
+      });
+    },
+    [],
+  );
+
+  const handleSelectAddress = async () => {
+    if (!geocoderRef.current) {
+      showToast('Geocoding service not initialized.', 'error');
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=jsonv2&postalcode=${encodeURIComponent(pincodeInput.trim())}&country=India&limit=1`,
-      );
-      const data = await response.json();
-
-      if (data && data[0]) {
-        const nextPosition: [number, number] = [
-          parseFloat(data[0].lat),
-          parseFloat(data[0].lon),
-        ];
-        setPosition(nextPosition);
-      } else {
-        showToast('No location found for this pincode.', 'error');
-      }
-    } catch {
-      showToast('Unable to fetch location for this pincode.', 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handlePositionChange = useCallback((value: [number, number]) => {
-    setPosition(value);
-  }, []);
-
-  const handleSelectAddress = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${position[0]}&lon=${position[1]}`,
-      );
-      const data = await response.json();
-
-      const addressParts = [
-        data.address?.building,
-        data.address?.house_number,
-        data.name,
-        data.address?.road,
-        data.address?.suburb,
-        data.address?.county,
-      ].filter(Boolean);
-
-      const addressLine = addressParts.join(', ');
-
-      onAddressSelect({
-        address: addressLine,
-        city:
-          data.address.city ||
-          data.address.town ||
-          data.address.village ||
-          data.address.state_district ||
-          '',
-        state: data.address.state || '',
-        pincode: data.address.postcode || '',
-        lat: position[0],
-        lng: position[1],
+      const results = await geocoderRef.current.geocode({
+        location: {
+          lat: position.lat,
+          lng: position.lng,
+        },
       });
-      showToast(
-        'Address details filled from the selected location.',
-        'success',
-      );
-      onClose?.();
-    } catch {
+
+      if (results.results && results.results.length > 0) {
+        const result = results.results[0];
+        const addressComponents = result.address_components;
+
+        // Extract address components from Google's response
+        let city = '';
+        let state = '';
+        let pincode = '';
+
+        addressComponents.forEach((component) => {
+          if (component.types.includes('locality')) {
+            city = component.long_name;
+          }
+          if (component.types.includes('administrative_area_level_1')) {
+            state = component.long_name;
+          }
+          if (component.types.includes('postal_code')) {
+            pincode = component.long_name;
+          }
+        });
+
+        onAddressSelect({
+          address: result.formatted_address,
+          city: city || '',
+          state: state || '',
+          pincode: pincode || '',
+          lat: position.lat,
+          lng: position.lng,
+        });
+
+        showToast(
+          'Address details filled from the selected location.',
+          'success',
+        );
+        onClose?.();
+      } else {
+        showToast('Unable to fetch location details.', 'error');
+      }
+    } catch (error) {
       showToast('Unable to fetch location details right now.', 'error');
+      console.error('Reverse geocoding error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -135,10 +120,10 @@ const LocationPicker = ({
     setIsLoading(true);
     navigator.geolocation.getCurrentPosition(
       (coords) => {
-        const nextPosition: [number, number] = [
-          coords.coords.latitude,
-          coords.coords.longitude,
-        ];
+        const nextPosition = {
+          lat: coords.coords.latitude,
+          lng: coords.coords.longitude,
+        };
         setPosition(nextPosition);
         showToast(
           'Your current location has been placed on the map.',
@@ -152,57 +137,64 @@ const LocationPicker = ({
       },
       { enableHighAccuracy: true, timeout: 10000 },
     );
-  }, []);
+  }, [showToast]);
 
-  useEffect(() => {
-    handleCurrentLocation();
-  }, [handleCurrentLocation]);
+  const handleMapClick = (e: google.maps.MapMouseEvent) => {
+    if (e.latLng) {
+      handlePositionChange(e.latLng);
+    }
+  };
+
+  const handleMapDragEnd = () => {
+    if (mapRef.current) {
+      const newCenter = mapRef.current.getCenter();
+      if (newCenter) {
+        handlePositionChange(newCenter);
+      }
+    }
+  };
+
+  if (!isLoaded) {
+    return (
+      <div className="h-96 flex items-center justify-center">
+        Loading map...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
       <div className="relative h-96 overflow-hidden rounded-2xl border border-(--color-border)">
-        <MapContainer
+        <GoogleMap
+          mapContainerStyle={mapContainerStyle}
           center={position}
           zoom={18}
-          scrollWheelZoom
-          className="h-full w-full"
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <MapController position={position} />
-          <LocationMarker
-            position={position}
-            onPositionChange={handlePositionChange}
-          />
-        </MapContainer>
-      </div>
-
-      <div className="flex gap-2">
-        <input
-          type="text"
-          inputMode="numeric"
-          pattern="\d*"
-          placeholder="Enter pincode"
-          value={pincodeInput}
-          onChange={(e) => setPincodeInput(e.target.value.replace(/\D/g, ''))}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              handlePincodeSearch();
-            }
+          onLoad={(map) => {
+            mapRef.current = map;
           }}
-          className="flex-1 rounded-2xl border border-(--color-border) bg-(--color-surface) px-4 py-2.5 text-sm outline-none transition focus:border-(--color-accent)"
-        />
-        <button
-          type="button"
-          onClick={handlePincodeSearch}
-          className="rounded-2xl bg-(--color-accent) px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
-          disabled={isLoading}
+          onClick={handleMapClick}
+          onDragEnd={handleMapDragEnd}
+          options={{
+            scrollwheel: true,
+            fullscreenControl: false,
+            streetViewControl: false,
+          }}
         >
-          Search
-        </button>
+          <OverlayView
+            position={position}
+            mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+          >
+            <div
+              style={{
+                transform: 'translate(-50%, -100%)',
+                fontSize: '2rem',
+                color: 'red',
+              }}
+            >
+              <FaLocationDot />
+            </div>
+          </OverlayView>
+        </GoogleMap>
       </div>
 
       <div className="flex gap-3">

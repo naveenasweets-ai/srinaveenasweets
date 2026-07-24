@@ -1,40 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useCallback } from 'react';
-import type { SavedAddress } from '../../types/types';
+import {
+  ADDRESS_FORM_ERRORS,
+  outletLocation,
+  type AddressFormData,
+  type AddressFormProps,
+  type SavedAddress,
+} from '../../types/types';
 import LocationPicker from './LocationPicker';
-import { useStore } from '../../context/StoreContext';
-
-type AddressFormData = {
-  fullname: string;
-  mobile: string;
-  fullAddress: string;
-  city: string;
-  state: string;
-  pincode: string;
-  lat: number;
-  lng: number;
-};
-
-type AddressFormProps = {
-  onSubmit: (address: AddressFormData) => Promise<void> | void;
-  onCancel: () => void;
-  isSubmitting: boolean;
-  defaultEmail?: string;
-  defaultPhone?: string;
-  defaultName?: string;
-};
-
-const ADDRESS_FORM_ERRORS: Partial<Record<keyof AddressFormData, string>> = {
-  fullname: 'Name is required',
-  mobile: 'Phone is required',
-  fullAddress: 'Address is required',
-  city: 'City is required',
-  state: 'State is required',
-  pincode: 'Pincode is required',
-  lat: 'Location is required',
-  lng: 'Location is required',
-};
+import { getDistanceInKm } from '../../utils/checkout';
 
 const AddressForm = ({
   onSubmit,
@@ -50,10 +25,10 @@ const AddressForm = ({
     city: '',
     state: '',
     pincode: '',
-    lat: 0,
-    lng: 0,
+    lat: 16.314209,
+    lng: 80.435028,
   });
-  const { siteContent } = useStore();
+
   const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
   const [errors, setErrors] = useState<
     Partial<Record<keyof AddressFormData, string>>
@@ -111,11 +86,13 @@ const AddressForm = ({
     await onSubmit(form);
   };
 
-  const deliverablePincodes = siteContent?.deliverablePincodes || [];
   const isPincodeDeliverable =
-    !form.pincode.trim() || deliverablePincodes.length === 0
-      ? true
-      : deliverablePincodes.includes(form.pincode.trim());
+    getDistanceInKm(
+      outletLocation.lat,
+      outletLocation.lng,
+      form.lat,
+      form.lng,
+    ) < 7;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">

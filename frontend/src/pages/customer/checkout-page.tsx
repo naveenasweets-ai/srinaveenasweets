@@ -5,10 +5,14 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '../../context/StoreContext';
 import {
   initialFormState,
+  outletLocation,
   type CheckoutFormState,
   type SavedAddress,
 } from '../../types/types';
-import { calculateCheckoutSummary } from '../../utils/checkout';
+import {
+  calculateCheckoutSummary,
+  getDistanceInKm,
+} from '../../utils/checkout';
 import { getSelectedWeightOption } from '../../utils/productInventory';
 import CheckoutShippingForm from '../../components/checkout/CheckoutShippingForm';
 import CheckoutSummary from '../../components/checkout/CheckoutSummary';
@@ -253,9 +257,12 @@ const CheckoutPage = () => {
 
   const deliverablePincodes = siteContent?.deliverablePincodes || [];
   const isPincodeDeliverable =
-    !form.pincode.trim() || deliverablePincodes.length === 0
-      ? true
-      : deliverablePincodes.includes(form.pincode.trim());
+    getDistanceInKm(
+      outletLocation.lat,
+      outletLocation.lng,
+      form.lat,
+      form.lng,
+    ) < 7;
 
   const deliveryFee = checkoutState?.deliveryFee ?? 0;
   const packagingFee = checkoutState?.packagingFee ?? charges.packagingFee;

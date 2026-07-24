@@ -6,8 +6,6 @@ import {
 } from './productInventory';
 import { useStore } from '../context/StoreContext';
 import CustomerApi from '../api/customer';
-import { useMap } from 'react-leaflet';
-import { useEffect } from 'react';
 
 const CustomerUtils = () => {
   const { user, showToast, cart, setCart, wishlist, setWishlist } = useStore();
@@ -161,26 +159,5 @@ const CustomerUtils = () => {
     toggleWishlist,
   };
 };
-
-export function MapController({ position }: { position: [number, number] }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (!Number.isFinite(position[0]) || !Number.isFinite(position[1])) {
-      return;
-    }
-
-    const currentCenter = map.getCenter();
-    const isSamePosition =
-      Math.abs(currentCenter.lat - position[0]) < 1e-9 &&
-      Math.abs(currentCenter.lng - position[1]) < 1e-9;
-
-    if (!isSamePosition) {
-      map.setView(position, map.getZoom());
-    }
-  }, [map, position]);
-
-  return null;
-}
 
 export default CustomerUtils;

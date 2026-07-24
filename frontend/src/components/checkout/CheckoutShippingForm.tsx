@@ -182,13 +182,14 @@ const CheckoutShippingForm = ({
           </div>
         )}
 
-        <div className="grid lg:grid-cols-2 grid-cols-1 gap-2 col-span-2">
+        <div className="grid lg:grid-cols-3 grid-cols-1 gap-2 col-span-2">
           <div>
             <label className="mb-1 block text-sm font-medium">City</label>
             <input
               value={form.city}
+              disabled
               onChange={(event) => onChange('city', event.target.value)}
-              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
+              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
             />
             {errors.city && (
               <p className="mt-1 text-sm text-red-500">{errors.city}</p>
@@ -198,11 +199,24 @@ const CheckoutShippingForm = ({
             <label className="mb-1 block text-sm font-medium">State</label>
             <input
               value={form.state}
+              disabled
               onChange={(event) => onChange('state', event.target.value)}
-              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
+              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
             />
             {errors.state && (
               <p className="mt-1 text-sm text-red-500">{errors.state}</p>
+            )}
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium">Pincode</label>
+            <input
+              value={form.pincode}
+              disabled
+              onChange={(event) => onChange('pincode', event.target.value)}
+              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+            />
+            {errors.pincode && (
+              <p className="mt-1 text-sm text-red-500">{errors.pincode}</p>
             )}
           </div>
         </div>

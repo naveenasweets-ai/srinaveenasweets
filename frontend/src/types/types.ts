@@ -22,16 +22,16 @@ export const initialFormState: CheckoutFormState = {
   city: '',
   state: '',
   pincode: '',
-  lat: 0,
-  lng: 0,
+  lat: 16.314209,
+  lng: 80.435028,
 };
 
 
 export const DEFAULT_POSITION: [number, number] = [16.314209, 80.435028];
 
 export type LocationPickerProps = {
-  lat?: number;
-  lng?: number;
+  lat: number;
+  lng: number;
   onAddressSelect: (data: {
     address: string;
     city: string;
@@ -168,4 +168,40 @@ export type CheckoutSummaryProps = {
     gstRate: number;
   };
   isEligibleForFreeDelivery: boolean;
+};
+
+export type AddressFormData = {
+  fullname: string;
+  mobile: string;
+  fullAddress: string;
+  city: string;
+  state: string;
+  pincode: string;
+  lat: number;
+  lng: number;
+};
+
+export type AddressFormProps = {
+  onSubmit: (address: AddressFormData) => Promise<void> | void;
+  onCancel: () => void;
+  isSubmitting: boolean;
+  defaultEmail?: string;
+  defaultPhone?: string;
+  defaultName?: string;
+};
+
+export const ADDRESS_FORM_ERRORS: Partial<Record<keyof AddressFormData, string>> = {
+  fullname: 'Name is required',
+  mobile: 'Phone is required',
+  fullAddress: 'Address is required',
+  city: 'City is required',
+  state: 'State is required',
+  pincode: 'Pincode is required',
+  lat: 'Location is required',
+  lng: 'Location is required',
+};
+
+export const outletLocation = {
+  lat: 16.314209,
+  lng: 80.435028,
 };
