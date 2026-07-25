@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   ADDRESS_FORM_ERRORS,
   type AddressFormData,
@@ -19,6 +19,7 @@ export default function AddressForm({
   defaultPhone = '',
   defaultName = '',
 }: AddressFormProps) {
+  const hasUserInteracted = useRef(false);
   const { siteContent } = useStore();
   const [form, setForm] = useState<AddressFormData>({
     fullname: initialValues?.fullname || defaultName || '',
@@ -30,7 +31,7 @@ export default function AddressForm({
     lat: initialValues?.lat ?? 16.314209,
     lng: initialValues?.lng ?? 80.435028,
   });
-
+  console.log('form: ', form.fullAddress, form.lat, form.lng)
   const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
   const [errors, setErrors] = useState<
     Partial<Record<keyof AddressFormData, string>>
@@ -49,7 +50,7 @@ export default function AddressForm({
   };
 
   useEffect(() => {
-    if (initialValues) {
+    if (initialValues && !hasUserInteracted.current) {
       setForm((prev) => ({
         ...prev,
         fullname: initialValues.fullname ?? prev.fullname,
@@ -73,6 +74,7 @@ export default function AddressForm({
       lat: number;
       lng: number;
     }) => {
+      hasUserInteracted.current = true;
       setForm((prev) => ({
         ...prev,
         fullAddress: data.address,
@@ -90,6 +92,7 @@ export default function AddressForm({
     field: keyof AddressFormData,
     value: string | number,
   ) => {
+    hasUserInteracted.current = true;
     setForm((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: '' }));
   };

@@ -183,6 +183,20 @@ export default function SavedAddressSelection({
         </button>
       )}
 
+      {showAddForm && editingAddressId === null && (
+        <div className="mt-4">
+          <p className="text-xs font-semibold text-(--color-accent) mb-2">
+            New Delivery Address:
+          </p>
+          <AddressForm
+            onSubmit={handleAddSubmit}
+            onCancel={() => setShowAddForm(false)}
+            isSubmitting={isSubmitting}
+            submitLabel="Save & Continue to Payment"
+          />
+        </div>
+      )}
+
       {/* Addresses List */}
       {savedAddresses.length > 0 ? (
         <div className="flex flex-col gap-3 mb-6">
@@ -240,20 +254,6 @@ export default function SavedAddressSelection({
         <p className="mb-4 text-xs text-(--color-muted)">
           No saved addresses found. Please add a new address below to continue.
         </p>
-      )}
-
-      {showAddForm && editingAddressId === null && (
-        <div className="mt-4">
-          <p className="text-xs font-semibold text-(--color-accent) mb-2">
-            New Delivery Address:
-          </p>
-          <AddressForm
-            onSubmit={handleAddSubmit}
-            onCancel={() => setShowAddForm(false)}
-            isSubmitting={isSubmitting}
-            submitLabel="Save & Continue to Payment"
-          />
-        </div>
       )}
 
       {/* Continue to Payment Button */}
