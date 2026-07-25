@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { fetchAllOrders } from '../../api/orders';
+import { fetchAllOrders, updateOrderStatus } from '../../api/orders';
 import OrderCard from '../../components/orders/OrderCard';
 import OrderListItem from '../../components/orders/OrderListItem';
 import CustomDropdown from '../../components/CustomDropdown';
@@ -231,7 +231,27 @@ const AllOrders = () => {
           >
             ← Back to orders
           </button>
-          <OrderCard order={selectedOrder} />
+          <OrderCard
+            order={selectedOrder}
+            onStatusChange={async (orderId, newStatus) => {
+              const { response, data } = await updateOrderStatus(
+                orderId,
+                newStatus,
+                user.token,
+              );
+              if (response.ok && data.success) {
+                showToast('Order status updated successfully', 'success');
+                setOrders((prev) =>
+                  prev.map((order) =>
+                    order._id === orderId ? data.order : order,
+                  ),
+                );
+                setSelectedOrder(data.order);
+              } else {
+                showToast(data.error || 'Failed to update status', 'error');
+              }
+            }}
+          />
         </div>
       ) : (
         <div className="mt-8 space-y-4">

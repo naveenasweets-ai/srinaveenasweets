@@ -96,7 +96,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
       item.product,
       item.weight,
     );
-    return Boolean(selectedWeightOrUnits && selectedWeightOrUnits.value > 0);
+    if (!selectedWeightOrUnits) return false;
+    const stock = selectedWeightOrUnits.stock;
+    if (stock === undefined || stock === null) return selectedWeightOrUnits.value > 0;
+    return stock > 0;
   });
 
   const cartTotal = availableCartItems.reduce((sum, item) => {

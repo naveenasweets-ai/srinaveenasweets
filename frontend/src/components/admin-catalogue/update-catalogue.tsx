@@ -54,17 +54,35 @@ const UpdateCatalogue = ({
     const existing = normalizeProductWeights(currentProduct);
     if (existing.length) return existing;
     return inventoryType === 'unit'
-      ? [{ value: 1, unit: 'unit', price: 0, originalPrice: undefined }]
-      : [{ value: 250, unit: '', price: 0, originalPrice: undefined }];
+      ? [
+          {
+            value: 1,
+            unit: 'unit',
+            price: 0,
+            originalPrice: undefined,
+            stock: 0,
+          },
+        ]
+      : [
+          {
+            value: 250,
+            unit: '',
+            price: 0,
+            originalPrice: undefined,
+            stock: 0,
+          },
+        ];
   };
 
   const generateProductId = () => {
-    const randomLetter = () => String.fromCharCode(65 + Math.floor(Math.random() * 26));
+    const randomLetter = () =>
+      String.fromCharCode(65 + Math.floor(Math.random() * 26));
     const randomNumber = () => String(Math.floor(Math.random() * 10));
     return `SNSPID-${randomLetter()}${randomLetter()}${randomLetter()}${randomNumber()}${randomNumber()}${randomNumber()}`;
   };
 
-  const productId = action === 'add' ? generateProductId() : product?._id ?? '';
+  const productId =
+    action === 'add' ? generateProductId() : (product?._id ?? '');
   const [name, setName] = useState(product?.name ?? '');
   const [subcategoryId, setSubcategoryId] = useState(
     product?.subcategory ?? '',
@@ -113,7 +131,7 @@ const UpdateCatalogue = ({
     setWeightOptions((prev) =>
       prev.map((option, i) => {
         if (i !== index) return option;
-        if (field === 'value' || field === 'price') {
+        if (field === 'value' || field === 'price' || field === 'stock') {
           return { ...option, [field]: Number(rawValue) || 0 };
         }
         if (field === 'originalPrice') {
@@ -134,8 +152,20 @@ const UpdateCatalogue = ({
     setWeightOptions((prev) => [
       ...prev,
       inventoryType === 'unit'
-        ? { value: 1, unit: 'unit', price: 0, originalPrice: undefined }
-        : { value: 250, unit: '', price: 0, originalPrice: undefined },
+        ? {
+            value: 1,
+            unit: 'unit',
+            price: 0,
+            originalPrice: undefined,
+            stock: 0,
+          }
+        : {
+            value: 250,
+            unit: '',
+            price: 0,
+            originalPrice: undefined,
+            stock: 0,
+          },
     ]);
   };
 
@@ -174,6 +204,7 @@ const UpdateCatalogue = ({
         option.originalPrice !== undefined
           ? Number(option.originalPrice)
           : undefined,
+      stock: Number(option.stock) || 0,
     }));
 
     payload.availableWeight = normalizedOptions;
@@ -491,21 +522,21 @@ const UpdateCatalogue = ({
               </label>
               <p className="mb-4 text-[11px] text-[#8a6a4a]">
                 {inventoryType === 'unit'
-                  ? 'Set a single unit amount and its price for this product.'
+                  ? 'Set a number of units and its price for this product.'
                   : 'Add one or more weights, each with its own price (and optional original price for discounts).'}
               </p>
               {inventoryType === 'unit' ? (
-                <div className="grid items-end gap-3 sm:grid-cols-3">
+                <div className="grid items-end gap-3 sm:grid-cols-4">
                   <div>
                     <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#5f1021]">
-                      Unit Amount
+                      Stock
                     </label>
                     <input
                       type="number"
                       min="0"
-                      value={weightOptions[0]?.value ?? 1}
+                      value={weightOptions[0]?.stock ?? 0}
                       onChange={(e) =>
-                        updateWeightOption(0, 'value', e.target.value)
+                        updateWeightOption(0, 'stock', e.target.value)
                       }
                       className={inputClassName}
                     />
@@ -567,23 +598,26 @@ const UpdateCatalogue = ({
                               className={inputClassName}
                             />
                           </div>
-                          <div>
-                            <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#5f1021]">
-                              Avl Unit
-                            </label>
-                            <input
-                              type="text"
-                              value={option.unit}
-                              onChange={(e) =>
-                                updateWeightOption(
-                                  index,
-                                  'unit',
-                                  e.target.value,
-                                )
-                              }
-                              placeholder=""
-                              className={inputClassName}
-                            />
+
+                          <div className="flex gap-3 items-end">
+                            <div>
+                              <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#5f1021]">
+                                Stock
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={option.stock ?? 0}
+                                onChange={(e) =>
+                                  updateWeightOption(
+                                    index,
+                                    'stock',
+                                    e.target.value,
+                                  )
+                                }
+                                className={inputClassName}
+                              />
+                            </div>
                           </div>
                         </div>
                         <div className="flex gap-3 items-end">

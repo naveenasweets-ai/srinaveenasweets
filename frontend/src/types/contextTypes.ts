@@ -29,6 +29,7 @@ export type ProductWeightPrice = {
   unit: string;
   price: number;
   originalPrice?: number;
+  stock?: number;
 };
 
 export type Product = {

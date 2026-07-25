@@ -32,3 +32,21 @@ export const fetchAllOrders = async (token: string) => {
   const data = await response.json();
   return { response, data };
 };
+
+export const updateOrderStatus = async (
+  orderId: string,
+  status: string,
+  token: string,
+) => {
+  const response = await fetch(`${apiUrl}/api/orders/${orderId}/status`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  const data = await response.json();
+  return { response, data };
+};

@@ -49,7 +49,7 @@ export default function CustomDropdown({
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`flex items-center justify-between gap-2 rounded-lg border border-[#f3d48a]/70 bg-[#fff8ef] px-3 py-1.5 text-xs font-semibold text-[#5f1021] shadow-sm transition hover:bg-[#fef4da] focus:border-[#d4a017] focus:outline-none focus:ring-2 focus:ring-[#f3d48a]/50 ${buttonClassName}`}
+        className={`flex w-full items-center justify-between gap-2 rounded-lg border border-[#f3d48a]/70 bg-[#fff8ef] px-3 py-1.5 text-xs font-semibold text-[#5f1021] shadow-sm transition hover:bg-[#fef4da] focus:border-[#d4a017] focus:outline-none focus:ring-2 focus:ring-[#f3d48a]/50 ${buttonClassName}`}
       >
         <span className="truncate">{selectedLabel}</span>
         <svg
@@ -65,7 +65,7 @@ export default function CustomDropdown({
 
       {isOpen && (
         <div
-          className={`absolute right-0 z-20 mt-2 min-w-48 rounded-xl border border-[#f3d48a]/70 bg-[#fffdf7] p-1 shadow-[0_12px_30px_rgba(95,16,33,0.12)] ${menuClassName}`}
+          className={`absolute right-0 z-999 mt-2 min-w-48 rounded-xl border border-[#f3d48a]/70 bg-[#fffdf7] p-1 shadow-[0_12px_30px_rgba(95,16,33,0.12)] ${menuClassName}`}
         >
           {options.map((option) => (
             <button

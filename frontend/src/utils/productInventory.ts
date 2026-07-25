@@ -4,6 +4,7 @@ import type { Product, ProductWeightPrice } from '../types/contextTypes';
 export type ProductWeightOption = {
   value: number;
   unit: string;
+  stock?: number;
 };
 
 export type ProductWeightPriceOption = ProductWeightPrice;
@@ -19,6 +20,10 @@ const normalizeWeightEntry = (
     entry.unit !== undefined
       ? String(entry.unit).trim()
       : String(entry.name ?? '').trim();
+  const stock =
+    entry.stock !== undefined && entry.stock !== null && entry.stock !== ''
+      ? Number(entry.stock)
+      : undefined;
 
   if (Number.isNaN(value) || value <= 0 || !unit) return null;
 
@@ -32,6 +37,7 @@ const normalizeWeightEntry = (
         entry.originalPrice !== ''
         ? Number(entry.originalPrice)
         : undefined,
+    stock,
   };
 };
 
@@ -92,11 +98,19 @@ export const getDefaultInventorySelection = (product?: Product) => {
 export const getProductInventoryState = (product: Product) => {
   const weightOptions = normalizeProductWeights(product);
   const hasInventory = weightOptions.length > 0;
+  const outOfStock =
+    product?.inStock === false ||
+    !hasInventory ||
+    weightOptions.every((option) => {
+      const stock = option.stock;
+      if (stock === undefined || stock === null) return false;
+      return stock <= 0;
+    });
 
   return {
     weightOptions,
     hasInventory,
-    isOutOfStock: product?.inStock === false || !hasInventory,
+    isOutOfStock: outOfStock,
   };
 };
 
@@ -163,5 +177,29 @@ export const isCartItemAvailable = (item: any, products: any[] = []) => {
     item?.weight,
   );
 
-  return Boolean(weightOption && weightOption.value > 0);
+  if (!weightOption) return false;
+  const stock = weightOption.stock;
+  if (stock === undefined || stock === null) return weightOption.value > 0;
+  return stock > 0;
+};
+
+export const getProductStockLabel = (product: Product): any => {
+  const weightOptions = normalizeProductWeights(product);
+  const hasInventory = weightOptions.length > 0;
+
+  if (!hasInventory || product?.inStock === false) return '';
+
+  if (product?.inventoryType === 'unit') {
+    const option = weightOptions[0];
+    if (!option || (option.stock ?? 0) <= 0) return '';
+    return `${option.stock} ${option.unit}(s) available`;
+  }
+
+  if (product?.inventoryType === 'weight') {
+    return weightOptions
+      .filter(opt => (opt.stock ?? 0) > 0)
+      .map(opt => `${opt.value} gms - ${opt.stock} Units`);
+  }
+
+  return '';
 };

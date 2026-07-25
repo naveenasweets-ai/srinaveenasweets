@@ -15,6 +15,14 @@ const CartItemCard = () => {
 
   const displayCart = useMemo(() => cart, [cart]);
 
+  const isOutOfStock = (item: CartItem) => {
+    const option = getSelectedWeightOption(item.product, item.weight);
+    if (!option) return true;
+    const stock = option.stock;
+    if (stock === undefined || stock === null) return false;
+    return stock <= 0;
+  };
+
   return (
     <div className="md:w-3/4 w-full">
       <div
@@ -63,23 +71,29 @@ const CartItemCard = () => {
                 );
                 const unitPrice = getOptionPrice(selectedOption);
                 const lineTotal = unitPrice * item.quantity;
+                const outOfStock = isOutOfStock(item);
                 return (
-                  <tr key={i}>
+                  <tr
+                    key={i}
+                    style={{
+                      opacity: outOfStock ? 0.6 : 1,
+                    }}
+                  >
                     <td className="lg:py-4">
                       <div className="lg:flex gap-4 items-center">
                         <Link
                           to={`/product/${generateSlug(item.product._id, item.product.name)}`}
                         >
                           <img
-                            className="w-24 rounded-md"
+                            className={`w-24 rounded-md ${outOfStock ? 'grayscale' : ''}`}
                             src={item.product.image}
                             alt=""
                           />
                         </Link>
-                        <div className="min-w-0 max-w-[24rem]">
+                        <div className="min-w-0 max-w-[20rem]">
                           <p
-                            className="font-semibold"
-                            style={{ color: 'var(--color-primary)' }}
+                            className={`font-semibold ${outOfStock ? 'line-through text-gray-400' : ''}`}
+                            style={{ color: outOfStock ? undefined : 'var(--color-primary)' }}
                           >
                             {item.product.name}
                           </p>
@@ -100,6 +114,11 @@ const CartItemCard = () => {
                               ? 'unit(s)'
                               : 'g'}
                           </p>
+                          {outOfStock && (
+                            <span className="inline-block mt-1 rounded bg-red-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-700">
+                              Out of stock
+                            </span>
+                          )}
                           <div
                             className="font-semibold mt-4 w-fit text-xs cursor-pointer"
                             style={{ color: 'var(--color-accent)' }}
@@ -107,14 +126,14 @@ const CartItemCard = () => {
                               removeFromCart(item.product._id, item.weight)
                             }
                           >
-                            Remove
+                            {outOfStock ? 'Remove' : 'Remove'}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td
                       className="lg:py-4 text-nowrap"
-                      style={{ color: 'var(--color-text)' }}
+                      style={{ color: 'var(--color-text)', textDecoration: outOfStock ? 'line-through' : undefined }}
                     >
                       ₹ {unitPrice}.00
                       {item.product.gstIncluded && (
@@ -133,7 +152,8 @@ const CartItemCard = () => {
                               item.weight,
                             )
                           }
-                          className="flex h-8 w-8 items-center justify-center rounded-full border border-(--color-primary) text-(--color-primary) font-bold shadow-sm transition hover:bg-(--color-primary) hover:text-(--color-accent-light) active:scale-95"
+                          disabled={outOfStock}
+                          className="flex h-8 w-8 items-center justify-center rounded-full border border-(--color-primary) text-(--color-primary) font-bold shadow-sm transition hover:bg-(--color-primary) hover:text-(--color-accent-light) active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           -
                         </button>
@@ -151,14 +171,23 @@ const CartItemCard = () => {
                               item.weight,
                             )
                           }
-                          className="flex h-8 w-8 items-center justify-center rounded-full border border-(--color-primary) text-(--color-primary) font-bold shadow-sm transition hover:bg-(--color-primary) hover:text-(--color-accent-light) active:scale-95"
+                          disabled={outOfStock}
+                          className="flex h-8 w-8 items-center justify-center rounded-full border border-(--color-primary) text-(--color-primary) font-bold shadow-sm transition hover:bg-(--color-primary) hover:text-(--color-accent-light) active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           +
                         </button>
                       </div>
                     </td>
-                    <td className="py-4" style={{ color: 'var(--color-text)' }}>
+                    <td
+                      className="py-4"
+                      style={{ color: 'var(--color-text)', textDecoration: outOfStock ? 'line-through' : undefined }}
+                    >
                       ₹ {lineTotal}.00
+                      {outOfStock && (
+                        <span className="ml-2 text-[10px] text-red-500 font-semibold">
+                          (excluded)
+                        </span>
+                      )}
                     </td>
                   </tr>
                 );
@@ -175,17 +204,21 @@ const CartItemCard = () => {
               item.weight,
             );
             const mobileUnitPrice = getOptionPrice(mobileOption);
+            const outOfStock = isOutOfStock(item);
             return (
               <div
                 key={i}
                 className="flex items-start gap-4 p-3 rounded-md"
-                style={{ backgroundColor: 'transparent' }}
+                style={{
+                  backgroundColor: 'transparent',
+                  opacity: outOfStock ? 0.6 : 1,
+                }}
               >
                 <Link
                   to={`/product/${generateSlug(item.product._id, item.product.name)}`}
                 >
                   <img
-                    className="w-20 h-20 object-cover rounded-md"
+                    className={`w-20 h-20 object-cover rounded-md ${outOfStock ? 'grayscale' : ''}`}
                     src={item.product.image}
                     alt=""
                   />
@@ -194,8 +227,8 @@ const CartItemCard = () => {
                   <div className="flex justify-between items-start gap-3">
                     <div className="min-w-0">
                       <p
-                        className="font-semibold"
-                        style={{ color: 'var(--color-primary)' }}
+                        className={`font-semibold ${outOfStock ? 'line-through text-gray-400' : ''}`}
+                        style={{ color: outOfStock ? undefined : 'var(--color-primary)' }}
                       >
                         {item.product.name}
                       </p>
@@ -208,7 +241,7 @@ const CartItemCard = () => {
                     </div>
                     <div
                       className="text-sm font-semibold flex flex-col items-end"
-                      style={{ color: 'var(--color-text)' }}
+                      style={{ color: 'var(--color-text)', textDecoration: outOfStock ? 'line-through' : undefined }}
                     >
                       <span className="whitespace-nowrap">
                         ₹ {item.quantity * mobileUnitPrice}.00
@@ -230,7 +263,8 @@ const CartItemCard = () => {
                             item.weight,
                           )
                         }
-                        className="flex h-8 w-8 items-center justify-center rounded-full border border-(--color-primary) text-(--color-primary) font-bold shadow-sm transition hover:bg-(--color-primary) hover:text-(--color-accent-light) active:scale-95"
+                        disabled={outOfStock}
+                        className="flex h-8 w-8 items-center justify-center rounded-full border border-(--color-primary) text-(--color-primary) font-bold shadow-sm transition hover:bg-(--color-primary) hover:text-(--color-accent-light) active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         -
                       </button>
@@ -248,7 +282,8 @@ const CartItemCard = () => {
                             item.weight,
                           )
                         }
-                        className="flex h-8 w-8 items-center justify-center rounded-full border border-(--color-primary) text-(--color-primary) font-bold shadow-sm transition hover:bg-(--color-primary) hover:text-(--color-accent-light) active:scale-95"
+                        disabled={outOfStock}
+                        className="flex h-8 w-8 items-center justify-center rounded-full border border-(--color-primary) text-(--color-primary) font-bold shadow-sm transition hover:bg-(--color-primary) hover:text-(--color-accent-light) active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         +
                       </button>
@@ -263,6 +298,11 @@ const CartItemCard = () => {
                         {item.weight}{' '}
                         {item.product.inventoryType === 'weight' ? 'g' : ''}
                       </div>
+                      {outOfStock && (
+                        <span className="text-[10px] font-bold text-red-500">
+                          Out of stock (excluded from total)
+                        </span>
+                      )}
                       <div
                         className="text-xs font-semibold cursor-pointer"
                         style={{ color: 'var(--color-accent)' }}
@@ -270,7 +310,7 @@ const CartItemCard = () => {
                           removeFromCart(item.product._id, item.weight)
                         }
                       >
-                        Remove
+                        {outOfStock ? 'Remove' : 'Remove'}
                       </div>
                     </div>
                   </div>

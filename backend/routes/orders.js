@@ -8,6 +8,7 @@ import {
   sendOtp,
   verifyOtp,
   verifyRazorpayPayment,
+  updateOrderStatus,
 } from '../controllers/orderController.js';
 import { requireAdminAuth } from '../middleware/requireAuth.js';
 import { requireCustomerAuth } from '../middleware/requireAuth.js';
@@ -22,5 +23,6 @@ router.get('/', requireAdminAuth, getAllOrders);
 router.get('/customer/:customerId', requireCustomerAuth, getCustomerOrders);
 router.post('/payment', initiatePayment);
 router.post('/payment/verify', verifyRazorpayPayment);
+router.put('/:id/status', requireAdminAuth, updateOrderStatus);
 
 export default router;

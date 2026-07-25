@@ -1,7 +1,9 @@
 import type { Order } from '../../types/types';
+import CustomDropdown from '../CustomDropdown';
 
 type OrderCardProps = {
   order: Order;
+  onStatusChange?: (orderId: string, newStatus: string) => void;
 };
 
 const formatPrice = (value: number) =>
@@ -34,9 +36,25 @@ const statusColor = (status: string) => {
   }
 };
 
-const OrderCard = ({ order }: OrderCardProps) => {
+const OrderCard = ({ order, onStatusChange }: OrderCardProps) => {
   const lineTotal = (price: number, quantity: number) =>
     formatPrice(price * quantity);
+
+  const statusOptions = [
+    { label: 'Pending', value: 'pending' },
+    { label: 'Confirmed', value: 'confirmed' },
+    { label: 'Delivered', value: 'delivered' },
+    { label: 'Cancelled', value: 'cancelled' },
+  ];
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!onStatusChange || newStatus === order.orderStatus) return;
+    try {
+      await onStatusChange(order._id, newStatus);
+    } catch {
+      // toast handled by parent
+    }
+  };
 
   return (
     <div className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-6 shadow-sm">
@@ -73,6 +91,14 @@ const OrderCard = ({ order }: OrderCardProps) => {
         <span className="inline-flex items-center rounded-full border border-(--color-border) bg-(--color-background) px-3 py-1 text-xs font-semibold text-(--color-text)">
           {order.paymentMethod === 'razorpay' ? 'Razorpay' : 'Cash on Delivery'}
         </span>
+        {onStatusChange && (
+          <CustomDropdown
+            options={statusOptions}
+            value={order.orderStatus.toLowerCase()}
+            onChange={handleStatusChange}
+            placeholder="Update status"
+          />
+        )}
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">

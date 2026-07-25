@@ -2,6 +2,11 @@ import crypto from 'crypto';
 import OrderSchema from '../schemas/OrderSchema.js';
 import { calculateCheckoutTotals } from '../utils/checkout.js';
 import { capitalizeFirstLetter } from '../utils/utils.js';
+import {
+  deductStock,
+  restoreStock,
+  validateOrderStock,
+} from '../utils/stockService.js';
 
 const normalizeAmount = (value) => Number(Number(value || 0).toFixed(2));
 
@@ -101,8 +106,7 @@ const verifyOtpViaWhatsapp = async (phone, otp) => {
 const sendOrderNotification = async (order) => {
   const adminPhone = process.env.ADMIN_PHONE;
   const whatsappToken = process.env.WHATSAPP_TOKEN;
-  console.log('adminPhone: ', adminPhone, whatsappToken);
-  console.log('order: ', order);
+
   if (!adminPhone || !whatsappToken) {
     console.warn(
       'Admin phone or WhatsApp token not configured. Skipping order notification.',
@@ -246,6 +250,16 @@ const createOrder = async (req, res) => {
       return res
         .status(400)
         .json({ success: false, error: 'Cart items are required' });
+    }
+
+    const stockValidation = await validateOrderStock(items);
+
+    if (!stockValidation.valid) {
+      return res.status(400).json({
+        success: false,
+        error: 'Some items are out of stock',
+        unavailable: stockValidation.unavailable,
+      });
     }
 
     if (paymentMethod === 'cod' && !otpVerified) {
@@ -652,6 +666,8 @@ const verifyRazorpayPayment = async (req, res) => {
 
     await order.save();
 
+    await deductStock(order.items);
+
     await sendOrderNotification(order);
 
     return res.status(200).json({
@@ -659,6 +675,55 @@ const verifyRazorpayPayment = async (req, res) => {
       order,
       message: 'Payment verified and order created successfully',
     });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const updateOrderStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body || {};
+
+    if (!status) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'Status is required' });
+    }
+
+    const allowedStatuses = ['pending', 'confirmed', 'delivered', 'cancelled'];
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid status. Allowed: ${allowedStatuses.join(', ')}`,
+      });
+    }
+
+    const order = await OrderSchema.findById(id);
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    const previousStatus = String(order.orderStatus || '').toLowerCase();
+    const newStatus = String(status).toLowerCase();
+    const wasConfirmedOrDelivered =
+      previousStatus === 'confirmed' || previousStatus === 'delivered';
+
+    order.orderStatus = newStatus;
+    await order.save();
+
+    if (
+      (newStatus === 'confirmed' || newStatus === 'delivered') &&
+      !wasConfirmedOrDelivered
+    ) {
+      await deductStock(order.items);
+    }
+
+    if (newStatus === 'cancelled' && wasConfirmedOrDelivered) {
+      await restoreStock(order.items);
+    }
+
+    return res.status(200).json({ success: true, order });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
@@ -673,4 +738,5 @@ export {
   sendOtp,
   verifyOtp,
   verifyRazorpayPayment,
+  updateOrderStatus,
 };

@@ -20,17 +20,20 @@ const CustomerUtils = () => {
     const resolvedWeight =
       activeWeight ?? getDefaultInventorySelection(product);
     const selectedSizeOption = getSelectedWeightOption(product, resolvedWeight);
-    if (!selectedSizeOption || selectedSizeOption.value <= 0) {
+    const stock = selectedSizeOption?.stock;
+    if (
+      !selectedSizeOption ||
+      (stock !== undefined && stock !== null && stock <= 0)
+    ) {
       showToast('This is currently out of stock.', 'warning');
       return;
     }
 
-    const safeQuantity = Math.min(quantity, selectedSizeOption.value);
+    const maxQty =
+      stock !== undefined && stock !== null ? stock : selectedSizeOption.value;
+    const safeQuantity = Math.min(quantity, maxQty);
     if (safeQuantity < quantity) {
-      showToast(
-        `Only ${selectedSizeOption.value} ${selectedSizeOption.unit} available.`,
-        'warning',
-      );
+      showToast(`Only ${selectedSizeOption.unit} units available.`, 'warning');
     }
 
     const existingItem = cart.find(
@@ -60,7 +63,11 @@ const CustomerUtils = () => {
     });
   };
 
-  const removeFromCart = async (productId: string, weight?: string, silent = false) => {
+  const removeFromCart = async (
+    productId: string,
+    weight?: string,
+    silent = false,
+  ) => {
     const newCart = cart.filter((item) => {
       const matchesProduct = item.product._id === productId;
       return weight
@@ -96,12 +103,16 @@ const CustomerUtils = () => {
       ? getSelectedWeightOption(matchingItem.product, matchingItem.weight)
       : null;
 
-    if (weightOrUnitsOption && quantity > weightOrUnitsOption.value) {
-      showToast(
-        `Only ${weightOrUnitsOption.value} ${weightOrUnitsOption.unit} available.`,
-        'warning',
-      );
-      return;
+    if (weightOrUnitsOption) {
+      const stock = weightOrUnitsOption.stock;
+      const maxQty =
+        stock !== undefined && stock !== null
+          ? stock
+          : weightOrUnitsOption.value;
+      if (quantity > maxQty) {
+        showToast(`Only ${weightOrUnitsOption.unit} units available.`, 'warning');
+        return;
+      }
     }
 
     const newCart = cart.map((item) =>

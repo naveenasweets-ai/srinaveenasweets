@@ -83,7 +83,7 @@ const CheckoutShippingForm = ({
       {hasAddressSelected ? (
         <div className="rounded-xl border border-(--color-border) bg-(--color-surface-alt) p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex flex-col justify-center items-start gap-2">
+            <div className="flex lg:flex-row lg:items-center flex-col justify-center items-start gap-2">
               <span className="text-sm font-bold text-(--color-primary-dark) whitespace-nowrap">
                 📍 Delivery Address
               </span>
@@ -109,7 +109,7 @@ const CheckoutShippingForm = ({
           </div>
 
           <div className="text-xs text-(--color-text) space-y-1 pt-1">
-            <p className="font-semibold flex text-sm text-(--color-primary-dark)">
+            <p className="font-semibold flex flex-row lg:flex-col text-sm text-(--color-primary-dark)">
               <span className="font-semibold text-sm text-(--color-primary-dark) py-1 line-clamp-1 w-3/5">
                 {displayName}
               </span>{' '}

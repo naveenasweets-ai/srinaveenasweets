@@ -62,6 +62,7 @@ export async function saveProduct(req, res) {
                 entry?.originalPrice !== ''
                   ? Number(entry.originalPrice)
                   : undefined,
+              stock: Number(entry?.stock) || 0,
             }))
             .filter((entry) => entry.value > 0 && entry.unit)
         : null;
@@ -112,6 +113,7 @@ export async function updateProduct(req, res) {
                 entry?.originalPrice !== ''
                   ? Number(entry.originalPrice)
                   : undefined,
+              stock: Number(entry?.stock) || 0,
             }))
             .filter((entry) => entry.value > 0 && entry.unit)
         : undefined;

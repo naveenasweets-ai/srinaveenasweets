@@ -30,7 +30,7 @@ import CustomerApi from '../../api/customer';
 const CheckoutPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { cart, cartTotal, user, showToast, siteContent, setCart } = useStore();
+  const { cart, user, showToast, siteContent, setCart } = useStore();
   const { clearCart } = CustomerUtils();
   const {
     addSavedAddress,
@@ -284,6 +284,28 @@ const CheckoutPage = () => {
     return cart;
   }, [cart, checkoutState]);
 
+  const validCartItems = useMemo(() => {
+    const valid: typeof cart = [];
+    displayCart.forEach((item) => {
+      const option = getSelectedWeightOption(item.product, item.weight);
+      if (!option) return;
+      const stock = option.stock;
+      if (stock === undefined || stock === null || stock > 0) {
+        valid.push(item);
+      }
+    });
+    return valid;
+  }, [displayCart]);
+
+  const excludedItems = useMemo(() => {
+    return displayCart.filter((item) => {
+      const option = getSelectedWeightOption(item.product, item.weight);
+      if (!option) return true;
+      const stock = option.stock;
+      return stock !== undefined && stock !== null && stock <= 0;
+    });
+  }, [displayCart]);
+
   const charges = siteContent?.charges || {
     deliveryFee: 40,
     freeDeliveryThreshold: 499,
@@ -295,14 +317,17 @@ const CheckoutPage = () => {
   const deliveryFee = checkoutState?.deliveryFee ?? 0;
   const packagingFee = checkoutState?.packagingFee ?? charges.packagingFee;
   const platformFee = checkoutState?.platformFee ?? charges.platformFee;
-  const subtotal = checkoutState?.subtotal ?? cartTotal;
+  const subtotal = checkoutState?.subtotal ?? validCartItems.reduce((sum, item) => {
+    const price = getSelectedWeightOption(item.product, item.weight)?.price ?? item.product.price;
+    return sum + price * item.quantity;
+  }, 0);
 
-  const isEligibleForFreeDelivery = cartTotal >= charges.freeDeliveryThreshold;
+  const isEligibleForFreeDelivery = subtotal >= charges.freeDeliveryThreshold;
 
   const totals = useMemo(
     () =>
       calculateCheckoutSummary({
-        items: displayCart,
+        items: validCartItems,
         subtotal,
         deliveryFee,
         packagingFee,
@@ -313,7 +338,7 @@ const CheckoutPage = () => {
     [
       charges.gstRate,
       deliveryFee,
-      displayCart,
+      validCartItems,
       packagingFee,
       paymentMethod,
       platformFee,
@@ -504,7 +529,7 @@ const CheckoutPage = () => {
         pincode: form.pincode.trim(),
         longitude: form.lng,
         latitude: form.lat,
-        items: displayCart.map((item) => ({
+        items: validCartItems.map((item) => ({
           productId: item.product._id,
           name: item.product.name,
           quantity: item.quantity,
@@ -714,12 +739,26 @@ const CheckoutPage = () => {
         )}
 
         <CheckoutSummary
-          displayCart={displayCart}
+          displayCart={validCartItems}
           totals={totals}
           charges={charges}
           isEligibleForFreeDelivery={isEligibleForFreeDelivery}
         />
       </div>
+
+      {excludedItems.length > 0 && (
+        <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <p className="font-semibold">Some items were removed from your order:</p>
+          <ul className="mt-2 list-disc pl-5">
+            {excludedItems.map((item, idx) => (
+              <li key={idx}>
+                {item.product.name} - {item.weight}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs">These items are no longer available and have been excluded from your order total.</p>
+        </div>
+      )}
     </div>
   );
 };

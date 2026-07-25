@@ -1,4 +1,5 @@
-﻿import { useState } from 'react';
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { IoIosSearch } from 'react-icons/io';
 import { IoMdAdd } from 'react-icons/io';
@@ -8,6 +9,7 @@ import type { Product } from '../../types/contextTypes';
 import {
   getProductPrice,
   getProductOriginalPrice,
+  getProductStockLabel,
 } from '../../utils/productInventory';
 import UpdateCatalogue from '../../components/admin-catalogue/update-catalogue';
 import DeleteConfirmModal from '../../components/admin-catalogue/delete-confirmation';
@@ -97,6 +99,7 @@ const ProductCatalogue = () => {
           {filteredProducts.map((p, i) => {
             const displayPrice = getProductPrice(p);
             const displayOriginalPrice = getProductOriginalPrice(p);
+            const stockLabel = getProductStockLabel(p);
             const d = displayOriginalPrice
               ? Math.round(
                   ((displayOriginalPrice - displayPrice) /
@@ -105,7 +108,6 @@ const ProductCatalogue = () => {
                 )
               : 0;
             const outOfStock = p.inStock === false;
-
             return (
               <div
                 key={i}
@@ -173,6 +175,22 @@ const ProductCatalogue = () => {
                     <h4 className="mt-1 line-clamp-2 text-sm font-semibold leading-tight text-[#4d2b1f] sm:text-base lg:text-lg">
                       {p.name}
                     </h4>
+                  </div>
+
+                  <div className="flex flex-col px-3 pb-3">
+                    {stockLabel && (
+                      <span className="font-semibold tracking-wider text-[#8a6a4a]">
+                        {p.inventoryType === 'unit' ? (
+                          stockLabel
+                        ) : (
+                          <ul>
+                            {stockLabel?.map((label: any) => (
+                              <li>{label}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </span>
+                    )}
                   </div>
                 </div>
 

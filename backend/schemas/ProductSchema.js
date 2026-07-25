@@ -63,6 +63,7 @@ const ProductSchema = new Schema(
           unit: { type: String, required: true, default: '' },
           price: { type: Number, required: false, default: 0 },
           originalPrice: { type: Number, required: false },
+          stock: { type: Number, required: false, default: 0 },
         },
       ],
       required: false,
