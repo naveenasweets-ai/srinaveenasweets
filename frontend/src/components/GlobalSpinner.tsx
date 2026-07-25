@@ -11,7 +11,7 @@ export default function GlobalSpinner() {
         src="https://lottie.host/9ab9c940-eef4-4b34-a23e-b2a760744645/PmVg9dOemF.lottie"
         loop
         autoplay
-        className="w-24 h-24"
+        className="w-32 h-32"
       />
     </div>
   );
