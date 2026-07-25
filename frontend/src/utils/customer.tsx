@@ -15,6 +15,7 @@ const CustomerUtils = () => {
     product: Product,
     quantity = 1,
     activeWeight?: string,
+    silent = false,
   ) => {
     const resolvedWeight =
       activeWeight ?? getDefaultInventorySelection(product);
@@ -52,14 +53,14 @@ const CustomerUtils = () => {
     await updateCart(newCart, user).then((res: any) => {
       if (res.success) {
         setCart(newCart);
-        showToast('Added item(s) to your bag!', 'success');
+        if (!silent) showToast('Added item(s) to your bag!', 'success');
       } else {
-        showToast('Failed to add item to cart.', 'error');
+        if (!silent) showToast('Failed to add item to cart.', 'error');
       }
     });
   };
 
-  const removeFromCart = async (productId: string, weight?: string) => {
+  const removeFromCart = async (productId: string, weight?: string, silent = false) => {
     const newCart = cart.filter((item) => {
       const matchesProduct = item.product._id === productId;
       return weight
@@ -70,9 +71,9 @@ const CustomerUtils = () => {
     await updateCart(newCart, user).then((res) => {
       if (res.success) {
         setCart(newCart);
-        showToast('Removed item from your bag!', 'success');
+        if (!silent) showToast('Removed item from your bag!', 'success');
       } else {
-        showToast('Failed to remove item from cart.', 'error');
+        if (!silent) showToast('Failed to remove item from cart.', 'error');
       }
     });
   };
@@ -81,9 +82,10 @@ const CustomerUtils = () => {
     productId: string,
     quantity: number,
     weight?: string,
+    silent = false,
   ) => {
     if (quantity <= 0) {
-      await removeFromCart(productId, weight);
+      await removeFromCart(productId, weight, silent);
       return;
     }
 
@@ -111,9 +113,9 @@ const CustomerUtils = () => {
     await updateCart(newCart, user).then((res) => {
       if (res.success) {
         setCart(newCart);
-        showToast('Updated item quantity!', 'success');
+        if (!silent) showToast('Updated item quantity!', 'success');
       } else {
-        showToast('Failed to update item quantity.', 'error');
+        if (!silent) showToast('Failed to update item quantity.', 'error');
       }
     });
   };

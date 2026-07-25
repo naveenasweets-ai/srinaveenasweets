@@ -107,4 +107,6 @@ export interface StoreContextType {
 
   isInWishlist: (productId: string) => boolean;
   wishlistCount: number;
+
+  freeDeliveryProgress: number
 }

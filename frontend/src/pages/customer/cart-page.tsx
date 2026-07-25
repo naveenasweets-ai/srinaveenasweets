@@ -6,7 +6,7 @@ import { FiList } from 'react-icons/fi';
 import { calculateCheckoutSummary } from '../../utils/checkout';
 
 const CartPage = () => {
-  const { cart, cartTotal, cartCount, siteContent } = useStore();
+  const { cart, cartTotal, cartCount, siteContent, freeDeliveryProgress } = useStore();
 
   const charges = siteContent?.charges || {
     deliveryFee: 40,
@@ -51,10 +51,6 @@ const CartPage = () => {
 
   const total = totals.grandTotal;
 
-  const freeDeliveryProgress = Math.min(
-    (cartTotal / FREE_DELIVERY_THRESHOLD) * 100,
-    100,
-  );
   const amountToFreeDelivery = Math.max(FREE_DELIVERY_THRESHOLD - cartTotal, 0);
 
   const isEligibleForFreeDelivery = cartTotal >= FREE_DELIVERY_THRESHOLD;

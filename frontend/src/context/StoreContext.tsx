@@ -116,21 +116,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
     return Boolean(selectedWeightOrUnits && selectedWeightOrUnits.value > 0);
   });
 
-  const cartTotal = availableCartItems.reduce(
-    (sum, item) => {
-      const selectedOption = getSelectedWeightOption(
-        item.product,
-        item.weight,
-      );
-      const price = selectedOption ? selectedOption.price : item.product.price;
-      return sum + price * item.quantity;
-    },
-    0,
-  );
+  const cartTotal = availableCartItems.reduce((sum, item) => {
+    const selectedOption = getSelectedWeightOption(item.product, item.weight);
+    const price = selectedOption ? selectedOption.price : item.product.price;
+    return sum + price * item.quantity;
+  }, 0);
 
   const cartCount = availableCartItems.reduce(
     (sum, item) => sum + item.quantity,
     0,
+  );
+
+  const FREE_DELIVERY_THRESHOLD = siteContent.charges.freeDeliveryThreshold;
+  const freeDeliveryProgress = Math.min(
+    (cartTotal / FREE_DELIVERY_THRESHOLD) * 100,
+    100,
   );
 
   return (
@@ -164,6 +164,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
 
         isInWishlist,
         wishlistCount,
+
+        freeDeliveryProgress
       }}
     >
       {children}

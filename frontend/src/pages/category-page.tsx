@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import ProductCard from '../components/ProductCard';
 import CustomDropdown from '../components/CustomDropdown';
+import CircularProgress from '../components/CircularProgress';
 
 const SORTS = [
   { label: 'Featured', value: 'default' },
@@ -20,7 +21,13 @@ const slugify = (value: string) =>
 export default function CategoryPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const { products, setSelectedCategory, siteContent } = useStore();
+  const {
+    products,
+    setSelectedCategory,
+    siteContent,
+    freeDeliveryProgress,
+    cartTotal,
+  } = useStore();
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('default');
 
@@ -61,8 +68,13 @@ export default function CategoryPage() {
       return 0;
     });
 
+  const moreAway = Math.max(
+    siteContent.charges.freeDeliveryThreshold - cartTotal,
+    0,
+  );
+
   return (
-    <div className="min-h-screen bg-[#fff8ef]">
+    <div className="min-h-screen bg-[#fff8ef] relative">
       {/* Hero banner */}
       <div className="relative overflow-hidden bg-[linear-gradient(135deg,#5f1021_0%,#2b0707_100%)] px-4 py-8 text-[#fff8ef] sm:px-8 sm:py-12">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,209,102,0.18),transparent_45%)] opacity-80" />
@@ -142,6 +154,20 @@ export default function CategoryPage() {
           </div>
         )}
       </div>
+
+      <CircularProgress
+        visible={freeDeliveryProgress !== 0}
+        progress={freeDeliveryProgress}
+        size={34}
+        strokeWidth={6}
+        message={`${
+          moreAway === 0
+            ? 'Free delivery unlocked'
+            : `Add ₹${moreAway} more for free delivery`
+        }`}
+        cartText="Cart"
+        onCartClick={() => navigate('/cart')}
+      />
     </div>
   );
 }

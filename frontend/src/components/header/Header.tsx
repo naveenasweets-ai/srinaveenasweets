@@ -253,7 +253,7 @@ const Header = () => {
                     <>
                       <Link
                         to="/favorites"
-                        className="ml-2 rounded-full bg-transparent! p-2 text-gray-700 transition hover:bg-gray-50"
+                        className="ml-2 rounded-full bg-transparent! text-gray-700 transition hover:bg-gray-50"
                       >
                         <span className="flex h-9 w-9 relative items-center justify-center rounded-full text-2xl">
                           <GrFavorite />
@@ -266,7 +266,7 @@ const Header = () => {
                       </Link>
                       <Link
                         to="/cart"
-                        className="ml-2 rounded-full bg-transparent! p-2 text-gray-700 transition hover:bg-gray-50"
+                        className="ml-2 rounded-full bg-transparent! text-gray-700 transition hover:bg-gray-50"
                       >
                         <span className="flex h-9 w-9 relative items-center justify-center rounded-full text-2xl ">
                           <FiShoppingCart />
@@ -288,7 +288,7 @@ const Header = () => {
                       onClick={toggleMenu}
                       aria-haspopup="true"
                       aria-expanded={isMenuOpen ? 'true' : undefined}
-                      className="ml-2 rounded-full bg-transparent! p-2 text-gray-700 transition hover:bg-gray-50"
+                      className="ml-2 rounded-full bg-transparent! text-gray-700 transition hover:bg-gray-50"
                     >
                       <span className="flex h-9 w-9 items-center justify-center rounded-full text-2xl">
                         <CgProfile />
