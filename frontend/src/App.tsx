@@ -1,7 +1,7 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable react-hooks/static-components */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Routes, Route, useLocation } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo } from 'react';
 import Header from './components/header/Header';
 import Footer from './components/footer/Footer';
 import AdminLoginPage from './pages/admin-login';
@@ -10,7 +10,6 @@ import AdminDashboard from './pages/admin/dashboard';
 import HomePage from './pages/home';
 import AccessDenied from './pages/access-denied';
 import AppCustomize from './pages/admin/app-customize';
-import { useEffect, useRef } from 'react';
 import AppCustomApi from './api/app-customize';
 import ProductCatalogue from './pages/admin/products-catalogue';
 import ProductApi from './api/product';
@@ -26,6 +25,7 @@ import MyOrdersPage from './pages/customer/my-orders-page';
 import AllOrders from './pages/admin/all-orders';
 import LegalPage from './pages/legal-page';
 import NotFound from './pages/not-found';
+import GlobalSpinner from './components/GlobalSpinner';
 import type { User } from './types/contextTypes';
 
 const ProtectedRoute = ({
@@ -45,81 +45,88 @@ export default function App() {
   const { fetchSiteContent } = AppCustomApi();
   const { fetchProducts } = ProductApi();
   const { getCustomerData } = CustomerApi();
-  const defaultFeatures = getDefaultFeatures();
+  const defaultFeatures = useMemo(() => getDefaultFeatures(), []);
   const location = useLocation();
 
-  const hasFetchedSiteContent = useRef(false);
-  const hasFetchedProducts = useRef(false);
-  const hasFetchedUser = useRef(false);
+  const { data: siteContentData } = useQuery({
+    queryKey: ['siteContent'],
+    queryFn: async () => {
+      const result = await fetchSiteContent();
+      return result;
+    },
+  });
+
+  useEffect(() => {
+    if (!siteContentData) return;
+    setSiteContent({
+      categories: siteContentData.categories || [],
+      heroContent: siteContentData.heroContent || null,
+      categoriesInfo: siteContentData.categoriesInfo?.selectedCategories
+        ? {
+            title: 'Our Categories',
+            description:
+              'Explore our wide range of traditional sweets, festive treats, and bakery delights. From rich milk sweets to soft cakes, we have something for every occasion.',
+            selectedCategories: siteContentData.categoriesInfo.selectedCategories || [],
+          }
+        : {
+            title: 'Our Categories',
+            description:
+              'Explore our wide range of traditional sweets, festive treats, and bakery delights. From rich milk sweets to soft cakes, we have something for every occasion.',
+            selectedCategories: [],
+          },
+      features: siteContentData.features.map(
+        (preset: { title: string; description: string }, index: number) => {
+          if (preset.title === defaultFeatures[index].title) {
+            return {
+              title: preset.title,
+              description: preset.description || '',
+              icon: defaultFeatures[index].icon,
+            };
+          }
+        },
+      ),
+      charges: siteContentData.charges || {
+        deliveryFee: 40,
+        freeDeliveryThreshold: 499,
+        platformFee: 29,
+        packagingFee: 15,
+        gstRate: 5,
+      },
+      legalPages: normalizeLegalPages(siteContentData.legalPages),
+      outletCoordinates: siteContentData.outletCoordinates || [],
+    });
+  }, [siteContentData, setSiteContent, defaultFeatures]);
+
+  const { data: productsData } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const result = await fetchProducts();
+      return result;
+    },
+  });
+
+  useEffect(() => {
+    if (productsData && Array.isArray(productsData)) {
+      setProducts(productsData);
+    }
+  }, [productsData, setProducts]);
+
+  useQuery({
+    queryKey: ['customerData', user._id],
+    queryFn: async () => {
+      const result = await getCustomerData();
+      return result ?? null;
+    },
+    enabled: user.loggedIn && user.role === 'customer',
+  });
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [location.pathname]);
 
-  useEffect(() => {
-    if (hasFetchedSiteContent.current) return;
-    hasFetchedSiteContent.current = true;
-    fetchSiteContent().then((content) =>
-      setSiteContent({
-        categories: content.categories || [],
-        heroContent: content.heroContent || null,
-        categoriesInfo: content.categoriesInfo || {
-          title: 'Our Categories',
-          description:
-            'Explore our wide range of traditional sweets, festive treats, and bakery delights. From rich milk sweets to soft cakes, we have something for every occasion.',
-          selectedCategories: content.categoriesInfo?.selectedCategories || [],
-        },
-        features: content.features.map(
-          (preset: { title: string; description: string }, index: number) => {
-            if (preset.title === defaultFeatures[index].title) {
-              return {
-                title: preset.title,
-                description: preset.description || '',
-                icon: defaultFeatures[index].icon,
-              };
-            }
-          },
-        ),
-        charges: content.charges || {
-          deliveryFee: 40,
-          freeDeliveryThreshold: 499,
-          platformFee: 29,
-          packagingFee: 15,
-          gstRate: 5,
-        },
-        legalPages: normalizeLegalPages(content.legalPages),
-        outletCoordinates: content.outletCoordinates || [],
-      }),
-    );
-  }, []);
-
-  useEffect(() => {
-    if (hasFetchedProducts.current) return;
-    hasFetchedProducts.current = true;
-    fetchProducts().then((products) => {
-      if (products && Array.isArray(products)) {
-        setProducts(products);
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    const getUserData = async () => {
-      if (user.loggedIn && user.role === 'customer') {
-        await getCustomerData();
-        hasFetchedUser.current = true;
-      }
-    };
-
-    if (hasFetchedUser.current) return;
-
-    if (user.loggedIn && user.role === 'customer') {
-      getUserData();
-    }
-  }, [user]);
-
   return (
     <div className="min-h-screen bg-(--color-background) text-(--color-text) flex flex-col justify-between font-sans selection:bg-(--color-accent-light) selection:text-(--color-text)">
+      <GlobalSpinner />
       <Header />
       <main className="flex-1">
         <Routes>
