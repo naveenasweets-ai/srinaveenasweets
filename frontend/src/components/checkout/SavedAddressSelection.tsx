@@ -45,7 +45,7 @@ const SavedAddressCard = ({
 
   return (
     <label
-      className={`cursor-pointer rounded-xl border p-4 pb-8 flex flex-col gap-3 relative transition-all ${
+      className={`cursor-pointer rounded-xl border p-4 flex flex-col gap-3 relative transition-all ${
         selected
           ? 'border-(--color-accent) bg-(--color-accent-light)/30 shadow-xs'
           : 'border-(--color-border) hover:border-(--color-accent)/50'
@@ -81,7 +81,7 @@ const SavedAddressCard = ({
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-1.5 absolute right-4 bottom-2">
+      <div className="flex items-center justify-between w-full gap-1.5">
         {onEdit && (
           <button
             type="button"
@@ -90,7 +90,7 @@ const SavedAddressCard = ({
               e.stopPropagation();
               onEdit();
             }}
-            className="rounded-lg px-2 py-1 text-xs font-semibold border border-(--color-border) bg-(--color-surface) text-(--color-accent) hover:bg-(--color-accent-light)/20 transition"
+            className="flex-1 rounded-lg px-2 py-1 text-xs font-semibold border border-(--color-border) bg-(--color-surface) text-(--color-accent) hover:bg-(--color-accent-light)/20 transition"
           >
             Edit
           </button>
@@ -103,7 +103,7 @@ const SavedAddressCard = ({
               e.stopPropagation();
               onSetDefault();
             }}
-            className="rounded-lg px-2 py-1 text-xs font-medium border border-(--color-border) bg-(--color-surface) hover:border-(--color-accent) transition"
+            className="flex-1 rounded-lg px-2 py-1 text-xs font-medium border border-(--color-border) bg-(--color-surface) hover:border-(--color-accent) transition"
           >
             Set default
           </button>
@@ -116,7 +116,7 @@ const SavedAddressCard = ({
               e.stopPropagation();
               onDelete();
             }}
-            className="rounded-lg px-2 py-1 text-xs font-medium border border-(--color-border) bg-(--color-surface) text-red-500 hover:text-red-700 transition"
+            className="flex-1 rounded-lg px-2 py-1 text-xs font-medium border border-red-500 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 transition"
           >
             Delete
           </button>

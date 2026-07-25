@@ -68,7 +68,7 @@ const CheckoutShippingForm = ({
             Checkout Step 2 of 2
           </p>
           <h1 className="text-2xl font-semibold text-(--color-primary-dark)">
-            Payment & Finalize Order
+            Payment
           </h1>
         </div>
         <Link
@@ -83,8 +83,8 @@ const CheckoutShippingForm = ({
       {hasAddressSelected ? (
         <div className="rounded-xl border border-(--color-border) bg-(--color-surface-alt) p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-(--color-primary-dark)">
+            <div className="flex flex-col justify-center items-start gap-2">
+              <span className="text-sm font-bold text-(--color-primary-dark) whitespace-nowrap">
                 📍 Delivery Address
               </span>
               {isPincodeDeliverable() === true ? (

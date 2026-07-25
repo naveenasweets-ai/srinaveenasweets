@@ -165,7 +165,7 @@ export default function CategoryPage() {
             ? 'Free delivery unlocked'
             : `Add ₹${moreAway} more for free delivery`
         }`}
-        cartText="Cart"
+        cartText="View Cart"
         onCartClick={() => navigate('/cart')}
       />
     </div>

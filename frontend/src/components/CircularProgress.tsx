@@ -17,7 +17,7 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
   size = 40,
   strokeWidth = 6,
   message = '',
-  cartText = 'Cart',
+  cartText = 'View Cart',
   onCartClick,
   visible = true,
 }) => {
@@ -27,7 +27,7 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
 
   return (
     <div
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-50 flex gap-2 m-2 overflow-hidden items-stretch"
+      className="lg:hidden fixed bottom-2 left-0 right-0 z-50 flex gap-2 m-2 overflow-hidden items-stretch"
       style={{
         transform: visible ? 'translateY(0)' : 'translateY(calc(100% + 0.5rem))',
         opacity: visible ? 1 : 0,
@@ -35,7 +35,7 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
         pointerEvents: visible ? 'auto' : 'none',
       }}
     >
-      <div className="flex-1 flex items-center gap-3 p-3 border-r rounded-xl bg-[#fffdf7] border-[#f3d48a]/70 shadow-2xl min-w-0">
+      <div className="flex-1 flex items-center gap-3 p-2 pl-4 border-r rounded-xl bg-[#fff8ef] border-2 border-[#5f1021] shadow-2xl min-w-0">
         <div className="relative shrink-0">
           <svg width={size} height={size}>
             <circle
@@ -63,7 +63,7 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
             <TbRosetteDiscount />
           </span>
         </div>
-        <span className="text-sm flex gap-2 items-center text-[#5f1021] font-medium truncate">
+        <span className="text-sm flex gap-2 items-center text-[#4d2b1f] font-medium truncate">
           <span>{message}</span> {offset === 0 && <GiPartyPopper className="text-m" />}
         </span>
       </div>
