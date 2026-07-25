@@ -64,9 +64,9 @@ export default function Categories() {
                   </h3>
                   <p className="text-sm sm:text-base text-[#5f1021]/80 mb-4 hidden lg:flex">
                     {cat.description && (
-                      <p className="line-clamp-3 mb-2 text-xs text-(--color-muted) leading-relaxed">
+                      <span className="line-clamp-3 mb-2 text-xs text-(--color-muted) leading-relaxed">
                         {stripHtml(cat.description)}
-                      </p>
+                      </span>
                     )}
                   </p>
                   <div className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.24em] text-[#9f6c2a] transition-colors group-hover:text-[#7a1a2d]">
@@ -112,9 +112,9 @@ export default function Categories() {
                       </h3>
                       <p className="text-sm sm:text-base text-[#5f1021]/80 mb-4 hidden lg:flex">
                         {product.description && (
-                          <p className="line-clamp-4 mb-2 text-xs text-(--color-muted) leading-relaxed">
+                          <span className="line-clamp-4 mb-2 text-xs text-(--color-muted) leading-relaxed">
                             {stripHtml(product.description)}
-                          </p>
+                          </span>
                         )}
                       </p>
                       <div className="text-sm font-semibold text-[#9f6c2a]">
