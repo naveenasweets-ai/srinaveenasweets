@@ -25,7 +25,6 @@ import MyOrdersPage from './pages/customer/my-orders-page';
 import AllOrders from './pages/admin/all-orders';
 import LegalPage from './pages/legal-page';
 import NotFound from './pages/not-found';
-import GlobalSpinner from './components/GlobalSpinner';
 import type { User } from './types/contextTypes';
 
 const ProtectedRoute = ({
@@ -126,7 +125,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-(--color-background) text-(--color-text) flex flex-col justify-between font-sans selection:bg-(--color-accent-light) selection:text-(--color-text)">
-      <GlobalSpinner />
       <Header />
       <main className="flex-1">
         <Routes>
