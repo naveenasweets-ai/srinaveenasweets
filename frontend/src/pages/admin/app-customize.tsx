@@ -83,7 +83,7 @@ export default function AppCustomize() {
         <Charges />
       </SectionAccordion>
 
-      <SectionAccordion title="Deliverable Pincodes">
+      <SectionAccordion title="Outlet Coordinates">
         <DeliverablePincodes />
       </SectionAccordion>
 

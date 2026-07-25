@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import type { CheckoutShippingFormProps } from '../../types/types';
-import LocationPicker from './LocationPicker';
+import AddressForm from './AddressForm';
+import { useStore } from '../../context/StoreContext';
+import { getDistanceInKm } from '../../utils/checkout';
 
 const CheckoutShippingForm = ({
   form,
-  errors,
   onChange,
   onAddressSelect,
   paymentMethod,
@@ -21,268 +21,192 @@ const CheckoutShippingForm = ({
   onOtpCodeChange,
   onSendOtp,
   onSubmit,
-  isPincodeDeliverable,
   savedAddress,
-  hasSavedAddresses,
   onChangeAddress,
 }: CheckoutShippingFormProps) => {
-  const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
-  const handleAddressSelect = useCallback(
-    (data: any) => {
-      onChange('address', data.address);
-      onChange('city', data.city);
-      onChange('state', data.state);
-      onChange('pincode', data.pincode);
-      onChange('lat', data.lat);
-      onChange('lng', data.lng);
-      onAddressSelect(data);
-    },
-    [onChange, onAddressSelect],
+  const { siteContent } = useStore();
+  const hasAddressSelected = Boolean(
+    savedAddress || (form.address && form.city && form.state && form.pincode),
   );
+
+  const displayAddress = savedAddress
+    ? [
+        savedAddress.fullAddress,
+        savedAddress.city,
+        savedAddress.state,
+        savedAddress.pincode,
+      ]
+        .filter(Boolean)
+        .join(', ')
+    : [form.address, form.city, form.state, form.pincode]
+        .filter(Boolean)
+        .join(', ');
+
+  const displayName = savedAddress?.fullname || form.fullName;
+  const displayPhone = savedAddress?.mobile || form.phone;
+
+  const isPincodeDeliverable = () => {
+    return siteContent.outletCoordinates.some((outlet) => {
+      const distance = getDistanceInKm(
+        outlet.lat,
+        outlet.lng,
+        form.lat,
+        form.lng,
+      );
+      return distance < 7;
+    });
+  };
 
   return (
     <form
       onSubmit={onSubmit}
-      className="w-full lg:w-2/3 rounded-2xl border border-(--color-border) bg-(--color-surface) p-6 shadow-sm"
+      className="w-full lg:w-2/3 rounded-2xl border border-(--color-border) bg-(--color-surface) p-6 shadow-sm space-y-6"
     >
-      <div className="mb-6 flex items-start justify-between">
+      <div className="flex items-start justify-between border-b border-(--color-border) pb-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-(--color-accent)">
-            Checkout
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--color-accent)">
+            Checkout Step 2 of 2
           </p>
-          <h1 className="text-2xl font-semibold">Shipping and payment</h1>
-          {savedAddress && (
-            <p className="text-sm text-(--color-muted)">
-              Selected: {savedAddress.fullname}, {savedAddress.fullAddress}
-            </p>
-          )}
+          <h1 className="text-2xl font-semibold text-(--color-primary-dark)">
+            Payment & Finalize Order
+          </h1>
         </div>
-        <div className="flex items-center gap-3 whitespace-nowrap">
-          {hasSavedAddresses && onChangeAddress && (
-            <button
-              type="button"
-              onClick={onChangeAddress}
-              className="text-sm font-medium text-(--color-accent)"
-            >
-              Change address
-            </button>
-          )}
-          <Link
-            to="/cart"
-            className="text-sm font-medium text-(--color-accent)"
-          >
-            Back to cart
-          </Link>
-        </div>
+        <Link
+          to="/cart"
+          className="text-xs font-semibold text-(--color-accent) hover:underline"
+        >
+          ← Back to cart
+        </Link>
       </div>
 
-      <div className="lg:grid flex flex-col gap-4 lg:grid-cols-2">
-        <div>
-          <label className="mb-1 block text-sm font-medium">Full name</label>
-          <input
-            value={form.fullName}
-            onChange={(event) => onChange('fullName', event.target.value)}
-            className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
-          />
-          {errors.fullName && (
-            <p className="mt-1 text-sm text-red-500">{errors.fullName}</p>
-          )}
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Phone</label>
-          <div className="flex gap-3">
-            <input
-              value={form.phone}
-              onChange={(event) => {
-                let value = event.target.value;
-                if (value.startsWith('0')) {
-                  value = value.slice(1);
-                }
-                onChange('phone', value);
-              }}
-              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
-            />
-
-            {paymentMethod === 'cod' && (
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div
-                  onClick={onSendOtp}
-                  className="rounded-lg cursor-pointer whitespace-nowrap border border-(--color-accent) px-3 py-2 text-sm font-medium text-(--color-accent) disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {isSendingOtp
-                    ? 'Sending...'
-                    : otpTimerSeconds > 0
-                      ? `Resend in ${String(Math.floor(otpTimerSeconds / 60)).padStart(2, '0')}:${String(otpTimerSeconds % 60).padStart(2, '0')}`
-                      : otpSent
-                        ? 'Resend OTP'
-                        : 'Send OTP'}
-                </div>
-              </div>
-            )}
-          </div>
-          {errors.phone && (
-            <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
-          )}
-        </div>
-
-        <div className="col-span-2">
-          <label className="mb-1 block text-sm font-medium">Address</label>
-          <textarea
-            value={form.address}
-            onChange={(event) => onChange('address', event.target.value)}
-            className="min-h-22.5 w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
-          />
-          {errors.address && (
-            <p className="mt-1 text-sm text-red-500">{errors.address}</p>
-          )}
-        </div>
-
-        <div className="col-span-2">
-          <button
-            type="button"
-            onClick={() => setIsLocationPickerOpen(true)}
-            className="w-full rounded-lg border border-(--color-border) bg-(--color-surface) px-3 py-2 text-left text-sm font-medium text-(--color-muted) hover:border-(--color-accent) transition"
-          >
-            {form.lat !== 0 || form.lng !== 0 ? (
-              `Location selected`
-            ) : errors.lat || errors.lng ? (
-              <p className="mt-1 text-sm text-red-500">{errors.lat}</p>
-            ) : (
-              'Click to select exact location on map'
-            )}
-          </button>
-        </div>
-
-        {isLocationPickerOpen && (
-          <div className="col-span-2">
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-              <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-(--color-border) bg-(--color-surface) shadow-2xl">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-(--color-border)">
-                  <h3 className="text-lg font-semibold">
-                    Select location on map
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={() => setIsLocationPickerOpen(false)}
-                    className="text-sm text-(--color-muted) hover:text-(--color-primary-dark) transition"
-                  >
-                    Close
-                  </button>
-                </div>
-                <div className="flex-1 overflow-y-auto p-4">
-                  <LocationPicker
-                    lat={form.lat}
-                    lng={form.lng}
-                    onAddressSelect={handleAddressSelect}
-                    onClose={() => setIsLocationPickerOpen(false)}
-                  />
-                </div>
-              </div>
+      {/* Delivery Address Summary Card */}
+      {hasAddressSelected ? (
+        <div className="rounded-xl border border-(--color-border) bg-(--color-surface-alt) p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-(--color-primary-dark)">
+                📍 Delivery Address
+              </span>
+              {isPincodeDeliverable() === true ? (
+                <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-[10px] font-bold text-green-800">
+                  Deliverable
+                </span>
+              ) : (
+                <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-[10px] font-bold text-red-800">
+                  Unavailable
+                </span>
+              )}
             </div>
-          </div>
-        )}
-
-        <div className="grid lg:grid-cols-3 grid-cols-1 gap-2 col-span-2">
-          <div>
-            <label className="mb-1 block text-sm font-medium">City</label>
-            <input
-              value={form.city}
-              disabled
-              onChange={(event) => onChange('city', event.target.value)}
-              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-            />
-            {errors.city && (
-              <p className="mt-1 text-sm text-red-500">{errors.city}</p>
+            {onChangeAddress && (
+              <button
+                type="button"
+                onClick={onChangeAddress}
+                className="rounded-lg border border-(--color-accent)/40 px-3 py-1 text-xs font-semibold text-(--color-accent) hover:bg-(--color-accent-light)/20 transition"
+              >
+                Change Address
+              </button>
             )}
           </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium">State</label>
-            <input
-              value={form.state}
-              disabled
-              onChange={(event) => onChange('state', event.target.value)}
-              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-            />
-            {errors.state && (
-              <p className="mt-1 text-sm text-red-500">{errors.state}</p>
-            )}
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium">Pincode</label>
-            <input
-              value={form.pincode}
-              disabled
-              onChange={(event) => onChange('pincode', event.target.value)}
-              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-            />
-            {errors.pincode && (
-              <p className="mt-1 text-sm text-red-500">{errors.pincode}</p>
-            )}
-          </div>
-        </div>
-        {!isPincodeDeliverable && form.pincode.length === 6 && (
-          <p className="col-span-2 lg:text-end text-sm text-red-500">
-            Delivery to this pincode is currently unavailable. We are delivering
-            only in and around <b>Guntur</b>.
-          </p>
-        )}
-      </div>
 
-      {paymentMethod === 'cod' && otpSent && (
-        <div className="mt-8 rounded-xl border border-(--color-border) bg-(--color-background) p-4">
-          <div className="mt-4">
-            <input
-              value={otpCode}
-              onChange={(event) => onOtpCodeChange(event.target.value)}
-              placeholder="Enter OTP"
-              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
-            />
+          <div className="text-xs text-(--color-text) space-y-1 pt-1">
+            <p className="font-semibold text-sm text-(--color-primary-dark)">
+              {displayName} {displayPhone ? `• 📞 ${displayPhone}` : ''}
+            </p>
+            <p className="text-(--color-muted) leading-relaxed">
+              {displayAddress}
+            </p>
           </div>
 
-          {otpMessage && (
-            <p
-              className={`mt-3 text-sm ${otpVerified ? 'text-green-600' : 'text-(--color-muted)'}`}
-            >
-              {otpMessage}
+          {!isPincodeDeliverable && (
+            <p className="text-xs text-red-500 pt-1">
+              ⚠️ Delivery to this area is currently unavailable. We deliver only
+              within Guntur area.
             </p>
           )}
+        </div>
+      ) : (
+        /* If no address selected, render AddressForm to capture address */
+        <div className="space-y-2">
+          <h3 className="text-sm font-bold text-(--color-primary-dark)">
+            Enter Delivery Address
+          </h3>
+          <AddressForm
+            initialValues={{
+              fullname: form.fullName,
+              mobile: form.phone,
+              fullAddress: form.address,
+              city: form.city,
+              state: form.state,
+              pincode: form.pincode,
+              lat: form.lat,
+              lng: form.lng,
+            }}
+            onSubmit={(data) => {
+              onChange('fullName', data.fullname);
+              onChange('phone', data.mobile);
+              onChange('address', data.fullAddress);
+              onChange('city', data.city);
+              onChange('state', data.state);
+              onChange('pincode', data.pincode);
+              onChange('lat', data.lat);
+              onChange('lng', data.lng);
+              onAddressSelect(data);
+            }}
+            submitLabel="Confirm Address"
+          />
         </div>
       )}
 
-      <div className="mt-8">
-        <h2 className="text-lg font-semibold">Payment method</h2>
+      {/* Payment Method Selection */}
+      <div className="pt-2">
+        <h2 className="text-base font-semibold text-(--color-primary-dark)">
+          Select Payment Method
+        </h2>
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <label
-            className={`flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 ${paymentMethod === 'cod' ? 'border-(--color-accent) bg-(--color-accent-light)' : 'border-(--color-border)'} ${!isPincodeDeliverable ? 'opacity-60' : ''}`}
+            className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-all ${
+              paymentMethod === 'cod'
+                ? 'border-(--color-accent) bg-(--color-accent-light)/20 shadow-xs'
+                : 'border-(--color-border) hover:border-(--color-accent)/40'
+            } ${!isPincodeDeliverable ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <div>
-              <p className="font-medium">Cash on delivery</p>
-              <p className="text-sm text-(--color-muted)">
+              <p className="font-semibold text-sm text-(--color-primary-dark)">
+                Cash on delivery
+              </p>
+              <p className="text-xs text-(--color-muted)">
                 Pay at the time of delivery
               </p>
             </div>
             <input
               type="radio"
               name="paymentMethod"
-              className="h-4 w-4"
+              className="h-4 w-4 accent-(--color-accent)"
               checked={paymentMethod === 'cod'}
               disabled={!isPincodeDeliverable}
               onChange={() => onPaymentMethodChange('cod')}
             />
           </label>
+
           <label
-            className={`flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 ${paymentMethod === 'razorpay' ? 'border-(--color-accent) bg-(--color-accent-light)' : 'border-(--color-border)'} ${!isPincodeDeliverable ? 'opacity-60' : ''}`}
+            className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-all ${
+              paymentMethod === 'razorpay'
+                ? 'border-(--color-accent) bg-(--color-accent-light)/20 shadow-xs'
+                : 'border-(--color-border) hover:border-(--color-accent)/40'
+            } ${!isPincodeDeliverable ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <div>
-              <p className="font-medium">Razorpay</p>
-              <p className="text-sm text-(--color-muted)">
-                Secure card / UPI / netbanking
+              <p className="font-semibold text-sm text-(--color-primary-dark)">
+                Razorpay Online Payment
+              </p>
+              <p className="text-xs text-(--color-muted)">
+                UPI, Credit/Debit Cards, Netbanking
               </p>
             </div>
             <input
               type="radio"
               name="paymentMethod"
-              className="h-4 w-4"
+              className="h-4 w-4 accent-(--color-accent)"
               checked={paymentMethod === 'razorpay'}
               disabled={!isPincodeDeliverable}
               onChange={() => onPaymentMethodChange('razorpay')}
@@ -291,18 +215,69 @@ const CheckoutShippingForm = ({
         </div>
       </div>
 
+      {/* OTP verification for COD */}
+      {paymentMethod === 'cod' && (
+        <div className="rounded-xl border border-(--color-border) bg-(--color-surface-alt) p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-(--color-primary-dark)">
+                Phone Number Verification
+              </p>
+              <p className="text-[11px] text-(--color-muted)">
+                OTP will be sent to {displayPhone || form.phone}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onSendOtp}
+              disabled={isSendingOtp || otpTimerSeconds > 0}
+              className="rounded-lg border border-(--color-accent) px-3 py-1.5 text-xs font-semibold text-(--color-accent) hover:bg-(--color-accent-light)/20 transition disabled:opacity-50"
+            >
+              {isSendingOtp
+                ? 'Sending...'
+                : otpTimerSeconds > 0
+                  ? `Resend in ${String(Math.floor(otpTimerSeconds / 60)).padStart(2, '0')}:${String(otpTimerSeconds % 60).padStart(2, '0')}`
+                  : otpSent
+                    ? 'Resend OTP'
+                    : 'Send OTP'}
+            </button>
+          </div>
+
+          {otpSent && (
+            <div>
+              <input
+                value={otpCode}
+                onChange={(event) => onOtpCodeChange(event.target.value)}
+                placeholder="Enter 6-digit OTP"
+                maxLength={6}
+                className="w-full rounded-lg border border-(--color-border) bg-(--color-surface) px-3 py-2 text-sm outline-none transition focus:border-(--color-accent)"
+              />
+            </div>
+          )}
+
+          {otpMessage && (
+            <p
+              className={`text-xs ${otpVerified ? 'text-green-600 font-semibold' : 'text-(--color-muted)'}`}
+            >
+              {otpMessage}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Submit / Place Order Button */}
       <button
         type="submit"
-        disabled={isSubmitting || !isPincodeDeliverable}
-        className="mt-8 w-full cursor-pointer rounded-lg bg-(--color-accent) px-4 py-3 font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+        disabled={isSubmitting || !isPincodeDeliverable || !hasAddressSelected}
+        className="w-full cursor-pointer rounded-xl bg-(--color-accent) px-4 py-3.5 text-sm font-bold text-white shadow-md transition hover:opacity-90 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting
-          ? 'Placing order...'
+          ? 'Processing Order...'
           : paymentMethod === 'cod' && otpSent && !otpVerified
-            ? 'Verify & Place Order'
+            ? 'Verify OTP & Place Order'
             : paymentMethod === 'razorpay'
-              ? 'Pay and place order'
-              : 'Place order'}
+              ? 'Proceed to Pay with Razorpay'
+              : 'Place Order'}
       </button>
     </form>
   );

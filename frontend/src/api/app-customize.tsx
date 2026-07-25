@@ -5,7 +5,6 @@ import type {
   HeroContent,
   ChargesConfig,
   LegalPage,
-  DeliverablePincodesConfig,
 } from '../types/appContentTypes';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -245,25 +244,30 @@ const AppCustomApi = () => {
     }
   };
 
-  const saveDeliverablePincodes = async (pincodes: DeliverablePincodesConfig) => {
+  const saveOutletCoordinates = async (outlets: any[]) => {
     try {
-      const response = await fetch(`${apiUrl}/api/site-content/deliverable-pincodes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user?.token}`,
+      const response = await fetch(
+        `${apiUrl}/api/site-content/outlet-coordinates`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${user?.token}`,
+          },
+          body: JSON.stringify({ outletCoordinates: outlets }),
         },
-        body: JSON.stringify({ pincodes }),
-      });
+      );
       const json = await response.json();
       if (!response.ok) {
-        throw new Error(json.error || 'Failed to save deliverable pincodes');
+        throw new Error(json.error || 'Failed to save outlet coordinates');
       }
-      showToast('Deliverable pincodes updated successfully', 'success');
+      showToast('Outlet coordinates updated successfully', 'success');
       return json;
     } catch (err) {
       showToast(
-        err instanceof Error ? err.message : 'Failed to save deliverable pincodes',
+        err instanceof Error
+          ? err.message
+          : 'Failed to save outlet coordinates',
         'error',
       );
       return null;
@@ -280,7 +284,7 @@ const AppCustomApi = () => {
     saveFeatures,
     saveCharges,
     saveLegalPages,
-    saveDeliverablePincodes,
+    saveOutletCoordinates,
   };
 };
 

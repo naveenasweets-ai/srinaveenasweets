@@ -292,25 +292,32 @@ export async function saveLegalPages(req, res) {
   }
 }
 
-export async function saveDeliverablePincodes(req, res) {
+export async function saveOutletCoordinates(req, res) {
   try {
-    const { pincodes } = req.body || {};
+    const { outletCoordinates, outlets } = req.body || {};
+    const items = outletCoordinates || outlets;
 
-    if (!Array.isArray(pincodes)) {
+    if (!Array.isArray(items)) {
       return res
         .status(400)
-        .json({ success: false, error: 'pincodes must be an array' });
+        .json({ success: false, error: 'outletCoordinates must be an array' });
     }
 
     const siteConfig = await getOrCreateSiteConfig();
-    siteConfig.deliverablePincodes = pincodes
-      .filter((p) => typeof p === 'string' && p.trim() !== '')
-      .map((p) => p.trim());
+    siteConfig.outletCoordinates = items
+      .filter((item) => item && typeof item.lat === 'number' && typeof item.lng === 'number')
+      .map((item) => ({
+        name: (item.name || '').trim(),
+        address: (item.address || '').trim(),
+        lat: Number(item.lat),
+        lng: Number(item.lng),
+      }));
+
     await siteConfig.save();
 
     return res.status(200).json({
       success: true,
-      deliverablePincodes: siteConfig.deliverablePincodes,
+      outletCoordinates: siteConfig.outletCoordinates,
     });
   } catch (error) {
     return res.status(400).json({ success: false, error: error.message });

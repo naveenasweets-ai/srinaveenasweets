@@ -1,14 +1,16 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { GoogleMap, OverlayView, useJsApiLoader } from '@react-google-maps/api';
+import { GoogleMap, OverlayView, Autocomplete, useJsApiLoader } from '@react-google-maps/api';
 import { type LocationPickerProps } from '../../types/types';
 import { useStore } from '../../context/StoreContext';
-import { FaLocationDot } from 'react-icons/fa6';
+import { FaLocationDot, FaMagnifyingGlass } from 'react-icons/fa6';
 
 const mapContainerStyle = {
   width: '100%',
   height: '100%',
 };
+
+const LIBRARIES: ('places')[] = ['places'];
 
 const LocationPicker = ({
   lat,
@@ -19,17 +21,19 @@ const LocationPicker = ({
   onClose?: () => void;
 }) => {
   const { showToast } = useStore();
-  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
+  const googleMapsApiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string) || '';
   const mapRef = useRef<google.maps.Map | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey,
+    libraries: LIBRARIES,
   });
 
   const [position, setPosition] = useState<{ lat: number; lng: number }>({
-    lat,
-    lng,
+    lat: lat || 16.314209,
+    lng: lng || 80.435028,
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -50,6 +54,25 @@ const LocationPicker = ({
     [],
   );
 
+  const handleAutocompleteLoad = (autocomplete: google.maps.places.Autocomplete) => {
+    autocompleteRef.current = autocomplete;
+  };
+
+  const handlePlaceChanged = () => {
+    if (autocompleteRef.current) {
+      const place = autocompleteRef.current.getPlace();
+      if (place.geometry && place.geometry.location) {
+        const newLat = place.geometry.location.lat();
+        const newLng = place.geometry.location.lng();
+        setPosition({ lat: newLat, lng: newLng });
+        if (mapRef.current) {
+          mapRef.current.panTo({ lat: newLat, lng: newLng });
+          mapRef.current.setZoom(17);
+        }
+      }
+    }
+  };
+
   const handleSelectAddress = async () => {
     if (!geocoderRef.current) {
       showToast('Geocoding service not initialized.', 'error');
@@ -69,7 +92,6 @@ const LocationPicker = ({
         const result = results.results[0];
         const addressComponents = result.address_components;
 
-        // Extract address components from Google's response
         let city = '';
         let state = '';
         let pincode = '';
@@ -96,7 +118,7 @@ const LocationPicker = ({
         });
 
         showToast(
-          'Address details filled from the selected location.',
+          'Address details filled from selected location.',
           'success',
         );
         onClose?.();
@@ -125,6 +147,10 @@ const LocationPicker = ({
           lng: coords.coords.longitude,
         };
         setPosition(nextPosition);
+        if (mapRef.current) {
+          mapRef.current.panTo(nextPosition);
+          mapRef.current.setZoom(17);
+        }
         showToast(
           'Your current location has been placed on the map.',
           'success',
@@ -132,7 +158,7 @@ const LocationPicker = ({
         setIsLoading(false);
       },
       () => {
-        showToast('Using the default Guntur location.', 'success');
+        showToast('Using current map center location.', 'info');
         setIsLoading(false);
       },
       { enableHighAccuracy: true, timeout: 10000 },
@@ -156,19 +182,42 @@ const LocationPicker = ({
 
   if (!isLoaded) {
     return (
-      <div className="h-96 flex items-center justify-center">
-        Loading map...
+      <div className="h-96 flex items-center justify-center text-sm text-(--color-muted)">
+        Loading Google Maps API...
       </div>
     );
   }
 
   return (
     <div className="space-y-3">
-      <div className="relative h-96 overflow-hidden rounded-2xl border border-(--color-border)">
+      {/* Places Search Bar */}
+      <div className="relative">
+        <label className="mb-1 block text-xs font-semibold text-(--color-primary-dark)">
+          Search Area, Landmark or Address
+        </label>
+        <Autocomplete
+          onLoad={handleAutocompleteLoad}
+          onPlaceChanged={handlePlaceChanged}
+        >
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-(--color-muted)">
+              <FaMagnifyingGlass className="h-3.5 w-3.5" />
+            </span>
+            <input
+              type="text"
+              placeholder="Search area, landmark or street..."
+              className="w-full rounded-xl border border-(--color-border) bg-(--color-surface) py-2 pl-9 pr-3 text-xs outline-none transition focus:border-(--color-accent)"
+            />
+          </div>
+        </Autocomplete>
+      </div>
+
+      {/* Map View */}
+      <div className="relative h-80 overflow-hidden rounded-2xl border border-(--color-border)">
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           center={position}
-          zoom={18}
+          zoom={17}
           onLoad={(map) => {
             mapRef.current = map;
           }}
@@ -201,18 +250,18 @@ const LocationPicker = ({
         <button
           type="button"
           onClick={handleCurrentLocation}
-          className="flex-1 rounded-2xl border border-(--color-accent) bg-(--color-surface) px-4 py-2.5 text-sm font-semibold text-(--color-accent) transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+          className="flex-1 rounded-xl border border-(--color-accent) bg-(--color-surface) px-3 py-2 text-xs font-semibold text-(--color-accent) transition hover:bg-(--color-accent-light)/20 disabled:cursor-not-allowed disabled:opacity-70"
           disabled={isLoading}
         >
-          current location
+          📍 Current Location
         </button>
         <button
           type="button"
           onClick={handleSelectAddress}
-          className="flex-1 rounded-2xl bg-(--color-accent) px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+          className="flex-1 rounded-xl bg-(--color-accent) px-3 py-2 text-xs font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
           disabled={isLoading}
         >
-          {isLoading ? 'Fetching address...' : 'Select address'}
+          {isLoading ? 'Fetching details...' : 'Confirm Selected Location'}
         </button>
       </div>
     </div>

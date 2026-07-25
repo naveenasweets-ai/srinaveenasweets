@@ -88,7 +88,7 @@ export default function App() {
           gstRate: 5,
         },
         legalPages: normalizeLegalPages(content.legalPages),
-        deliverablePincodes: content.deliverablePincodes || [],
+        outletCoordinates: content.outletCoordinates || [],
       }),
     );
   }, []);

@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
           categories: [],
           heroContent: null,
           legalPages: legalPagesDefault,
-          deliverablePincodes: [],
+          outletCoordinates: [],
         });
     }
 
@@ -38,7 +38,7 @@ router.get('/', async (req, res) => {
         Array.isArray(siteConfig.legalPages) && siteConfig.legalPages.length
           ? siteConfig.legalPages
           : legalPagesDefault,
-      deliverablePincodes: siteConfig.deliverablePincodes || [],
+      outletCoordinates: siteConfig.outletCoordinates || [],
       footer: siteConfig.footer || {
         help: [
           {
@@ -104,7 +104,7 @@ router
   .post(requireAdminAuth, siteController.saveLegalPages);
 
 router
-  .route('/deliverable-pincodes')
-  .post(requireAdminAuth, siteController.saveDeliverablePincodes);
+  .route('/outlet-coordinates')
+  .post(requireAdminAuth, siteController.saveOutletCoordinates);
 
 export default router;

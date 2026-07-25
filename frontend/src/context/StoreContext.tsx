@@ -10,15 +10,6 @@ import type {
   ToastType,
   User,
 } from '../types/contextTypes';
-import type {
-  CategoryConfig,
-  CategoryInfoType,
-  FeatureItem,
-  HeroContent,
-  ChargesConfig,
-  LegalPage,
-  DeliverablePincodesConfig,
-} from '../types/appContentTypes';
 import { getSelectedWeightOption } from '../utils/productInventory';
 import { getDefaultLegalPages } from '../utils/utils';
 
@@ -67,15 +58,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
 
-  const [siteContent, setSiteContent] = useState<{
-    categories: CategoryConfig[];
-    heroContent: HeroContent | null;
-    categoriesInfo: CategoryInfoType;
-    features: FeatureItem[];
-    charges: ChargesConfig;
-    legalPages: LegalPage[];
-    deliverablePincodes: DeliverablePincodesConfig;
-  }>({
+  const [siteContent, setSiteContent] = useState<StoreContextType['siteContent']>({
     categories: [],
     heroContent: null,
     categoriesInfo: {
@@ -93,7 +76,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
       gstRate: 5,
     },
     legalPages: getDefaultLegalPages(),
-    deliverablePincodes: [],
+    outletCoordinates: [],
   });
 
   const handpickedCats = siteContent?.categoriesInfo?.selectedCategories?.map(

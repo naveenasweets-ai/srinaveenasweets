@@ -5,13 +5,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '../../context/StoreContext';
 import {
   initialFormState,
-  outletLocation,
+  type AddressFormData,
   type CheckoutFormState,
   type SavedAddress,
 } from '../../types/types';
 import {
   calculateCheckoutSummary,
-  getDistanceInKm,
 } from '../../utils/checkout';
 import { getSelectedWeightOption } from '../../utils/productInventory';
 import CheckoutShippingForm from '../../components/checkout/CheckoutShippingForm';
@@ -99,6 +98,44 @@ const CheckoutPage = () => {
       handleSelectAddressAndContinue(defaultAddr);
     }
   }, [savedAddresses, selectedSavedAddressId, addressStep]);
+
+  const handleUpdateSavedAddress = async (
+    addressId: string,
+    address: {
+      fullname: string;
+      mobile: string;
+      fullAddress: string;
+      city: string;
+      state: string;
+      pincode: string;
+      lat: number;
+      lng: number;
+    },
+  ) => {
+    if (!user.token) return;
+    try {
+      const { data } = await updateSavedAddress(user.token, addressId, address);
+      if (data?.success) {
+        setSavedAddresses(data.data || []);
+        if (selectedSavedAddressId === addressId) {
+          setForm((prev) => ({
+            ...prev,
+            fullName: address.fullname || prev.fullName,
+            phone: address.mobile || prev.phone,
+            address: address.fullAddress || prev.address,
+            city: address.city || prev.city,
+            state: address.state || prev.state,
+            pincode: address.pincode || prev.pincode,
+            lat: address.lat ?? prev.lat,
+            lng: address.lng ?? prev.lng,
+          }));
+        }
+        showToast('Address updated successfully', 'success');
+      }
+    } catch {
+      showToast('Failed to update address', 'error');
+    }
+  };
 
   const handleAddNewAddressAndContinue = async (address: {
     fullname: string;
@@ -255,14 +292,6 @@ const CheckoutPage = () => {
     gstRate: 5,
   };
 
-  const isPincodeDeliverable =
-    getDistanceInKm(
-      outletLocation.lat,
-      outletLocation.lng,
-      form.lat,
-      form.lng,
-    ) < 7;
-
   const deliveryFee = checkoutState?.deliveryFee ?? 0;
   const packagingFee = checkoutState?.packagingFee ?? charges.packagingFee;
   const platformFee = checkoutState?.platformFee ?? charges.platformFee;
@@ -344,17 +373,10 @@ const CheckoutPage = () => {
     }
   };
 
-  const handleAddressSelect = (data: {
-    address: string;
-    city: string;
-    state: string;
-    pincode: string;
-    lat: number;
-    lng: number;
-  }) => {
+  const handleAddressSelect = (data: AddressFormData) => {
     setForm((prev) => ({
       ...prev,
-      address: data.address,
+      address: data.fullAddress || prev.address,
       city: data.city,
       state: data.state,
       pincode: data.pincode,
@@ -658,6 +680,7 @@ const CheckoutPage = () => {
             selectedAddressId={selectedSavedAddressId}
             onSelectAddress={handleSelectAddressAndContinue}
             onAddAddress={handleAddNewAddressAndContinue}
+            onUpdateAddress={handleUpdateSavedAddress}
             onDeleteAddress={handleDeleteAddress}
             onSetDefaultAddress={handleSetDefaultAddress}
             onContinue={() => {
@@ -684,7 +707,6 @@ const CheckoutPage = () => {
             onOtpCodeChange={setOtpCode}
             onSendOtp={handleSendOtp}
             onSubmit={handleSubmit}
-            isPincodeDeliverable={isPincodeDeliverable}
             savedAddress={selectedSavedAddress}
             hasSavedAddresses={savedAddresses.length > 0}
             onChangeAddress={handleBackToAddressSelection}

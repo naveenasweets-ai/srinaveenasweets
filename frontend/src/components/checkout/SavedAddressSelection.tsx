@@ -1,260 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/set-state-in-effect */
-import { useState, useCallback } from 'react';
-import {
-  ADDRESS_FORM_ERRORS,
-  outletLocation,
-  type AddressFormData,
-  type AddressFormProps,
-  type SavedAddress,
+import { useState } from 'react';
+import type {
+  AddressFormData,
+  SavedAddress,
 } from '../../types/types';
-import LocationPicker from './LocationPicker';
-import { getDistanceInKm } from '../../utils/checkout';
+import AddressForm from './AddressForm';
 
-const AddressForm = ({
-  onSubmit,
-  onCancel,
-  isSubmitting,
-  defaultPhone = '',
-  defaultName = '',
-}: AddressFormProps) => {
-  const [form, setForm] = useState<AddressFormData>({
-    fullname: defaultName,
-    mobile: defaultPhone,
-    fullAddress: '',
-    city: '',
-    state: '',
-    pincode: '',
-    lat: 16.314209,
-    lng: 80.435028,
-  });
-
-  const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof AddressFormData, string>>
-  >({});
-
-  const handleAddressSelect = useCallback(
-    (data: {
-      address: string;
-      city: string;
-      state: string;
-      pincode: string;
-      lat: number;
-      lng: number;
-    }) => {
-      setForm((prev) => ({
-        ...prev,
-        fullAddress: data.address,
-        city: data.city,
-        state: data.state,
-        pincode: data.pincode,
-        lat: data.lat,
-        lng: data.lng,
-      }));
-    },
-    [],
-  );
-
-  const handleChange = (
-    field: keyof AddressFormData,
-    value: string | number,
-  ) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => ({ ...prev, [field]: '' }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const nextErrors: Partial<Record<keyof AddressFormData, string>> = {};
-    (Object.keys(ADDRESS_FORM_ERRORS) as Array<keyof AddressFormData>).forEach(
-      (key) => {
-        const value = form[key];
-        if (typeof value === 'string') {
-          if (!value.trim()) {
-            nextErrors[key] = ADDRESS_FORM_ERRORS[key] || `${key} is required`;
-          }
-        } else if (value === 0 && (key === 'lat' || key === 'lng')) {
-          nextErrors[key] = ADDRESS_FORM_ERRORS[key] || `${key} is required`;
-        }
-      },
-    );
-
-    setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
-
-    await onSubmit(form);
-  };
-
-  const isPincodeDeliverable =
-    getDistanceInKm(
-      outletLocation.lat,
-      outletLocation.lng,
-      form.lat,
-      form.lng,
-    ) < 7;
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="lg:grid grid-cols-1 flex flex-col gap-3 md:grid-cols-2">
-        <div>
-          <label className="mb-1 block text-sm font-medium">Full Name</label>
-          <input
-            value={form.fullname}
-            onChange={(event) => handleChange('fullname', event.target.value)}
-            className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
-          />
-          {errors.fullname && (
-            <p className="mt-1 text-sm text-red-500">{errors.fullname}</p>
-          )}
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Mobile</label>
-          <input
-            value={form.mobile}
-            onChange={(event) => {
-              let value = event.target.value;
-              if (value.startsWith('0')) {
-                value = value.slice(1);
-              }
-              handleChange('mobile', value);
-            }}
-            className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
-          />
-          {errors.mobile && (
-            <p className="mt-1 text-sm text-red-500">{errors.mobile}</p>
-          )}
-        </div>
-        <div className="md:col-span-2">
-          <label className="mb-1 block text-sm font-medium">Address</label>
-          <textarea
-            value={form.fullAddress}
-            onChange={(event) =>
-              handleChange('fullAddress', event.target.value)
-            }
-            className="min-h-22.5 w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2"
-          />
-          {errors.fullAddress && (
-            <p className="mt-1 text-sm text-red-500">{errors.fullAddress}</p>
-          )}
-        </div>
-
-        <div className="md:col-span-2">
-          <button
-            type="button"
-            onClick={() => setIsLocationPickerOpen(true)}
-            className="w-full rounded-lg border border-(--color-border) bg-(--color-surface) px-3 py-2 text-left text-sm font-medium text-(--color-muted) hover:border-(--color-accent) transition"
-          >
-            {form.lat !== 0 || form.lng !== 0
-              ? 'Location selected'
-              : 'Click to select exact location on map'}
-          </button>
-          {(errors.lat || errors.lng) && (
-            <p className="mt-1 text-sm text-red-500">
-              {errors.lat || errors.lng}
-            </p>
-          )}
-        </div>
-
-        <div className="col-span-2 lg:grid grid-cols-3 gap-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium">City</label>
-            <input
-              value={form.city}
-              disabled
-              onChange={(event) => handleChange('city', event.target.value)}
-              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-            />
-            {errors.city && (
-              <p className="mt-1 text-sm text-red-500">{errors.city}</p>
-            )}
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium">State</label>
-            <input
-              value={form.state}
-              disabled
-              onChange={(event) => handleChange('state', event.target.value)}
-              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-            />
-            {errors.state && (
-              <p className="mt-1 text-sm text-red-500">{errors.state}</p>
-            )}
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium">Pincode</label>
-            <input
-              value={form.pincode}
-              disabled
-              onChange={(event) => handleChange('pincode', event.target.value)}
-              className="w-full rounded-lg border border-(--color-border) bg-transparent px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-            />
-            {errors.pincode && (
-              <p className="mt-1 text-sm text-red-500">{errors.pincode}</p>
-            )}
-          </div>
-          {!isPincodeDeliverable && form.pincode.length === 6 && (
-            <p className="col-span-3 lg:text-end text-sm text-red-500">
-              Delivery to this pincode is currently unavailable.
-            </p>
-          )}
-        </div>
-      </div>
-
-      {isLocationPickerOpen && (
-        <div className="col-span-2">
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-            <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-(--color-border) bg-(--color-surface) shadow-2xl">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-(--color-border)">
-                <h3 className="text-lg font-semibold">
-                  Select location on map
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setIsLocationPickerOpen(false)}
-                  className="text-sm text-(--color-muted) hover:text-(--color-primary-dark)  transition"
-                >
-                  Close
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4">
-                <LocationPicker
-                  lat={form.lat}
-                  lng={form.lng}
-                  onAddressSelect={handleAddressSelect}
-                  onClose={() => setIsLocationPickerOpen(false)}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="flex gap-3 pt-2">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-lg bg-(--color-accent) px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {isSubmitting ? 'Saving...' : 'Save Address'}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-lg border border-(--color-border) px-4 py-2"
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
-  );
-};
-
-type SavedAddressSelectionProps = {
+export type SavedAddressSelectionProps = {
   savedAddresses: SavedAddress[];
   selectedAddressId: string | null;
   onSelectAddress: (address: SavedAddress) => void;
   onAddAddress: (address: AddressFormData) => Promise<void>;
+  onUpdateAddress?: (addressId: string, address: AddressFormData) => Promise<void>;
   onDeleteAddress: (addressId: string) => Promise<void>;
   onSetDefaultAddress?: (addressId: string) => Promise<void>;
   onContinue: () => void;
@@ -265,12 +23,14 @@ const SavedAddressCard = ({
   address,
   selected,
   onSelect,
+  onEdit,
   onDelete,
   onSetDefault,
 }: {
   address: SavedAddress;
   selected: boolean;
   onSelect: () => void;
+  onEdit?: () => void;
   onDelete?: () => void;
   onSetDefault?: () => void;
 }) => {
@@ -285,10 +45,10 @@ const SavedAddressCard = ({
 
   return (
     <label
-      className={`cursor-pointer rounded-xl border p-4 flex gap-3 relative ${
+      className={`cursor-pointer rounded-xl border p-4 flex gap-3 relative transition-all ${
         selected
-          ? 'border-(--color-accent) bg-(--color-accent-light)'
-          : 'border-(--color-border)'
+          ? 'border-(--color-accent) bg-(--color-accent-light)/30 shadow-xs'
+          : 'border-(--color-border) hover:border-(--color-accent)/50'
       }`}
     >
       <input
@@ -296,23 +56,37 @@ const SavedAddressCard = ({
         name="savedAddress"
         checked={selected}
         onChange={onSelect}
-        className="mt-1"
+        className="mt-1 accent-(--color-accent)"
       />
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <p className="font-medium pb-2">{address.fullname}</p>
+          <p className="font-semibold text-sm text-(--color-primary-dark) py-1">{address.fullname}</p>
           {address.isDefault && (
-            <span className="rounded-full bg-(--color-accent) px-2 py-0.5 text-xs font-semibold text-white">
+            <span className="rounded-full bg-(--color-accent) px-2 py-0.5 text-[10px] font-bold text-white">
               Default
             </span>
           )}
         </div>
-        <p className="text-sm text-(--color-muted)">{displayAddress}</p>
+        <p className="text-xs text-(--color-muted) mt-0.5">{displayAddress}</p>
         {address.mobile && (
-          <p className="text-sm text-(--color-muted)">{address.mobile}</p>
+          <p className="text-xs text-(--color-muted) mt-0.5">📞 {address.mobile}</p>
         )}
       </div>
-      <div className="flex items-end gap-2 absolute right-4">
+
+      <div className="flex items-center gap-1.5 absolute right-4 top-4">
+        {onEdit && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onEdit();
+            }}
+            className="rounded-lg px-2 py-1 text-xs font-semibold border border-(--color-border) bg-(--color-surface) text-(--color-accent) hover:bg-(--color-accent-light)/20 transition"
+          >
+            Edit
+          </button>
+        )}
         {!address.isDefault && onSetDefault && (
           <button
             type="button"
@@ -321,28 +95,24 @@ const SavedAddressCard = ({
               e.stopPropagation();
               onSetDefault();
             }}
-            className={`rounded-lg px-2 py-1 text-xs font-medium border border-(--color-border) hover:border-(--color-accent) transition ${
-              selected ? 'bg-(--color-on-primary)' : ''
-            }`}
+            className="rounded-lg px-2 py-1 text-xs font-medium border border-(--color-border) bg-(--color-surface) hover:border-(--color-accent) transition"
           >
-            Set as default
+            Set default
           </button>
         )}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (onDelete) {
+        {onDelete && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
               onDelete();
-            }
-          }}
-          className={`rounded-lg px-2 py-1 text-xs font-medium border border-(--color-border) hover:border-(--color-accent) transition text-red-500 hover:text-red-700 ${
-            selected ? 'bg-(--color-on-primary)' : ''
-          }`}
-        >
-          Delete
-        </button>
+            }}
+            className="rounded-lg px-2 py-1 text-xs font-medium border border-(--color-border) bg-(--color-surface) text-red-500 hover:text-red-700 transition"
+          >
+            Delete
+          </button>
+        )}
       </div>
     </label>
   );
@@ -353,77 +123,132 @@ export default function SavedAddressSelection({
   selectedAddressId,
   onSelectAddress,
   onAddAddress,
+  onUpdateAddress,
   onDeleteAddress,
   onSetDefaultAddress,
   onContinue,
   isSubmitting,
 }: SavedAddressSelectionProps) {
   const [showAddForm, setShowAddForm] = useState(savedAddresses.length === 0);
-  const hasSelection = !!selectedAddressId;
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
 
-  const handleAddAddress = async (address: AddressFormData) => {
+  const editingAddress = savedAddresses.find((addr) => addr._id === editingAddressId) || null;
+
+  const handleAddSubmit = async (address: AddressFormData) => {
     await onAddAddress(address);
     setShowAddForm(false);
     onContinue();
   };
 
+  const handleEditSubmit = async (address: AddressFormData) => {
+    if (editingAddressId && onUpdateAddress) {
+      await onUpdateAddress(editingAddressId, address);
+    }
+    setEditingAddressId(null);
+  };
+
   return (
     <div className="w-full lg:w-2/3 rounded-2xl border border-(--color-border) bg-(--color-surface) p-6 shadow-sm">
-      <div className="mb-6">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-(--color-accent)">
-          Checkout
-        </p>
-        <h1 className="text-2xl font-semibold">Select delivery address</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--color-accent)">
+            Checkout Step 1 of 2
+          </p>
+          <h1 className="text-2xl font-semibold text-(--color-primary-dark)">Select Delivery Address</h1>
+        </div>
       </div>
 
+      {/* Addresses List */}
       {savedAddresses.length > 0 ? (
         <div className="flex flex-col gap-3 mb-6">
-          {savedAddresses.map((addr: any) => (
-            <SavedAddressCard
-              key={addr._id}
-              address={addr}
-              selected={selectedAddressId === addr._id}
-              onSelect={() => onSelectAddress(addr)}
-              onDelete={() => onDeleteAddress(addr._id)}
-              onSetDefault={
-                onSetDefaultAddress && !addr.isDefault
-                  ? () => onSetDefaultAddress(addr._id)
-                  : undefined
-              }
-            />
+          {savedAddresses.map((addr: SavedAddress) => (
+            <div key={addr._id}>
+              <SavedAddressCard
+                address={addr}
+                selected={selectedAddressId === addr._id}
+                onSelect={() => {
+                  onSelectAddress(addr);
+                  setEditingAddressId(null);
+                  setShowAddForm(false);
+                }}
+                onEdit={() => {
+                  onSelectAddress(addr);
+                  setEditingAddressId(addr._id);
+                  setShowAddForm(false);
+                }}
+                onDelete={() => onDeleteAddress(addr._id)}
+                onSetDefault={
+                  onSetDefaultAddress && !addr.isDefault
+                    ? () => onSetDefaultAddress(addr._id)
+                    : undefined
+                }
+              />
+
+              {/* Inline Edit Form if this address is being edited */}
+              {editingAddressId === addr._id && editingAddress && (
+                <div className="mt-3 pl-4 border-l-2 border-(--color-accent)">
+                  <p className="text-xs font-semibold text-(--color-accent) mb-2">Editing Address:</p>
+                  <AddressForm
+                    initialValues={{
+                      fullname: editingAddress.fullname,
+                      mobile: editingAddress.mobile,
+                      fullAddress: editingAddress.fullAddress,
+                      city: editingAddress.city,
+                      state: editingAddress.state,
+                      pincode: editingAddress.pincode,
+                      lat: editingAddress.lat,
+                      lng: editingAddress.lng,
+                    }}
+                    onSubmit={handleEditSubmit}
+                    onCancel={() => setEditingAddressId(null)}
+                    isSubmitting={isSubmitting}
+                    submitLabel="Update Address"
+                  />
+                </div>
+              )}
+            </div>
           ))}
         </div>
       ) : (
-        <p className="mb-4 text-sm text-(--color-muted)">
-          No saved addresses found. Please add a new address to continue.
+        <p className="mb-4 text-xs text-(--color-muted)">
+          No saved addresses found. Please add a new address below to continue.
         </p>
       )}
 
-      {!showAddForm && (
+      {/* Add New Address Button & Form */}
+      {!showAddForm && editingAddressId === null && (
         <button
           type="button"
-          onClick={() => setShowAddForm(true)}
-          className="w-full rounded-lg border border-dashed border-(--color-border) bg-(--color-surface) px-3 py-3 text-left text-sm font-medium text-(--color-muted) hover:border-(--color-accent) transition"
+          onClick={() => {
+            setShowAddForm(true);
+            setEditingAddressId(null);
+          }}
+          className="w-full rounded-xl border border-dashed border-(--color-accent)/60 bg-(--color-surface-alt) px-4 py-3 text-left text-xs font-semibold text-(--color-accent) hover:bg-(--color-accent-light)/20 transition flex items-center gap-2"
         >
-          + Add new address
+          <span>➕ Add new address</span>
         </button>
       )}
 
-      {showAddForm && (
-        <AddressForm
-          onSubmit={handleAddAddress}
-          onCancel={() => setShowAddForm(false)}
-          isSubmitting={isSubmitting}
-        />
+      {showAddForm && editingAddressId === null && (
+        <div className="mt-4">
+          <p className="text-xs font-semibold text-(--color-accent) mb-2">New Delivery Address:</p>
+          <AddressForm
+            onSubmit={handleAddSubmit}
+            onCancel={() => setShowAddForm(false)}
+            isSubmitting={isSubmitting}
+            submitLabel="Save & Continue to Payment"
+          />
+        </div>
       )}
 
-      {hasSelection && !showAddForm && (
+      {/* Continue to Payment Button */}
+      {selectedAddressId && !showAddForm && editingAddressId === null && (
         <button
           type="button"
           onClick={onContinue}
-          className="mt-6 w-full cursor-pointer rounded-lg bg-(--color-accent) px-4 py-3 font-semibold text-white transition hover:opacity-90"
+          className="mt-6 w-full cursor-pointer rounded-xl bg-(--color-accent) px-4 py-3 text-sm font-bold text-white shadow-md transition hover:opacity-90 active:scale-[0.99]"
         >
-          Continue to checkout
+          Proceed to Payment →
         </button>
       )}
     </div>

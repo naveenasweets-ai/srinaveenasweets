@@ -78,14 +78,7 @@ export type CheckoutShippingFormProps = {
   form: CheckoutFormState;
   errors: Partial<Record<keyof CheckoutFormState, string>>;
   onChange: (field: keyof CheckoutFormState, value: string | number) => void;
-  onAddressSelect: (data: {
-    address: string;
-    city: string;
-    state: string;
-    pincode: string;
-    lat: number;
-    lng: number;
-  }) => void;
+  onAddressSelect: (data: AddressFormData) => void;
   paymentMethod: 'cod' | 'razorpay' | '';
   onPaymentMethodChange: (value: 'cod' | 'razorpay') => void;
   isSubmitting: boolean;
@@ -99,7 +92,6 @@ export type CheckoutShippingFormProps = {
   onOtpCodeChange: (value: string) => void;
   onSendOtp: () => void;
   onSubmit: (e: any) => void;
-  isPincodeDeliverable: boolean;
   savedAddress?: SavedAddress | null;
   hasSavedAddresses?: boolean;
   onChangeAddress?: () => void;
@@ -181,9 +173,11 @@ export type AddressFormData = {
 };
 
 export type AddressFormProps = {
+  initialValues?: Partial<AddressFormData>;
   onSubmit: (address: AddressFormData) => Promise<void> | void;
-  onCancel: () => void;
-  isSubmitting: boolean;
+  onCancel?: () => void;
+  isSubmitting?: boolean;
+  submitLabel?: string;
   defaultEmail?: string;
   defaultPhone?: string;
   defaultName?: string;

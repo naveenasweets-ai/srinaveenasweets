@@ -58,7 +58,13 @@ const UpdateCatalogue = ({
       : [{ value: 250, unit: '', price: 0, originalPrice: undefined }];
   };
 
-  const [productId, setProductId] = useState(product?._id ?? '');
+  const generateProductId = () => {
+    const randomLetter = () => String.fromCharCode(65 + Math.floor(Math.random() * 26));
+    const randomNumber = () => String(Math.floor(Math.random() * 10));
+    return `SNSPID-${randomLetter()}${randomLetter()}${randomLetter()}${randomNumber()}${randomNumber()}${randomNumber()}`;
+  };
+
+  const productId = action === 'add' ? generateProductId() : product?._id ?? '';
   const [name, setName] = useState(product?.name ?? '');
   const [subcategoryId, setSubcategoryId] = useState(
     product?.subcategory ?? '',
@@ -300,10 +306,10 @@ const UpdateCatalogue = ({
               <input
                 required
                 type="text"
-                disabled={action === 'edit'}
-                value={productId ?? ''}
-                onChange={(e: any) => setProductId(e.target.value)}
-                className={`${inputClassName} ${action === 'edit' ? 'cursor-not-allowed' : ''}`}
+                disabled
+                value={productId}
+                readOnly
+                className={`${inputClassName} cursor-not-allowed`}
               />
             </div>
             <div className="mt-5">

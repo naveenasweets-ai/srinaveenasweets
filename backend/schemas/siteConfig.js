@@ -135,10 +135,15 @@ const SiteConfigSchema = new Schema(
       ],
       default: legalPagesDefault,
     },
-    deliverablePincodes: {
-      type: [String],
-      default: [],
-    },
+    outletCoordinates: [
+      {
+        _id: { type: Schema.Types.ObjectId, auto: true },
+        name: { type: String, default: '' },
+        address: { type: String, default: '' },
+        lat: { type: Number, required: true },
+        lng: { type: Number, required: true },
+      },
+    ],
   },
   { timestamps: true },
 );

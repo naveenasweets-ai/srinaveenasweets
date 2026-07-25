@@ -67,4 +67,12 @@ export type LegalPage = {
   content: string;
 };
 
-export type DeliverablePincodesConfig = string[];
+export type OutletCoordinate = {
+  _id?: string;
+  name?: string;
+  address?: string;
+  lat: number;
+  lng: number;
+};
+
+export type OutletCoordinatesConfig = OutletCoordinate[];
