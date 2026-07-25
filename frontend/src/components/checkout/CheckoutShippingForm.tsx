@@ -109,8 +109,11 @@ const CheckoutShippingForm = ({
           </div>
 
           <div className="text-xs text-(--color-text) space-y-1 pt-1">
-            <p className="font-semibold text-sm text-(--color-primary-dark)">
-              {displayName} {displayPhone ? `• 📞 ${displayPhone}` : ''}
+            <p className="font-semibold flex text-sm text-(--color-primary-dark)">
+              <span className="font-semibold text-sm text-(--color-primary-dark) py-1 line-clamp-1 w-3/5">
+                {displayName}
+              </span>{' '}
+              <span className='flex items-center'>{displayPhone ? `📞 ${displayPhone}` : ''}</span>
             </p>
             <p className="text-(--color-muted) leading-relaxed">
               {displayAddress}

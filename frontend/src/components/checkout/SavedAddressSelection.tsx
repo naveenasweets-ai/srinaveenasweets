@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState } from 'react';
-import type {
-  AddressFormData,
-  SavedAddress,
-} from '../../types/types';
+import type { AddressFormData, SavedAddress } from '../../types/types';
 import AddressForm from './AddressForm';
 
 export type SavedAddressSelectionProps = {
@@ -12,7 +9,10 @@ export type SavedAddressSelectionProps = {
   selectedAddressId: string | null;
   onSelectAddress: (address: SavedAddress) => void;
   onAddAddress: (address: AddressFormData) => Promise<void>;
-  onUpdateAddress?: (addressId: string, address: AddressFormData) => Promise<void>;
+  onUpdateAddress?: (
+    addressId: string,
+    address: AddressFormData,
+  ) => Promise<void>;
   onDeleteAddress: (addressId: string) => Promise<void>;
   onSetDefaultAddress?: (addressId: string) => Promise<void>;
   onContinue: () => void;
@@ -45,35 +45,43 @@ const SavedAddressCard = ({
 
   return (
     <label
-      className={`cursor-pointer rounded-xl border p-4 flex gap-3 relative transition-all ${
+      className={`cursor-pointer rounded-xl border p-4 pb-8 flex flex-col gap-3 relative transition-all ${
         selected
           ? 'border-(--color-accent) bg-(--color-accent-light)/30 shadow-xs'
           : 'border-(--color-border) hover:border-(--color-accent)/50'
       }`}
     >
-      <input
-        type="radio"
-        name="savedAddress"
-        checked={selected}
-        onChange={onSelect}
-        className="mt-1 accent-(--color-accent)"
-      />
-      <div className="flex-1">
-        <div className="flex items-center gap-2">
-          <p className="font-semibold text-sm text-(--color-primary-dark) py-1">{address.fullname}</p>
-          {address.isDefault && (
-            <span className="rounded-full bg-(--color-accent) px-2 py-0.5 text-[10px] font-bold text-white">
-              Default
-            </span>
+      <div className="flex gap-2">
+        <input
+          type="radio"
+          name="savedAddress"
+          checked={selected}
+          onChange={onSelect}
+          className="mt-1 accent-(--color-accent)"
+        />
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <p className="font-semibold text-sm text-(--color-primary-dark) py-1 line-clamp-1">
+              {address.fullname}
+            </p>
+            {address.isDefault && (
+              <span className="rounded-full bg-(--color-accent) px-2 py-0.5 text-[10px] font-bold text-white">
+                Default
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-(--color-muted) mt-0.5">
+            {displayAddress}
+          </p>
+          {address.mobile && (
+            <p className="text-xs text-(--color-muted) mt-0.5">
+              📞 {address.mobile}
+            </p>
           )}
         </div>
-        <p className="text-xs text-(--color-muted) mt-0.5">{displayAddress}</p>
-        {address.mobile && (
-          <p className="text-xs text-(--color-muted) mt-0.5">📞 {address.mobile}</p>
-        )}
       </div>
 
-      <div className="flex items-center gap-1.5 absolute right-4 top-4">
+      <div className="flex items-center justify-end gap-1.5 absolute right-4 bottom-2">
         {onEdit && (
           <button
             type="button"
@@ -132,7 +140,8 @@ export default function SavedAddressSelection({
   const [showAddForm, setShowAddForm] = useState(savedAddresses.length === 0);
   const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
 
-  const editingAddress = savedAddresses.find((addr) => addr._id === editingAddressId) || null;
+  const editingAddress =
+    savedAddresses.find((addr) => addr._id === editingAddressId) || null;
 
   const handleAddSubmit = async (address: AddressFormData) => {
     await onAddAddress(address);
@@ -154,9 +163,25 @@ export default function SavedAddressSelection({
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--color-accent)">
             Checkout Step 1 of 2
           </p>
-          <h1 className="text-2xl font-semibold text-(--color-primary-dark)">Select Delivery Address</h1>
+          <h1 className="text-2xl font-semibold text-(--color-primary-dark)">
+            Select Delivery Address
+          </h1>
         </div>
       </div>
+
+      {/* Add New Address Button & Form */}
+      {!showAddForm && editingAddressId === null && (
+        <button
+          type="button"
+          onClick={() => {
+            setShowAddForm(true);
+            setEditingAddressId(null);
+          }}
+          className="w-full rounded-xl border border-dashed border-(--color-accent)/60 bg-(--color-surface-alt) px-4 py-3 mb-4 text-left text-xs font-semibold text-(--color-accent) hover:bg-(--color-accent-light)/20 transition flex items-center gap-2"
+        >
+          <span>➕ Add new address</span>
+        </button>
+      )}
 
       {/* Addresses List */}
       {savedAddresses.length > 0 ? (
@@ -187,7 +212,9 @@ export default function SavedAddressSelection({
               {/* Inline Edit Form if this address is being edited */}
               {editingAddressId === addr._id && editingAddress && (
                 <div className="mt-3 pl-4 border-l-2 border-(--color-accent)">
-                  <p className="text-xs font-semibold text-(--color-accent) mb-2">Editing Address:</p>
+                  <p className="text-xs font-semibold text-(--color-accent) mb-2">
+                    Editing Address:
+                  </p>
                   <AddressForm
                     initialValues={{
                       fullname: editingAddress.fullname,
@@ -215,23 +242,11 @@ export default function SavedAddressSelection({
         </p>
       )}
 
-      {/* Add New Address Button & Form */}
-      {!showAddForm && editingAddressId === null && (
-        <button
-          type="button"
-          onClick={() => {
-            setShowAddForm(true);
-            setEditingAddressId(null);
-          }}
-          className="w-full rounded-xl border border-dashed border-(--color-accent)/60 bg-(--color-surface-alt) px-4 py-3 text-left text-xs font-semibold text-(--color-accent) hover:bg-(--color-accent-light)/20 transition flex items-center gap-2"
-        >
-          <span>➕ Add new address</span>
-        </button>
-      )}
-
       {showAddForm && editingAddressId === null && (
         <div className="mt-4">
-          <p className="text-xs font-semibold text-(--color-accent) mb-2">New Delivery Address:</p>
+          <p className="text-xs font-semibold text-(--color-accent) mb-2">
+            New Delivery Address:
+          </p>
           <AddressForm
             onSubmit={handleAddSubmit}
             onCancel={() => setShowAddForm(false)}
