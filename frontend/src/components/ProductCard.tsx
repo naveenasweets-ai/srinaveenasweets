@@ -16,7 +16,7 @@ import { getDefaultInventorySelection } from '../utils/productInventory';
 import CustomDropdown from './CustomDropdown';
 
 export default function ProductCard({ product }: { product: Product }) {
-  const { isInWishlist, user, cart } = useStore();
+  const { isInWishlist, user, cart, showToast } = useStore();
   const { addToCart, updateQuantity, toggleWishlist } = CustomerUtils();
   const displayPrice = getProductPrice(product);
   const displayOriginalPrice = getProductOriginalPrice(product);
@@ -74,7 +74,7 @@ export default function ProductCard({ product }: { product: Product }) {
   );
   const cartQuantity = cartItem ? cartItem.quantity : 0;
   const [stagingQuantity, setStagingQuantity] = useState(0);
-  console.log('cartQuantity: ', selectedWeight, cartQuantity, cartItem, cart, product);
+
   // Keep staging quantity in sync with cart when weight selection changes
   useEffect(() => {
     setStagingQuantity(cartQuantity);
@@ -95,6 +95,8 @@ export default function ProductCard({ product }: { product: Product }) {
       addToCart(product, 1, selectedWeight, true);
     } else if (cartQuantity < maxStock) {
       updateQuantity(product._id, cartQuantity + 1, selectedWeight, true);
+    } else {
+      showToast(`Only ${maxStock} units available.`, 'warning');
     }
   };
 
@@ -115,6 +117,11 @@ export default function ProductCard({ product }: { product: Product }) {
     if (cartQuantity > 0) {
       if (cartQuantity < maxStock) {
         updateQuantity(product._id, cartQuantity + 1, selectedWeight, true);
+      } else {
+        showToast(
+          `Only ${maxStock} units available for ${selectedWeight} g.`,
+          'warning',
+        );
       }
     } else {
       setStagingQuantity((q) => Math.min(q + 1, maxStock));
@@ -217,55 +224,59 @@ export default function ProductCard({ product }: { product: Product }) {
             >
               <div className="grid grid-cols-2 w-full items-center gap-2 rounded-xl bg-(--color-surface)/95 backdrop-blur-sm border border-(--color-border) p-1.5">
                 {cartQuantity === 0 ? (
-                   isWeightProduct && effectiveWeightOptions.length > 0 ? (
-                     <>
-                       <CustomDropdown
-                         value={selectedWeight}
-                         onChange={setSelectedWeight}
-                         options={effectiveWeightOptions.map((option) => ({
-                           label: `${option.value} g`,
-                           value: String(option.value),
-                         }))}
-                         className="h-9"
-                         buttonClassName="h-9"
-                       />
-                       <button
-                         onClick={handleAddToCart}
-                         className={`flex h-9 items-center justify-center rounded-lg px-3 py-2 text-[11px] font-bold uppercase tracking-[0.2em] shadow-md transition-all ${
-                           isWeightProduct
-                             ? 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
-                             : 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
-                         }`}
-                       >
-                         ADD TO BAG
-                       </button>
-                     </>
-                   ) : (
-                     <button
-                       onClick={handleAddToCart}
-                       className={`flex h-9 items-center justify-center rounded-lg px-3 py-2 text-[11px] font-bold uppercase tracking-[0.2em] shadow-md transition-all col-span-2 ${
-                         isWeightProduct
-                           ? 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
-                           : 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
-                       }`}
-                     >
-                       ADD TO BAG
-                     </button>
-                   )
-                 ) : (
-                   <>
-                     {isWeightProduct && effectiveWeightOptions.length > 0 && (
-                       <CustomDropdown
-                         value={selectedWeight}
-                         onChange={setSelectedWeight}
-                         options={effectiveWeightOptions.map((option) => ({
-                           label: `${option.value} g`,
-                           value: String(option.value),
-                         }))}
-                         className="h-9"
-                         buttonClassName="h-9"
-                       />
-                     )}
+                  isWeightProduct && effectiveWeightOptions.length > 0 ? (
+                    <>
+                      <select
+                        value={selectedWeight}
+                        onChange={(e) => setSelectedWeight(e.target.value)}
+                        className="h-9 rounded-lg border border-(--color-border) bg-(--color-surface) px-2 text-xs font-semibold text-(--color-primary-dark) focus:border-(--color-accent) focus:outline-none"
+                      >
+                        {effectiveWeightOptions.map((option) => (
+                          <option
+                            key={`${option.value}${option.unit}`}
+                            value={String(option.value)}
+                          >
+                            {option.value} g
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={handleAddToCart}
+                        className={`flex h-9 items-center justify-center rounded-lg px-3 py-2 text-[11px] font-bold uppercase tracking-[0.2em] shadow-md transition-all ${
+                          isWeightProduct
+                            ? 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
+                            : 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
+                        }`}
+                      >
+                        ADD TO BAG
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={handleAddToCart}
+                      className={`flex h-9 items-center justify-center rounded-lg px-3 py-2 text-[11px] font-bold uppercase tracking-[0.2em] shadow-md transition-all col-span-2 ${
+                        isWeightProduct
+                          ? 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
+                          : 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
+                      }`}
+                    >
+                      ADD TO BAG
+                    </button>
+                  )
+                ) : (
+                  <>
+                    {isWeightProduct && effectiveWeightOptions.length > 0 && (
+                      <CustomDropdown
+                        value={selectedWeight}
+                        onChange={setSelectedWeight}
+                        options={effectiveWeightOptions.map((option) => ({
+                          label: `${option.value} g`,
+                          value: String(option.value),
+                        }))}
+                        className="h-9"
+                        buttonClassName="h-9"
+                      />
+                    )}
                     <div
                       className={`flex items-center border border-(--color-border) rounded-lg ${!isWeightProduct ? 'col-span-2' : ''}`}
                     >
@@ -302,35 +313,25 @@ export default function ProductCard({ product }: { product: Product }) {
 
         {!showOutOfStockOverlay && !isAdmin && (
           <div className="px-3 pb-3 pt-3 md:hidden">
-            <div className={`w-full ${isWeightProduct && effectiveWeightOptions.length > 0 ? 'flex flex-col gap-2' : 'grid grid-cols-2 items-center gap-2'}`}>
-               {cartQuantity === 0 ? (
-                  isWeightProduct && effectiveWeightOptions.length > 0 ? (
-                    <>
-                      <CustomDropdown
-                        value={selectedWeight}
-                        onChange={setSelectedWeight}
-                        options={effectiveWeightOptions.map((option) => ({
-                          label: `${option.value} g`,
-                          value: String(option.value),
-                        }))}
-                        className="h-10"
-                        buttonClassName="h-10"
-                      />
-                      <button
-                        onClick={handleAddToCart}
-                        className={`flex h-10 items-center justify-center rounded-lg px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] shadow-lg transition-all ${
-                          isWeightProduct
-                            ? 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
-                            : 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
-                        }`}
-                      >
-                        ADD TO BAG
-                      </button>
-                    </>
-                  ) : (
+            <div
+              className={`w-full ${isWeightProduct && effectiveWeightOptions.length > 0 ? 'flex flex-col gap-2' : 'grid grid-cols-2 items-center gap-2'}`}
+            >
+              {cartQuantity === 0 ? (
+                isWeightProduct && effectiveWeightOptions.length > 0 ? (
+                  <>
+                    <CustomDropdown
+                      value={selectedWeight}
+                      onChange={setSelectedWeight}
+                      options={effectiveWeightOptions.map((option) => ({
+                        label: `${option.value} g`,
+                        value: String(option.value),
+                      }))}
+                      className="h-10"
+                      buttonClassName="h-10"
+                    />
                     <button
                       onClick={handleAddToCart}
-                      className={`flex h-10 items-center justify-center rounded-lg px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] shadow-lg transition-all col-span-2 ${
+                      className={`flex h-10 items-center justify-center rounded-lg px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] shadow-lg transition-all ${
                         isWeightProduct
                           ? 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
                           : 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
@@ -338,21 +339,33 @@ export default function ProductCard({ product }: { product: Product }) {
                     >
                       ADD TO BAG
                     </button>
-                  )
+                  </>
                 ) : (
-                 <>
-                   {isWeightProduct && effectiveWeightOptions.length > 0 && (
-                     <CustomDropdown
-                       value={selectedWeight}
-                       onChange={setSelectedWeight}
-                       options={effectiveWeightOptions.map((option) => ({
-                         label: `${option.value} g`,
-                         value: String(option.value),
-                       }))}
-                       className="h-10"
-                       buttonClassName="h-10"
-                     />
-                   )}
+                  <button
+                    onClick={handleAddToCart}
+                    className={`flex h-10 items-center justify-center rounded-lg px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] shadow-lg transition-all col-span-2 ${
+                      isWeightProduct
+                        ? 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
+                        : 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
+                    }`}
+                  >
+                    ADD TO BAG
+                  </button>
+                )
+              ) : (
+                <>
+                  {isWeightProduct && effectiveWeightOptions.length > 0 && (
+                    <CustomDropdown
+                      value={selectedWeight}
+                      onChange={setSelectedWeight}
+                      options={effectiveWeightOptions.map((option) => ({
+                        label: `${option.value} g`,
+                        value: String(option.value),
+                      }))}
+                      className="h-10"
+                      buttonClassName="h-10"
+                    />
+                  )}
                   <div
                     className={`flex items-center justify-between border border-(--color-border) rounded-lg ${!isWeightProduct ? 'col-span-2' : ''}`}
                   >

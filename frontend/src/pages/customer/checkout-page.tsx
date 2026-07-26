@@ -9,9 +9,7 @@ import {
   type CheckoutFormState,
   type SavedAddress,
 } from '../../types/types';
-import {
-  calculateCheckoutSummary,
-} from '../../utils/checkout';
+import { calculateCheckoutSummary } from '../../utils/checkout';
 import { getSelectedWeightOption } from '../../utils/productInventory';
 import CheckoutShippingForm from '../../components/checkout/CheckoutShippingForm';
 import CheckoutSummary from '../../components/checkout/CheckoutSummary';
@@ -317,10 +315,14 @@ const CheckoutPage = () => {
   const deliveryFee = checkoutState?.deliveryFee ?? 0;
   const packagingFee = checkoutState?.packagingFee ?? charges.packagingFee;
   const platformFee = checkoutState?.platformFee ?? charges.platformFee;
-  const subtotal = checkoutState?.subtotal ?? validCartItems.reduce((sum, item) => {
-    const price = getSelectedWeightOption(item.product, item.weight)?.price ?? item.product.price;
-    return sum + price * item.quantity;
-  }, 0);
+  const subtotal =
+    checkoutState?.subtotal ??
+    validCartItems.reduce((sum, item) => {
+      const price =
+        getSelectedWeightOption(item.product, item.weight)?.price ??
+        item.product.price;
+      return sum + price * item.quantity;
+    }, 0);
 
   const isEligibleForFreeDelivery = subtotal >= charges.freeDeliveryThreshold;
 
@@ -535,8 +537,8 @@ const CheckoutPage = () => {
           quantity: item.quantity,
           weight: item.weight,
           price:
-            (getSelectedWeightOption(item.product, item.weight)?.price ??
-              item.product.price) * item.quantity,
+            getSelectedWeightOption(item.product, item.weight)?.price ??
+            item.product.price,
         })),
         subtotal: totals.subtotal,
         deliveryFee: totals.deliveryFee,
@@ -748,7 +750,9 @@ const CheckoutPage = () => {
 
       {excludedItems.length > 0 && (
         <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          <p className="font-semibold">Some items were removed from your order:</p>
+          <p className="font-semibold">
+            Some items were removed from your order:
+          </p>
           <ul className="mt-2 list-disc pl-5">
             {excludedItems.map((item, idx) => (
               <li key={idx}>
@@ -756,7 +760,10 @@ const CheckoutPage = () => {
               </li>
             ))}
           </ul>
-          <p className="mt-2 text-xs">These items are no longer available and have been excluded from your order total.</p>
+          <p className="mt-2 text-xs">
+            These items are no longer available and have been excluded from your
+            order total.
+          </p>
         </div>
       )}
     </div>

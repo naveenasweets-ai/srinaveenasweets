@@ -6,12 +6,14 @@ import OrderListItem from '../../components/orders/OrderListItem';
 import CustomDropdown from '../../components/CustomDropdown';
 import CustomDatepicker from '../../components/CustomDatepicker';
 import type { Order } from '../../types/types';
+import AuthApi from '../../api/auth';
 
 type TimeFilter = 'this-week' | 'this-month' | 'this-year' | 'later' | 'all';
 
 const MyOrdersPage = () => {
   const hasFetchedOrders = useRef(false);
   const { user, showToast } = useStore();
+  const { logout } = AuthApi();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -38,6 +40,7 @@ const MyOrdersPage = () => {
         if (response.status === 401) {
           showToast('Unauthorized access. Please log in again.', 'error');
           setError('Unauthorized');
+          logout();
           return;
         }
 

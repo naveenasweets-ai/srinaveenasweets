@@ -1,5 +1,6 @@
 import type { Product } from '../types/contextTypes';
 import { useStore } from '../context/StoreContext';
+import AuthApi from './auth';
 
 const ProductApi = () => {
   const apiUrl =
@@ -8,6 +9,7 @@ const ProductApi = () => {
       : 'http://localhost:4001';
 
   const { user, showToast } = useStore();
+  const { logout } = AuthApi();
 
   const fetchProducts = async () => {
     try {
@@ -80,23 +82,20 @@ const ProductApi = () => {
     }
   };
 
-  
   const deleteProduct = async (id: string, onClose: () => void) => {
     try {
-      const response = await fetch(
-        `${apiUrl}/api/admin/products/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${user?.token}`,
-          },
+      const response = await fetch(`${apiUrl}/api/admin/products/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user?.token}`,
         },
-      );
+      });
       const json = await response.json();
 
       if (response.status === 401) {
         showToast('Unauthorized access. Please log in again.', 'error');
+        logout();
         return;
       }
 

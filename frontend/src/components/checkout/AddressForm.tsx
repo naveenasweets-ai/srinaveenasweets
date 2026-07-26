@@ -31,7 +31,7 @@ export default function AddressForm({
     lat: initialValues?.lat ?? 16.314209,
     lng: initialValues?.lng ?? 80.435028,
   });
-  console.log('form: ', form.fullAddress, form.lat, form.lng)
+
   const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
   const [errors, setErrors] = useState<
     Partial<Record<keyof AddressFormData, string>>

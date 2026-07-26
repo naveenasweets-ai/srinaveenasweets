@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { useStore } from '../context/StoreContext';
 import type { CartItem } from '../types/contextTypes';
+import AuthApi from './auth';
 
 const CustomerApi = () => {
   const apiUrl =
@@ -10,6 +11,7 @@ const CustomerApi = () => {
       : 'http://localhost:4001';
 
   const { products, setCart, user, showToast, setWishlist } = useStore();
+  const { logout } = AuthApi();
   const productsRef = useRef(products);
   const userRef = useRef(user);
 
@@ -38,6 +40,7 @@ const CustomerApi = () => {
 
       if (response.status === 401) {
         showToast('Unauthorized access. Please log in again.', 'error');
+        logout();
         return;
       }
 
@@ -103,6 +106,7 @@ const CustomerApi = () => {
 
       if (response.status === 401) {
         showToast('Unauthorized access. Please log in again.', 'error');
+        logout();
         return;
       }
 
@@ -140,6 +144,7 @@ const CustomerApi = () => {
 
       if (response.status === 401) {
         showToast('Unauthorized access. Please log in again.', 'error');
+        logout();
         return;
       }
 
