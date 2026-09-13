@@ -106,19 +106,19 @@ export default function Categories() {
                         className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
                     </div>
-                    <div className="p-5 sm:p-6">
-                      <h3 className="text-xl sm:text-2xl font-semibold text-[#5f1021] mb-2">
+                    <div className="p-5 sm:p-6 flex flex-col justify-between">
+                      <h3 className="text-xl sm:text-2xl font-semibold text-[#5f1021] mb-2 line-clamp-1">
                         {product.name}
                       </h3>
                       <p className="text-sm sm:text-base text-[#5f1021]/80 mb-4 hidden lg:flex">
                         {product.description && (
-                          <span className="line-clamp-4 mb-2 text-xs text-(--color-muted) leading-relaxed">
+                          <span className="line-clamp-3 mb-2 text-xs text-(--color-muted) leading-relaxed">
                             {stripHtml(product.description)}
                           </span>
                         )}
                       </p>
                       <div className="text-sm font-semibold text-[#9f6c2a]">
-                        ₹{product.price.toLocaleString('en-IN')}
+                        ₹{product.price.toLocaleString('en-IN')}/-
                         {product.gstIncluded && (
                           <span className="ml-1.5 rounded bg-[#fff3e0] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[#9f6c2a]">
                             + GST

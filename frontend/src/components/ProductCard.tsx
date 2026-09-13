@@ -22,8 +22,8 @@ export default function ProductCard({ product }: { product: Product }) {
   const displayOriginalPrice = getProductOriginalPrice(product);
   const discount = displayOriginalPrice
     ? Math.round(
-        ((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100,
-      )
+      ((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100,
+    )
     : 0;
 
   const liked = isInWishlist(product._id);
@@ -37,10 +37,10 @@ export default function ProductCard({ product }: { product: Product }) {
 
   const inStockWeightOptions = isWeightProduct
     ? weightOptions.filter((option) => {
-        const stock = option.stock;
-        if (stock === undefined || stock === null) return true;
-        return stock > 0;
-      })
+      const stock = option.stock;
+      if (stock === undefined || stock === null) return true;
+      return stock > 0;
+    })
     : weightOptions;
 
   const effectiveWeightOptions =
@@ -147,19 +147,18 @@ export default function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <div className="group relative flex h-full flex-col rounded-3xl border border-(--color-border) bg-(--color-surface) shadow-[0_10px_30px_rgba(95,16,33,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-(--color-accent) hover:shadow-[0_22px_48px_-24px_rgba(26,15,15,0.35)]">
+    <div className="group relative flex flex-col overflow-hidden rounded-3xl border border-(--color-border) bg-(--color-surface) shadow-[0_10px_30px_rgba(95,16,33,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-(--color-accent) hover:shadow-[0_22px_48px_-24px_rgba(26,15,15,0.35)]">
       {/* Image section */}
       <div className="flex flex-col">
         <Link
           to={productUrl}
-          className="relative block aspect-3/4 overflow-hidden bg-(--color-surface-alt) cursor-pointer"
+          className="relative block aspect-1/2 max-h-[32vh] overflow-hidden bg-(--color-surface-alt) cursor-pointer"
         >
           <img
             src={product.image}
             alt={product.name}
-            className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${
-              showOutOfStockOverlay ? 'opacity-65 grayscale-30' : ''
-            }`}
+            className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${showOutOfStockOverlay ? 'opacity-65 grayscale-30' : ''
+              }`}
           />
 
           {/* Out of stock overlay */}
@@ -174,12 +173,12 @@ export default function ProductCard({ product }: { product: Product }) {
           {/* Badges */}
           <div className="pointer-events-none absolute left-3 top-3 z-10 flex flex-col gap-1.5">
             {product.badge && (
-              <span className="rounded-full bg-(--color-primary) px-2.5 py-1 text-[9px] font-bold tracking-[0.2em] text-(--color-accent-light) shadow-lg">
+              <span className="rounded-full bg-(--color-primary) px-2.5 py-1 text-[8px] whitespace-nowrap text-sm font-bold tracking-[0.2em] text-(--color-accent-light) shadow-lg">
                 {product.badge.toUpperCase()}
               </span>
             )}
             {discount > 0 && (
-              <span className="rounded-full bg-(--color-accent) px-2.5 py-1 text-[9px] font-extrabold tracking-[0.2em] text-(--color-primary-dark) shadow-lg">
+              <span className="rounded-full bg-(--color-accent) px-2.5 py-1 text-[7px] whitespace-nowrap font-extrabold w-fit tracking-[0.2em] text-(--color-primary-dark) shadow-lg">
                 -{discount}% OFF
               </span>
             )}
@@ -194,11 +193,10 @@ export default function ProductCard({ product }: { product: Product }) {
                 e.stopPropagation();
                 toggleWishlist(product._id);
               }}
-              className={`absolute right-3 top-3 z-10 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full shadow-lg transition-all sm:h-10 sm:w-10 ${
-                liked
+              className={`absolute right-3 top-3 z-10 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full shadow-lg transition-all sm:h-10 sm:w-10 ${liked
                   ? 'scale-100 bg-(--color-primary) text-(--color-accent)'
                   : 'bg-(--color-surface)/95 text-(--color-primary-dark) backdrop-blur-sm hover:bg-(--color-surface) hover:text-(--color-primary)'
-              }`}
+                }`}
               title={liked ? 'Remove from wishlist' : 'Add to wishlist'}
             >
               <svg
@@ -242,11 +240,10 @@ export default function ProductCard({ product }: { product: Product }) {
                       </select>
                       <button
                         onClick={handleAddToCart}
-                        className={`flex h-9 items-center justify-center rounded-lg px-3 py-2 text-[11px] font-bold uppercase tracking-[0.2em] shadow-md transition-all ${
-                          isWeightProduct
+                        className={`flex h-9 items-center justify-center rounded-lg px-3 py-2 text-[11px] font-bold uppercase tracking-[0.2em] shadow-md transition-all ${isWeightProduct
                             ? 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
                             : 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
-                        }`}
+                          }`}
                       >
                         ADD TO BAG
                       </button>
@@ -254,11 +251,10 @@ export default function ProductCard({ product }: { product: Product }) {
                   ) : (
                     <button
                       onClick={handleAddToCart}
-                      className={`flex h-9 items-center justify-center rounded-lg px-3 py-2 text-[11px] font-bold uppercase tracking-[0.2em] shadow-md transition-all col-span-2 ${
-                        isWeightProduct
+                      className={`flex h-9 items-center justify-center rounded-lg px-3 py-2 text-[11px] font-bold uppercase tracking-[0.2em] shadow-md transition-all col-span-2 ${isWeightProduct
                           ? 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
                           : 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
-                      }`}
+                        }`}
                     >
                       ADD TO BAG
                     </button>
@@ -331,11 +327,10 @@ export default function ProductCard({ product }: { product: Product }) {
                     />
                     <button
                       onClick={handleAddToCart}
-                      className={`flex h-10 items-center justify-center rounded-lg px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] shadow-lg transition-all ${
-                        isWeightProduct
+                      className={`flex h-10 items-center justify-center rounded-lg px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] shadow-lg transition-all ${isWeightProduct
                           ? 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
                           : 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
-                      }`}
+                        }`}
                     >
                       ADD TO BAG
                     </button>
@@ -343,11 +338,10 @@ export default function ProductCard({ product }: { product: Product }) {
                 ) : (
                   <button
                     onClick={handleAddToCart}
-                    className={`flex h-10 items-center justify-center rounded-lg px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] shadow-lg transition-all col-span-2 ${
-                      isWeightProduct
+                    className={`flex h-10 items-center justify-center rounded-lg px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] shadow-lg transition-all col-span-2 ${isWeightProduct
                         ? 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
                         : 'cursor-pointer bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_100%)] text-(--color-accent-light) hover:brightness-110 active:scale-[0.97]'
-                    }`}
+                      }`}
                   >
                     ADD TO BAG
                   </button>
@@ -404,21 +398,21 @@ export default function ProductCard({ product }: { product: Product }) {
       <div className="flex flex-1 flex-col p-3.5 sm:p-4">
         <Link
           to={productUrl}
-          className="mb-1 cursor-pointer text-[9px] font-bold uppercase tracking-[0.24em] text-(--color-accent-dark) hover:underline sm:text-[10px]"
+          className="cursor-pointer text-[9px] font-bold uppercase tracking-[0.24em] text-(--color-accent-dark) hover:underline sm:text-[10px]"
         >
           {product.category}
         </Link>
-        <p className="mb-1.5 truncate text-[9px] font-medium text-(--color-muted) sm:text-[10px]">
+        <p className="mb-1 truncate text-[9px] font-medium text-(--color-muted) sm:text-[10px]">
           {product.subcategory}
         </p>
         <Link
           to={productUrl}
-          className="font-display mb-1.5 cursor-pointer text-sm font-bold leading-tight text-(--color-primary-dark) transition-colors hover:text-(--color-primary) sm:text-base lg:text-lg"
+          className="font-display mb-1.5 cursor-pointer text-m line-clamp-1 font-bold leading-tight text-(--color-primary-light) transition-colors hover:text-(--color-primary) sm:text-base lg:text-lg"
         >
           {product.name}
         </Link>
         {product.description && (
-          <p className="line-clamp-3 mb-2 text-xs text-(--color-muted) leading-relaxed">
+          <p className="line-clamp-2 lg:line-clamp-3 mb-2 text-xs text-(--color-muted) leading-relaxed">
             {stripHtml(product.description)}
           </p>
         )}
